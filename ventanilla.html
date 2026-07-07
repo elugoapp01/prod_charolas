@@ -1284,7 +1284,7 @@
         // CONFIGURACIÓN - URL ACTUALIZADA
         // ============================================================
         const APPS_SCRIPT_USUARIOS = 'https://script.google.com/macros/s/AKfycbyJ_8RqeFGxmikVK4sAae7Lc789-7BFftIFCErYXD0s2l3fyYW5_3D_VgMNa-daws2gxw/exec';
-        const APPS_SCRIPT_REGISTRO = 'https://script.google.com/macros/s/AKfycbwy0VQG-UyEoo1B_aB2ezftyqgc0IhQ-m1V8hxKvAiUphPsVO1qZNFCSFHJ9lWylL6HIA/exec';
+        const APPS_SCRIPT_REGISTRO = 'https://script.google.com/macros/s/AKfycbxPkcl6shnGLDlxqL8Lg9_K_dRTg9E_Tu475QUx_NB-PsaaR-wOCtVqt6sR64hU2aZWhA/exec';
         const APPS_SCRIPT_DATOS_GENERALES = 'https://script.google.com/macros/s/AKfycbx4GO-KhQbvu1mru0Pj77UlwC0p30bzrUlJW2c7lynmixvubnfleJM_nIpO1FPrt0oCLQ/exec';
         const APPS_SCRIPT_HEADCOUNT = 'https://script.google.com/macros/s/AKfycbxNhQEXGLsQD56i-hcQjy4_5Be0kVnI4h8E6188BTb7t2kFD9fE9T9FpPmQRUyW2Fhr/exec';
         const APPS_SCRIPT_ORGANIGRAMA = 'https://script.google.com/macros/s/AKfycbz614kMYgNJSbLlxu-7iDNVvupd2ZsRFC10VMhn248EsOo3mcdqYOTYXbpnen_e2lyX/exec';
@@ -1569,10 +1569,7 @@
 
         async function cargarOperadores() {
             try {
-                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getOperadores', {
-                    method: 'GET',
-                    mode: 'cors'
-                });
+                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getOperadores');
                 const result = await response.json();
                 if (result.success && result.data) {
                     operadoresUnicos = result.data;
@@ -1739,10 +1736,8 @@
             showLoader();
 
             try {
-                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=buscarRegistrosPorBitacora&bitacora=' + encodeURIComponent(bitacora), {
-                method: 'GET',
-                mode: 'cors'
-                });
+                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=buscarRegistrosPorBitacora&bitacora=' +
+                    encodeURIComponent(bitacora));
                 const result = await response.json();
 
                 if (!result.success) throw new Error(result.error || 'Error al buscar');
@@ -1772,10 +1767,7 @@
                     return;
                 }
 
-                const responseCompleto = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getRegistroPorId&id=' + encodeURIComponent(id), {
-                    method: 'GET',
-                    mode: 'cors'
-                });
+                const responseCompleto = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getRegistroPorId&id=' + encodeURIComponent(id));
                 const resultadoCompleto = await responseCompleto.json();
 
                 if (!resultadoCompleto.success) {
@@ -2043,10 +2035,7 @@
             showLoader();
 
             try {
-                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getRegistroPorId&id=' + encodeURIComponent(id), {
-                    method: 'GET',
-                    mode: 'cors'
-                });
+                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getRegistroPorId&id=' + encodeURIComponent(id));
                 const result = await response.json();
 
                 if (!result.success) throw new Error(result.error);
@@ -2622,7 +2611,7 @@
 
                 await fetch(APPS_SCRIPT_REGISTRO, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
@@ -2768,7 +2757,7 @@
 
                 await fetch(APPS_SCRIPT_REGISTRO, {
                     method: 'POST',
-                    mode: 'cors',
+                    mode: 'no-cors',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });

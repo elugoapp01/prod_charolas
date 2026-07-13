@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Repositorio - Retorno de Charolas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI','Roboto',sans-serif; }
+        :root {
+            --primary:#0A2342; --secondary:#2C4C6B; --accent:#4A89C5; --light:#F5F9FF;
+            --white:#fff; --gray:#E8EEF2; --text-dark:#1E2B3C; --success:#27AE60;
+            --danger:#E74C3C; --dominos:#00A5B0; --starbucks:#006241;
+            --border-radius:10px; --box-shadow:0 4px 12px rgba(10,35,66,0.06);
+        }
+        body { background:var(--gray); padding:15px; min-height:100vh; }
+        .container {
+            max-width:1400px; margin:0 auto; background:var(--white);
+            border-radius:var(--border-radius); box-shadow:var(--box-shadow);
+            padding:15px; display:flex; flex-direction:column; height:calc(100vh - 30px);
+        }
+        .fixed-header { flex-shrink:0; background:var(--white); padding-bottom:5px; }
+        .header {
+            display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+            margin-bottom:8px; padding-bottom:8px; border-bottom:2px solid var(--accent);
+        }
+        .header-left { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
+        .logo-small { max-width:60px; height:auto; }
+        .header h1 { color:var(--primary); font-size:1.5rem; margin:0; }
+        .header h1 span { color:var(--accent); font-weight:300; }
+        .btn-group { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+        .btn {
+            padding:6px 14px; border:none; border-radius:6px; font-weight:600;
+            font-size:0.75rem; text-transform:uppercase; cursor:pointer;
+            display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+        }
+        .btn-primary { background:var(--primary); color:white; }
+        .btn-success { background:var(--success); color:white; }
+        .btn-info { background:var(--accent); color:white; }
+        .btn-download { background:#2C7AB1; color:white; }
+        .btn-danger { background:var(--danger); color:white; }
+        .buscador-container {
+            display:flex; align-items:center; gap:10px; background:var(--light);
+            padding:8px 12px; border-radius:8px; border:1px solid rgba(74,137,197,0.15);
+        }
+        .buscador-input {
+            flex:1; padding:8px 12px; border:1.5px solid var(--gray);
+            border-radius:6px; font-size:0.85rem; text-transform:uppercase;
+        }
+        .fecha-fija {
+            background:var(--white); padding:3px 0 5px; margin-bottom:5px;
+            border-bottom:1px solid var(--gray); font-size:0.7rem;
+            text-align:right; position:sticky; top:0; z-index:15;
+        }
+        .stats-container { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+        .stat-card {
+            background:linear-gradient(135deg,var(--light),var(--white));
+            padding:6px 12px; border-radius:8px; border-left:4px solid var(--accent);
+            box-shadow:var(--box-shadow); flex:1 1 160px;
+        }
+        .stat-card.dominos { border-left-color:var(--dominos); }
+        .stat-card.starbucks { border-left-color:var(--starbucks); }
+        .stat-label { font-size:0.65rem; text-transform:uppercase; font-weight:600; color:var(--secondary); }
+        .stat-number { font-size:1.3rem; font-weight:700; color:var(--primary); line-height:1.1; }
+        .stat-sub { font-size:0.65rem; color:var(--secondary); margin-top:2px; }
+        .table-section { flex:1; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+        .table-responsive {
+            overflow-x:auto; overflow-y:auto; border-radius:8px;
+            border:1px solid var(--gray); flex:1; -webkit-overflow-scrolling:touch;
+        }
+        table { width:100%; border-collapse:collapse; table-layout:auto; }
+        th {
+            background:var(--primary); color:white; padding:8px 6px;
+            font-size:0.7rem; text-transform:uppercase; text-align:center;
+            position:sticky; top:0; z-index:20; white-space:nowrap;
+        }
+        td { padding:6px; border-bottom:1px solid var(--gray); font-size:0.8rem; text-align:center; white-space:nowrap; }
+        tr:hover td { background:var(--light); }
+        .badge { padding:2px 8px; border-radius:50px; font-size:0.65rem; font-weight:600; display:inline-block; text-transform:uppercase; white-space:nowrap; }
+        .badge-dominos { background:rgba(0,165,176,0.1); color:var(--dominos); border:1px solid var(--dominos); }
+        .badge-starbucks { background:rgba(0,98,65,0.1); color:var(--starbucks); border:1px solid var(--starbucks); }
+        .badge-turno { background:var(--primary); color:white; padding:2px 6px; border-radius:20px; font-size:0.6rem; }
+        .empty-state { text-align:center; padding:40px 20px; color:var(--secondary); }
+        .footer {
+            margin-top:10px; color:var(--secondary); font-size:0.65rem;
+            text-align:right; border-top:1px solid var(--gray); padding-top:8px;
+        }
+
+        .modal {
+            position:fixed; top:0; left:0; width:100%; height:100%;
+            background:rgba(0,0,0,0.5); display:none; justify-content:center;
+            align-items:center; z-index:10000;
+        }
+        .modal-content {
+            background:white; padding:20px 25px; border-radius:12px;
+            width:90%; max-width:900px; max-height:70vh; overflow-y:auto;
+        }
+        .modal-header { display:flex; justify-content:space-between; margin-bottom:15px; border-bottom:2px solid var(--accent); }
+        .modal-header h2 { color:var(--primary); font-size:1.3rem; }
+        .modal-close { font-size:1.5rem; cursor:pointer; color:var(--danger); }
+        .detalle-info { background:var(--light); padding:12px; border-radius:8px; margin-bottom:15px; font-size:0.85rem; }
+        .detalle-linea1 { display:flex; flex-wrap:wrap; gap:15px; align-items:center; margin-bottom:5px; }
+        .detalle-table { width:100%; border-collapse:collapse; table-layout:fixed; }
+        .detalle-table th { 
+            background:var(--secondary); color:white; padding:6px 4px; 
+            font-size:0.65rem; text-align:center; 
+        }
+        .detalle-table td { 
+            padding:4px 2px; border-bottom:1px solid var(--gray); 
+            text-align:center; font-size:0.75rem; vertical-align:middle;
+        }
+        .detalle-table .col-marca { width:50px; min-width:50px; max-width:50px; }
+        .detalle-table .col-tienda { width:60%; }
+        .detalle-table .col-cantidad { width:25%; }
+        .marca-icon-small { width:28px; height:28px; object-fit:contain; display:block; margin:0 auto; }
+
+        .modal-download .modal-content { max-width:500px; }
+        .modal-download .modal-field { margin-bottom:12px; }
+        .modal-download .modal-field label { 
+            display:block; font-size:0.7rem; font-weight:700; 
+            color:var(--primary); text-transform:uppercase; margin-bottom:2px; 
+        }
+        .modal-download .modal-field input,
+        .modal-download .modal-field select {
+            width:100%; padding:8px 12px; border:2px solid var(--gray);
+            border-radius:6px; font-size:0.9rem; text-transform:uppercase;
+        }
+        .modal-download .modal-field input:focus,
+        .modal-download .modal-field select:focus {
+            outline:none; border-color:var(--accent);
+        }
+        .modal-download .modal-actions { 
+            display:flex; gap:10px; justify-content:center; margin-top:16px; 
+        }
+        .modal-download .modal-actions .btn { flex:1; justify-content:center; }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+        .loading-content {
+            background: white;
+            border-radius: 50%;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease;
+            position: relative;
+        }
+        .loading-ring {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, 
+                transparent 0deg,
+                transparent 280deg,
+                #0A4B7A 300deg,
+                #2C7AB1 320deg,
+                #5FA3D1 340deg,
+                #0A4B7A 360deg);
+            mask: radial-gradient(transparent 65%, black 66%);
+            -webkit-mask: radial-gradient(transparent 65%, black 66%);
+            animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .loading-logo {
+            width: 70px;
+            height: 70px;
+            position: relative;
+            z-index: 2;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-logo img {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .col-unidad { max-width:70px; min-width:50px; width:70px; }
+        .col-empleado { min-width:120px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .col-fecha { min-width:130px; white-space:nowrap; }
+        .col-turno { min-width:60px; }
+        .col-ruta { min-width:60px; }
+        .col-bitacora { min-width:70px; }
+        .col-tiendas { min-width:50px; }
+        .col-dominos { min-width:50px; }
+        .col-starbucks { min-width:50px; }
+        .col-ver { min-width:50px; }
+
+        @media (max-width:768px) {
+            .header { flex-direction:column; align-items:flex-start; gap:8px; }
+            .btn-group { width:100%; }
+            .btn { flex:1; font-size:0.65rem; }
+            .detalle-table { table-layout:auto; }
+            .detalle-table .col-marca { width:40px; min-width:40px; max-width:40px; }
+            .marca-icon-small { width:22px; height:22px; }
+            .detalle-table .col-tienda { width:50%; }
+            .detalle-table .col-cantidad { width:30%; }
+            .col-unidad { max-width:60px; min-width:40px; width:60px; }
+            .col-empleado { max-width:120px; min-width:80px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="fixed-header">
+        <div class="header">
+            <div class="header-left">
+                <img src="logo.png" alt="Logo" style="height:45px; width:auto;" class="logo-small">
+                <h1>Repositorio de <span>Charolas</span></h1>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div class="buscador-container" style="margin-bottom:0;">
+                    <span style="padding:0 8px;">🔍</span>
+                    <input type="text" id="buscadorBitacora" placeholder="Bitácora" 
+                           style="width:150px; padding:0 5px; border:none; outline:none; background:transparent; text-transform:uppercase; height:100%;" 
+                           oninput="filtrarTabla()">
+                    <button onclick="limpiarBuscador()" style="padding:0 10px; border:none; background:var(--gray); cursor:pointer;">✖</button>
+                </div>
+                <button class="btn btn-download" onclick="abrirModalDescarga()" title="Descargar Excel">📥</button>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="enviarCorteWhatsApp()">📤 ENVIAR CORTE</button>
+                    <button class="btn btn-info" onclick="cerrarVentana()">📝 NUEVO REGISTRO</button>
+                    <button class="btn btn-primary" id="btnRefrescar" onclick="cargarRegistros()">🔄 REFRESCAR</button>
+                </div>
+            </div>
+        </div>
+        <div class="fecha-fija" id="fechaActualizacion"></div>
+        <div class="stats-container">
+            <div class="stat-card"><div class="stat-label">Registros ÚLTIMO TURNO</div><div class="stat-number" id="totalRegistrosUltimoTurno">0</div><div class="stat-sub" id="turnoUltimoTurno">CARGANDO...</div></div>
+            <div class="stat-card dominos"><div class="stat-label">DOMINO'S - ÚLTIMO TURNO</div><div class="stat-number" id="totalDominosUltimoTurno">0</div><div class="stat-sub">Total del turno</div></div>
+            <div class="stat-card starbucks"><div class="stat-label">STARBUCKS - ÚLTIMO TURNO</div><div class="stat-number" id="totalStarbucksUltimoTurno">0</div><div class="stat-sub">Total del turno</div></div>
+            <div class="stat-card"><div class="stat-label">Tiendas ÚLTIMO TURNO</div><div class="stat-number" id="totalTiendasUltimoTurno">0</div><div class="stat-sub">Capturadas en el turno</div></div>
+        </div>
+    </div>
+    <div class="table-section">
+        <div class="table-responsive">
+            <table id="tablaRepositorio">
+                <thead>
+                    <tr>
+                        <th class="col-fecha">Fecha/Hora</th>
+                        <th class="col-turno">Turno</th>
+                        <th class="col-empleado">Empleado</th>
+                        <th class="col-ruta">Ruta</th>
+                        <th class="col-bitacora">Bitácora</th>
+                        <th class="col-unidad">Unidad</th>
+                        <th class="col-tiendas">Tiendas</th>
+                        <th class="col-dominos">Domino's</th>
+                        <th class="col-starbucks">Starbucks</th>
+                        <th class="col-ver">Ver</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="footer">Sistema de control de Registro de retorno de charolas V3.0 | E.Lugo 2026 | v7 - Corrección FECHA BITÁCORA</div>
+</div>
+
+<div id="detalleModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📋 DETALLE DEL REGISTRO</h2>
+            <span class="modal-close" onclick="cerrarDetalleModal()">✖</span>
+        </div>
+        <div id="detalleContenido"></div>
+    </div>
+</div>
+
+<div id="modalDescarga" class="modal modal-download">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📥 DESCARGAR REPORTE</h2>
+            <span class="modal-close" onclick="cerrarModalDescarga()">✖</span>
+        </div>
+        <div style="margin-bottom:10px; font-size:0.85rem; color:#555;">
+            Selecciona el rango de fechas para el reporte
+        </div>
+        <div class="modal-field">
+            <label>📅 FECHA DE INICIO</label>
+            <input type="date" id="fechaInicio">
+        </div>
+        <div class="modal-field">
+            <label>📅 FECHA DE FIN</label>
+            <input type="date" id="fechaFin">
+        </div>
+        <div class="modal-field">
+            <label>🔑 CONTRASEÑA</label>
+            <input type="password" id="passwordDescarga" placeholder="Ingresa la contraseña" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-success" onclick="descargarReporte()">📥 DESCARGAR</button>
+            <button class="btn btn-danger" onclick="cerrarModalDescarga()">✖ CANCELAR</button>
+        </div>
+        <div id="mensajeDescarga" style="margin-top:10px; text-align:center; font-weight:600; font-size:0.85rem; display:none;"></div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// CONFIGURACIÓN
+// ============================================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxsDP201kZk9XHB6T5rAib0Bqtz5lNqSKIT8BCWJUeywPsY3U1_3eFWmlNEm1HDMAMV/exec';
+const EMPLEADOS_EXCLUIDOS = ['ARIANA LOPEZ FERNANDEZ', 'MICHELLE VELAZQUEZ GODINEZ', 'LETICIA RODRIGUEZ REYES'];
+let todosRegistros = [];
+let registrosFiltrados = [];
+
+function showLoader() {
+    if (document.getElementById('customLoader')) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.id = 'customLoader';
+    overlay.innerHTML = `
+        <div class="loading-content">
+            <div class="loading-ring"></div>
+            <div class="loading-logo">
+                <img src="logo.png" alt="Cargando" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'55\' height=\'55\' viewBox=\'0 0 24 24\' fill=\'%230A4B7A\'%3E%3Cpath d=\'M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z\'/%3E%3C/svg%3E'">
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+function hideLoader() {
+    const loader = document.getElementById('customLoader');
+    if (loader) loader.remove();
+}
+
+// ============================================
+// FUNCIONES DE FECHA
+// v7 - Corregido: FECHA BITÁCORA ahora parsea correctamente con guiones y fallback
+// ============================================
+function parseFechaDDMMYYYY(fechaStr) {
+    if (!fechaStr) return null;
+    try {
+        // Si ya es un objeto Date, devolverlo
+        if (typeof fechaStr === 'object' && fechaStr.getTime) {
+            return isNaN(fechaStr.getTime()) ? null : fechaStr;
+        }
+        // Si es string, intentar parsear
+        const strFecha = String(fechaStr);
+        // Detectar separador: puede ser '/' o '-'
+        const separador = strFecha.includes('-') ? '-' : '/';
+        const partes = strFecha.split(separador);
+        if (partes.length === 3) {
+            const dia = parseInt(partes[0]);
+            const mes = parseInt(partes[1]) - 1;
+            const anio = parseInt(partes[2]);
+            if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio) && anio > 1900 && anio < 2100) {
+                return new Date(anio, mes, dia);
+            }
+        }
+        // Fallback: intentar parseo nativo
+        const fechaNativa = new Date(fechaStr);
+        return isNaN(fechaNativa.getTime()) ? null : fechaNativa;
+    } catch(e) {
+        return null;
+    }
+}
+
+function parseFechaHoraDDMMYYYY(fechaStr) {
+    if (!fechaStr) return null;
+    try {
+        if (typeof fechaStr === 'object' && fechaStr.getTime) {
+            return isNaN(fechaStr.getTime()) ? null : fechaStr;
+        }
+        const partes = String(fechaStr).split(' ');
+        const fechaParte = partes[0] || '';
+        const horaParte = partes[1] || '00:00';
+        const partesFecha = fechaParte.split('/');
+        if (partesFecha.length === 3) {
+            const dia = parseInt(partesFecha[0]);
+            const mes = parseInt(partesFecha[1]) - 1;
+            const anio = parseInt(partesFecha[2]);
+            const partesHora = horaParte.split(':');
+            const horas = parseInt(partesHora[0]) || 0;
+            const minutos = parseInt(partesHora[1]) || 0;
+            if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) {
+                return new Date(anio, mes, dia, horas, minutos);
+            }
+        }
+        // Fallback: intentar parseo nativo si no vino en formato DD/MM/YYYY
+        const fechaNativa = new Date(fechaStr);
+        return isNaN(fechaNativa.getTime()) ? null : fechaNativa;
+    } catch(e) {
+        return null;
+    }
+}
+
+function fechaToExcelSerial(fecha) {
+    if (!fecha || isNaN(fecha.getTime())) return null;
+    // Usar UTC para evitar problemas de zona horaria
+    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+    const diff = (Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()) - excelEpoch.getTime()) / (1000 * 60 * 60 * 24);
+    return Math.round(diff * 100000) / 100000;
+}
+
+function fechaHoraToExcelSerial(fecha) {
+    if (!fecha || isNaN(fecha.getTime())) return null;
+    // Usar UTC para evitar problemas de zona horaria
+    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+    const diff = (Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate(), fecha.getHours(), fecha.getMinutes(), fecha.getSeconds()) - excelEpoch.getTime()) / (1000 * 60 * 60 * 24);
+    return Math.round(diff * 100000) / 100000;
+}
+
+function formatearFechaMostrar(fechaStr) {
+    if (!fechaStr) return 'N/A';
+    try {
+        const fecha = new Date(fechaStr);
+        if (isNaN(fecha.getTime())) return String(fechaStr);
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fecha.getFullYear();
+        const horas = fecha.getHours().toString().padStart(2, '0');
+        const minutos = fecha.getMinutes().toString().padStart(2, '0');
+        return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+    } catch(e) { return String(fechaStr); }
+}
+
+function obtenerSoloFecha(fechaStr) {
+    if (!fechaStr) return '';
+    try {
+        const fecha = new Date(fechaStr);
+        if (isNaN(fecha.getTime())) return '';
+        const dia = fecha.getDate().toString().padStart(2, '0');
+        const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        const anio = fecha.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+    } catch(e) { return ''; }
+}
+
+function esFechaMayor(f1, f2) {
+    if (!f1 || !f2) return false;
+    const d1 = new Date(f1);
+    const d2 = new Date(f2);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
+    return d1.getTime() > d2.getTime();
+}
+
+function sonMismaFecha(f1, f2) {
+    if (!f1 || !f2) return false;
+    const d1 = new Date(f1);
+    const d2 = new Date(f2);
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
+    return d1.getTime() === d2.getTime();
+}
+
+async function cargarRegistros() {
+    showLoader();
+    document.getElementById('fechaActualizacion').innerHTML = `Última actualización: ${new Date().toLocaleString()}`;
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?accion=getRegistros');
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error || 'Error desconocido');
+        todosRegistros = result.data || [];
+        todosRegistros.sort((a, b) => {
+            const fechaA = new Date(a.marcaTemporal);
+            const fechaB = new Date(b.marcaTemporal);
+            if (isNaN(fechaA.getTime()) || isNaN(fechaB.getTime())) return 0;
+            return fechaB - fechaA;
+        });
+        registrosFiltrados = [...todosRegistros];
+        calcularUltimaFechaYTurno();
+        renderizarTabla();
+    } catch (error) {
+        console.error(error);
+        document.getElementById('tablaBody').innerHTML = `<tr><td colspan="10" class="empty-state"><h3>❌ Error al conectar</h3><p>${error.message}</p></td></tr>`;
+    } finally {
+        hideLoader();
+    }
+}
+
+function calcularUltimaFechaYTurno() {
+    if (todosRegistros.length === 0) {
+        actualizarTarjetas({ fecha:'', turno:'SIN REGISTROS', registros:0, tiendas:0, dominos:0, starbucks:0 });
+        return;
+    }
+    
+    const registrosFiltradosExcluidos = todosRegistros.filter(reg => {
+        const empleado = (reg.datosGenerales?.empleado || '').toUpperCase().trim();
+        return !EMPLEADOS_EXCLUIDOS.includes(empleado);
+    });
+    
+    if (registrosFiltradosExcluidos.length === 0) {
+        actualizarTarjetas({ fecha:'', turno:'SIN REGISTROS', registros:0, tiendas:0, dominos:0, starbucks:0 });
+        return;
+    }
+    
+    let fechaMasReciente = null, turnoDeFechaMasReciente = null;
+    for (const reg of registrosFiltradosExcluidos) {
+        const fechaReg = obtenerSoloFecha(reg.fecha);
+        if (fechaReg && (!fechaMasReciente || esFechaMayor(fechaReg, fechaMasReciente))) {
+            fechaMasReciente = fechaReg;
+            turnoDeFechaMasReciente = reg.turno;
+        }
+    }
+    if (!fechaMasReciente) {
+        actualizarTarjetas({ fecha:'', turno:'SIN REGISTROS', registros:0, tiendas:0, dominos:0, starbucks:0 });
+        return;
+    }
+    let totalRegistros=0, totalTiendas=0, totalDominos=0, totalStarbucks=0;
+    for (const reg of registrosFiltradosExcluidos) {
+        const fechaReg = obtenerSoloFecha(reg.fecha);
+        if (sonMismaFecha(fechaReg, fechaMasReciente) && reg.turno === turnoDeFechaMasReciente) {
+            totalRegistros++;
+            totalTiendas += parseInt(reg.resumen?.totalTiendas) || 0;
+            totalDominos += parseInt(reg.resumen?.totalDominos) || 0;
+            totalStarbucks += parseInt(reg.resumen?.totalStarbucks) || 0;
+        }
+    }
+    actualizarTarjetas({
+        fecha: fechaMasReciente,
+        turno: turnoDeFechaMasReciente,
+        registros: totalRegistros,
+        tiendas: totalTiendas,
+        dominos: totalDominos,
+        starbucks: totalStarbucks
+    });
+}
+
+function actualizarTarjetas(d) {
+    document.getElementById('totalRegistrosUltimoTurno').textContent = d.registros;
+    document.getElementById('turnoUltimoTurno').textContent = `TURNO: ${d.turno}`;
+    document.getElementById('totalDominosUltimoTurno').textContent = Math.round(d.dominos);
+    document.getElementById('totalStarbucksUltimoTurno').textContent = Math.round(d.starbucks);
+    document.getElementById('totalTiendasUltimoTurno').textContent = d.tiendas;
+    window.datosUltimoTurno = d;
+}
+
+function renderizarTabla() {
+    const tbody = document.getElementById('tablaBody');
+    if (registrosFiltrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="10" class="empty-state"><h3>📭 No hay registros</h3></td></tr>`;
+        return;
+    }
+    let html = '';
+    for (const reg of registrosFiltrados) {
+        const totalDominos = parseInt(reg.resumen?.totalDominos) || 0;
+        const totalStarbucks = parseInt(reg.resumen?.totalStarbucks) || 0;
+        const totalTiendas = parseInt(reg.resumen?.totalTiendas) || 0;
+        const empleado = reg.datosGenerales?.empleado || reg.datosGenerales?.noEmpleado || '';
+        const fechaMostrar = formatearFechaMostrar(reg.marcaTemporal);
+        html += `<tr>
+            <td class="col-fecha" style="font-size:0.7rem;">${fechaMostrar || 'N/A'}</td>
+            <td class="col-turno"><span class="badge-turno">${reg.turno || ''}</span></td>
+            <td class="col-empleado" title="${empleado}">${empleado}</td>
+            <td class="col-ruta">${reg.datosGenerales?.ruta || ''}</td>
+            <td class="col-bitacora"><strong>${reg.datosGenerales?.bitacora || ''}</strong></td>
+            <td class="col-unidad">${reg.datosGenerales?.unidad || ''}</td>
+            <td class="col-tiendas" style="font-weight:600;">${totalTiendas}</td>
+            <td class="col-dominos" style="color:var(--dominos);font-weight:600;">${totalDominos}</td>
+            <td class="col-starbucks" style="color:var(--starbucks);font-weight:600;">${totalStarbucks}</td>
+            <td class="col-ver"><button class="btn btn-info" style="padding:3px 8px; font-size:0.7rem;" onclick="verDetalle('${reg.id}')">👁️</button></td>
+        </tr>`;
+    }
+    tbody.innerHTML = html;
+}
+
+function filtrarTabla() {
+    const texto = document.getElementById('buscadorBitacora').value.trim().toUpperCase();
+    registrosFiltrados = texto === '' ? [...todosRegistros] : todosRegistros.filter(reg => reg.datosGenerales?.bitacora?.toUpperCase().includes(texto));
+    renderizarTabla();
+}
+function limpiarBuscador() { document.getElementById('buscadorBitacora').value = ''; filtrarTabla(); }
+
+function verDetalle(id) {
+    const registro = todosRegistros.find(r => r.id === id);
+    if (!registro) {
+        document.getElementById('detalleContenido').innerHTML = '<div style="text-align:center;padding:20px;">❌ Registro no encontrado</div>';
+        document.getElementById('detalleModal').style.display = 'flex';
+        return;
+    }
+    const fechaMostrar = formatearFechaMostrar(registro.marcaTemporal);
+    const empleado = registro.datosGenerales?.empleado || registro.datosGenerales?.noEmpleado || '';
+    let html = `<div class="detalle-info">
+        <div class="detalle-linea1">
+            <span><strong>Fecha:</strong> ${fechaMostrar}</span>
+            <span><strong>Turno:</strong> ${registro.turno || ''}</span>
+            <span><strong>Empleado:</strong> ${empleado}</span>
+            <span><strong>Ruta:</strong> ${registro.datosGenerales?.ruta || ''}</span>
+            <span><strong>Bitácora:</strong> ${registro.datosGenerales?.bitacora || ''}</span>
+            <span><strong>Unidad:</strong> ${registro.datosGenerales?.unidad || ''}</span>
+        </div>
+        <div><strong>Comentarios:</strong> ${registro.datosGenerales?.comentarios || 'S/N'}</div>
+    </div>`;
+    html += `<h3 style="margin-bottom:8px;font-size:1rem;">📋 TIENDAS</h3>
+        <div style="overflow-x:auto;">
+        <table class="detalle-table">
+            <thead>
+                <tr>
+                    <th class="col-marca">MARCA</th>
+                    <th class="col-tienda">TIENDA</th>
+                    <th class="col-cantidad">CANTIDAD</th>
+                </tr>
+            </thead>
+            <tbody>`;
+    
+    (registro.registros || []).forEach(t => {
+        const tipo = t.tipo || '';
+        let imgSrc = 'logo.png';
+        if (tipo === 'DOMINOS') imgSrc = 'dominos.png';
+        else if (tipo === 'STARBUCKS') imgSrc = 'starbucks.png';
+        
+        html += `<tr>
+            <td class="col-marca">
+                <img class="marca-icon-small" src="${imgSrc}" alt="${tipo}" onerror="this.style.display='none'">
+            </td>
+            <td class="col-tienda">${t.tienda || ''}</td>
+            <td class="col-cantidad" style="font-weight:600;">${parseFloat(t.cantidadFisica)||0}</td>
+        </tr>`;
+    });
+    
+    html += `</tbody>
+        </table>
+        </div>
+        <div style="margin-top:10px;padding:5px;background:var(--light);border-radius:5px;">
+            <strong>RESUMEN:</strong> Tiendas: ${registro.resumen?.totalTiendas||0} | 
+            Domino's: ${registro.resumen?.totalDominos||0} | 
+            Starbucks: ${registro.resumen?.totalStarbucks||0}
+        </div>`;
+    document.getElementById('detalleContenido').innerHTML = html;
+    document.getElementById('detalleModal').style.display = 'flex';
+}
+function cerrarDetalleModal() { document.getElementById('detalleModal').style.display = 'none'; }
+
+function abrirModalDescarga() {
+    document.getElementById('modalDescarga').style.display = 'flex';
+    document.getElementById('fechaInicio').value = '';
+    document.getElementById('fechaFin').value = '';
+    document.getElementById('passwordDescarga').value = '';
+    document.getElementById('mensajeDescarga').style.display = 'none';
+    document.getElementById('mensajeDescarga').textContent = '';
+}
+function cerrarModalDescarga() {
+    document.getElementById('modalDescarga').style.display = 'none';
+}
+
+// ============================================
+// DESCARGA DE REPORTE - CON FORMATO DE CELDAS
+// v7 - Corregido: FECHA BITÁCORA ahora se descarga correctamente
+// ============================================
+async function descargarReporte() {
+    const fechaInicio = document.getElementById('fechaInicio').value;
+    const fechaFin = document.getElementById('fechaFin').value;
+    const password = document.getElementById('passwordDescarga').value.trim().toUpperCase();
+    const mensajeEl = document.getElementById('mensajeDescarga');
+    
+    if (!fechaInicio || !fechaFin) {
+        mensajeEl.style.display = 'block';
+        mensajeEl.style.color = 'var(--danger)';
+        mensajeEl.textContent = '❌ Selecciona ambas fechas';
+        return;
+    }
+    
+    if (fechaInicio > fechaFin) {
+        mensajeEl.style.display = 'block';
+        mensajeEl.style.color = 'var(--danger)';
+        mensajeEl.textContent = '❌ La fecha de inicio no puede ser mayor a la fecha de fin';
+        return;
+    }
+    
+    if (password !== 'TRANSPORTE' && password !== 'MCHAROLAS') {
+        mensajeEl.style.display = 'block';
+        mensajeEl.style.color = 'var(--danger)';
+        mensajeEl.textContent = '❌ Contraseña incorrecta';
+        return;
+    }
+    
+    mensajeEl.style.display = 'block';
+    mensajeEl.style.color = 'var(--accent)';
+    mensajeEl.textContent = '⏳ Generando reporte...';
+    
+    showLoader();
+    
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?accion=getRegistros');
+        const result = await response.json();
+        if (!result.success) throw new Error(result.error || 'Error al obtener registros');
+        
+        const todosRegistrosLocal = result.data || [];
+        
+        // FILTRAR POR FECHA
+        const fechaInicioDate = new Date(fechaInicio + 'T00:00:00');
+        const fechaFinDate = new Date(fechaFin + 'T23:59:59');
+        
+        const registrosFiltradosFecha = todosRegistrosLocal.filter(reg => {
+            const fechaReg = parseFechaDDMMYYYY(reg.fecha);
+            if (!fechaReg) return false;
+            return fechaReg.getTime() >= fechaInicioDate.getTime() && 
+                   fechaReg.getTime() <= fechaFinDate.getTime();
+        });
+        
+        if (registrosFiltradosFecha.length === 0) {
+            mensajeEl.style.display = 'block';
+            mensajeEl.style.color = '#E67E22';
+            mensajeEl.textContent = '⚠️ No hay registros en el rango de fechas seleccionado';
+            hideLoader();
+            return;
+        }
+        
+        // ORDENAR por marca temporal (más antiguo a más nuevo)
+        registrosFiltradosFecha.sort((a, b) => {
+            const fechaA = new Date(a.marcaTemporal);
+            const fechaB = new Date(b.marcaTemporal);
+            if (isNaN(fechaA.getTime()) || isNaN(fechaB.getTime())) return 0;
+            return fechaA - fechaB;
+        });
+        
+        let datosExcel = [];
+        let columnas = [];
+        let formatos = {};
+        
+        if (password === 'TRANSPORTE') {
+            columnas = ['FECHA', 'RUTA', 'BITÁCORA', 'UNIDAD', 'TIENDA', 'CANTIDAD', 'MARCA', 'TRANSPORTE', 'OPERADOR', 'VIAJE'];
+            
+            registrosFiltradosFecha.forEach(reg => {
+                const registrosTiendas = reg.registros || [];
+                registrosTiendas.forEach(tienda => {
+                    const fechaObj = parseFechaDDMMYYYY(reg.fecha);
+                    datosExcel.push({
+                        'FECHA': fechaObj ? fechaToExcelSerial(fechaObj) : null,
+                        'RUTA': reg.datosGenerales?.ruta || null,
+                        'BITÁCORA': reg.datosGenerales?.bitacora || null,
+                        'UNIDAD': reg.datosGenerales?.unidad || null,
+                        'TIENDA': tienda.tienda || null,
+                        'CANTIDAD': (tienda.cantidadFisica === '' || tienda.cantidadFisica === null || tienda.cantidadFisica === undefined) ? null : tienda.cantidadFisica,
+                        'MARCA': tienda.tipo || null,
+                        'TRANSPORTE': reg.transporte || null,
+                        'OPERADOR': reg.operador || null,
+                        'VIAJE': reg.viaje || null
+                    });
+                });
+            });
+            
+            // FORMATO PARA FECHA: dd/mm/aaaa
+            formatos = { 'FECHA': 'dd/mm/yyyy' };
+            
+        } else if (password === 'MCHAROLAS') {
+            columnas = [
+                'MARCA TEMPORAL', 'FECHA', 'TURNO', 'RUTA', 'BITÁCORA', 'UNIDAD',
+                'TIENDA', 'CANTIDAD', 'MARCA', 'COMENTARIOS', 'REGISTRA', 'ID UNICO',
+                'FECHA_VALIDACION', 'VALIDADOR', 'TRANSPORTE', 'FIRMADA',
+                'SELLADA', 'FECHA BITÁCORA', 'OPERADOR', 'VIAJE'
+            ];
+            
+            registrosFiltradosFecha.forEach(reg => {
+                const registrosTiendas = reg.registros || [];
+                registrosTiendas.forEach(tienda => {
+                    const fechaObj = parseFechaDDMMYYYY(reg.fecha);
+                    const fechaHoraObj = parseFechaHoraDDMMYYYY(reg.marcaTemporal);
+                    const fechaValidacionObj = parseFechaHoraDDMMYYYY(reg.fechaValidacion);
+                    // CORREGIDO: parsear FECHA BITÁCORA con manejo mejorado
+                    let fechaBitacoraObj = null;
+                    if (reg.fechaBitacora) {
+                        fechaBitacoraObj = parseFechaDDMMYYYY(reg.fechaBitacora);
+                        // Si falla el parseo, intentar con new Date directamente
+                        if (!fechaBitacoraObj) {
+                            const fechaNativa = new Date(reg.fechaBitacora);
+                            if (!isNaN(fechaNativa.getTime())) {
+                                fechaBitacoraObj = fechaNativa;
+                            }
+                        }
+                    }
+                    
+                    datosExcel.push({
+                        'MARCA TEMPORAL': fechaHoraObj ? fechaHoraToExcelSerial(fechaHoraObj) : null,
+                        'FECHA': fechaObj ? fechaToExcelSerial(fechaObj) : null,
+                        'TURNO': reg.turno || null,
+                        'RUTA': reg.datosGenerales?.ruta || null,
+                        'BITÁCORA': reg.datosGenerales?.bitacora || null,
+                        'UNIDAD': reg.datosGenerales?.unidad || null,
+                        'TIENDA': tienda.tienda || null,
+                        'CANTIDAD': (tienda.cantidadFisica === '' || tienda.cantidadFisica === null || tienda.cantidadFisica === undefined) ? null : tienda.cantidadFisica,
+                        'MARCA': tienda.tipo || null,
+                        'COMENTARIOS': reg.datosGenerales?.comentarios || null,
+                        'REGISTRA': reg.datosGenerales?.empleado || reg.datosGenerales?.noEmpleado || null,
+                        'ID UNICO': reg.id || null,
+                        'FECHA_VALIDACION': fechaValidacionObj ? fechaHoraToExcelSerial(fechaValidacionObj) : null,
+                        'VALIDADOR': reg.validador || null,
+                        'TRANSPORTE': reg.transporte || null,
+                        'FIRMADA': reg.firmada || null,
+                        'SELLADA': reg.sellada || null,
+                        'FECHA BITÁCORA': fechaBitacoraObj ? fechaToExcelSerial(fechaBitacoraObj) : null,
+                        'OPERADOR': reg.operador || null,
+                        'VIAJE': reg.viaje || null
+                    });
+                });
+            });
+            
+            // FORMATOS: fecha con hora y fecha sin hora
+            formatos = {
+                'MARCA TEMPORAL': 'dd/mm/yyyy hh:mm:ss AM/PM',
+                'FECHA': 'dd/mm/yyyy',
+                'FECHA_VALIDACION': 'dd/mm/yyyy hh:mm:ss AM/PM',
+                'FECHA BITÁCORA': 'dd/mm/yyyy'
+            };
+        }
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(datosExcel);
+        
+        // APLICAR FORMATO DE CELDAS A LAS COLUMNAS
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+        const colMap = {};
+        columnas.forEach((col, idx) => {
+            colMap[col] = XLSX.utils.encode_col(idx);
+        });
+        
+        // Aplicar formato a cada celda de las columnas de fecha
+        for (const [colName, formato] of Object.entries(formatos)) {
+            const colLetter = colMap[colName];
+            if (!colLetter) continue;
+            
+            for (let row = 2; row <= range.e.r + 1; row++) {
+                const cellRef = colLetter + row;
+                const cell = ws[cellRef];
+                if (cell && cell.v && typeof cell.v === 'number') {
+                    // Aplicar formato de número
+                    cell.z = formato;
+                }
+            }
+        }
+        
+        // Anchos de columna
+        const colWidths = columnas.map(col => ({ wch: Math.max(col.length, 18) }));
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Registros');
+        
+        const fechaInicioStrArchivo = fechaInicio.split('-').reverse().join('-');
+        const fechaFinStrArchivo = fechaFin.split('-').reverse().join('-');
+        const nombreArchivo = `Reporte_${password}_${fechaInicioStrArchivo}_a_${fechaFinStrArchivo}.xlsx`;
+        
+        XLSX.writeFile(wb, nombreArchivo);
+        
+        mensajeEl.style.display = 'block';
+        mensajeEl.style.color = 'var(--success)';
+        mensajeEl.textContent = `✅ Reporte descargado: ${datosExcel.length} registros`;
+        
+        setTimeout(() => {
+            cerrarModalDescarga();
+        }, 2500);
+        
+    } catch (error) {
+        console.error(error);
+        mensajeEl.style.display = 'block';
+        mensajeEl.style.color = 'var(--danger)';
+        mensajeEl.textContent = `❌ Error: ${error.message}`;
+    }
+    
+    hideLoader();
+}
+
+function enviarCorteWhatsApp() {
+    if (!window.datosUltimoTurno || window.datosUltimoTurno.registros === 0) {
+        alert('No hay datos del último turno para enviar');
+        return;
+    }
+    const d = window.datosUltimoTurno;
+    const fecha = new Date();
+    const fechaStr = `${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}`;
+    const mensaje = `📊 *CORTE DE TURNO* 📊
+━━━━━━━━━━━━━━━━━━
+📅 Fecha: ${fechaStr}
+🔄 Turno: *${d.turno}*
+━━━━━━━━━━━━━━━━━━
+📋 *RESUMEN DEL TURNO*
+━━━━━━━━━━━━━━━━━━
+📝 Registros capturados: ${d.registros}
+🏪 Total tiendas: ${d.tiendas}
+🍕 Charolas DOMINO'S: ${d.dominos}
+☕ Charolas STARBUCKS: ${d.starbucks}
+━━━━━━━━━━━━━━━━━━
+✅ *Corte generado automáticamente*`;
+
+    const mensajeCodificado = encodeURIComponent(mensaje);
+    window.open(`https://api.whatsapp.com/send?text=${mensajeCodificado}`, '_blank');
+}
+
+function cerrarVentana() { window.close(); }
+
+document.addEventListener('DOMContentLoaded', () => {
+    cargarRegistros();
+    
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            cerrarDetalleModal();
+            cerrarModalDescarga();
+        }
+    });
+    
+    document.getElementById('modalDescarga').addEventListener('click', function(e) {
+        if (e.target === this) cerrarModalDescarga();
+    });
+});
+</script>
+</body>
+</html>
+
+Ambiente de prueba 7 final para produccion

@@ -1,0 +1,3334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Ventanilla - Validación de Charolas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        :root {
+            --azul: #0A2342;
+            --azul-fuerte: #1A5F9E;
+            --verde: #27AE60;
+            --verde-claro: #2ECC71;
+            --rojo: #E74C3C;
+            --rojo-fuerte: #C0392B;
+            --amarillo: #F1C40F;
+            --amarillo-claro: #F9E74B;
+            --naranja: #F39C12;
+            --morado: #8E44AD;
+            --blanco: #FFFFFF;
+            --gris-claro: #F0F2F5;
+            --gris: #D5D8DC;
+            --dominos: #00A5B0;
+            --starbucks: #006241;
+        }
+
+        html, body {
+            height: 100%;
+            background: var(--gris-claro);
+        }
+
+        body {
+            padding: 0;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* MODALES */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-overlay.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 36px;
+            border-radius: 28px;
+            width: 420px;
+            max-width: 92%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 6px solid var(--amarillo);
+        }
+
+        .modal-content.modal-warning {
+            border-color: var(--naranja);
+        }
+
+        .modal-content.modal-warning .modal-icon {
+            color: var(--naranja);
+        }
+
+        .modal-seleccion .modal-content {
+            max-width: 95%;
+            width: 1100px;
+            max-height: 85vh;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .modal-seleccion .modal-content .resumen-bitacora {
+            background: var(--gris-claro);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            text-align: left;
+            font-size: 0.85rem;
+            border-left: 4px solid var(--azul-fuerte);
+        }
+
+        .tabla-consulta {
+            width: 100%;
+            min-width: 700px;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .tabla-consulta th {
+            background: var(--azul);
+            color: white;
+            padding: 10px 8px;
+            text-align: center;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .tabla-consulta td {
+            padding: 8px 6px;
+            border-bottom: 1px solid var(--gris);
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.8rem;
+        }
+
+        .tabla-consulta tr:hover td {
+            background: var(--gris-claro);
+        }
+
+        .badge-validado {
+            background: rgba(39,174,96,0.1);
+            color: var(--verde);
+            border: 1px solid var(--verde);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+        }
+
+        .badge-pendiente {
+            background: rgba(243,156,18,0.1);
+            color: var(--naranja);
+            border: 1px solid var(--naranja);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.8) translateY(-40px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .modal-content .modal-icon {
+            font-size: 3rem;
+            margin-bottom: 6px;
+        }
+
+        .modal-content h2 {
+            font-size: 1.5rem;
+            color: var(--azul);
+            margin-bottom: 4px;
+        }
+
+        .modal-content p {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 14px;
+        }
+
+        .modal-content .modal-field {
+            margin-bottom: 14px;
+            text-align: left;
+        }
+
+        .modal-content .modal-field label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--azul);
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .modal-content .modal-field input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 3px solid var(--gris);
+            border-radius: 12px;
+            font-size: 1rem;
+            height: 48px;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content .modal-field input:focus {
+            outline: none;
+            border-color: var(--azul-fuerte);
+            box-shadow: 0 0 0 3px rgba(26,95,158,0.12);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .modal-actions .btn {
+            flex: 1;
+            padding: 12px 20px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .btn:hover:not(:disabled) { transform: scale(1.05); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+        .btn:active:not(:disabled) { transform: scale(0.95); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .btn-success { background: var(--verde); color: white; }
+        .btn-danger { background: var(--rojo); color: white; }
+        .btn-primary { background: var(--azul); color: white; }
+        .btn-info { background: var(--azul-fuerte); color: white; }
+        .btn-warning { background: var(--amarillo); color: var(--azul); }
+
+        .header-wrapper {
+            background: var(--gris-claro);
+            padding: 16px 16px 0 16px;
+        }
+
+        .header {
+            background: var(--blanco);
+            border-radius: 20px 20px 0 0;
+            border-bottom: 4px solid var(--amarillo);
+            padding: 12px 20px 8px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            min-width: 140px;
+        }
+
+        .header-center {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-center h1 {
+            font-size: 1.4rem;
+            color: var(--azul);
+        }
+
+        .header-center h1 span {
+            color: var(--azul-fuerte);
+            font-weight: 300;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .header-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--gris-claro);
+            border-radius: 10px;
+            padding: 3px;
+        }
+
+        .header-tab-btn {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-tab-btn.active {
+            background: var(--azul);
+            color: white;
+            box-shadow: 0 2px 8px rgba(10,35,66,0.25);
+        }
+
+        .header-tab-btn:hover:not(.active) {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .header-tab-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .btn-header {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .btn-header:hover {
+            transform: scale(1.08);
+            box-shadow: 0 5px 16px rgba(0,0,0,0.16);
+        }
+
+        .btn-header-chlila { background: var(--morado); color: white; }
+        .btn-header-guardar { background: var(--verde); color: white; }
+        .btn-header-consulta { background: var(--naranja); color: white; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--blanco);
+            padding: 0 20px 20px 20px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+            padding-top: 16px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .general-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            background: #FAFCFE;
+            padding: 16px;
+            border-radius: 14px;
+            border: 3px solid var(--gris);
+            margin-bottom: 16px;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .field-group.col-2 {
+            grid-column: span 2;
+        }
+
+        .field-group label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--azul);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .field-group label .required {
+            color: var(--rojo);
+            font-size: 0.9rem;
+        }
+
+        .field-group .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .field-group .input-wrapper input,
+        .field-group .input-wrapper select {
+            width: 100%;
+            padding: 8px 34px 8px 12px;
+            border: 3px solid var(--gris);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: white;
+            height: 42px;
+            text-transform: uppercase;
+            color: #000000 !important;
+        }
+
+        .field-group .input-wrapper input:focus,
+        .field-group .input-wrapper select:focus {
+            outline: none;
+            border-color: var(--azul-fuerte);
+            box-shadow: 0 0 0 3px rgba(26,95,158,0.12);
+        }
+
+        .field-group .input-wrapper input:disabled {
+            background: #f0f0f0;
+            opacity: 0.6;
+            cursor: not-allowed;
+            color: #000000 !important;
+        }
+
+        .field-group .input-wrapper input.readonly {
+            background: #f5f5f5;
+            cursor: default;
+            color: #000000 !important;
+        }
+
+        .field-group .input-wrapper input.no-icon {
+            padding: 8px 12px;
+        }
+
+        .field-group .input-wrapper input.valid {
+            border-color: var(--verde) !important;
+            background: #E8F8F0 !important;
+            color: #000000 !important;
+        }
+
+        .field-group .input-wrapper input.invalid {
+            border-color: var(--rojo) !important;
+            background: #FDEDEC !important;
+            color: #000000 !important;
+        }
+
+        .field-group .input-wrapper .btn-edit {
+            position: absolute;
+            right: 8px;
+            background: transparent !important;
+            border: none !important;
+            font-size: 1rem;
+            cursor: pointer;
+            color: var(--azul-fuerte);
+            padding: 0;
+            border-radius: 0;
+            transition: all 0.2s ease;
+            z-index: 5;
+            width: auto;
+            height: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none !important;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .field-group .input-wrapper .btn-edit:hover {
+            background: transparent !important;
+            transform: scale(1.2);
+            box-shadow: none !important;
+        }
+
+        .field-group .input-wrapper .btn-edit:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .field-group .hint {
+            font-size: 0.55rem;
+            color: #888;
+            font-weight: 600;
+            min-height: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .field-group .hint.success {
+            color: var(--verde);
+        }
+
+        .field-group .hint.error {
+            color: var(--rojo);
+        }
+
+        .field-group .hint.waiting {
+            color: var(--naranja);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-top: 2px;
+            align-items: center;
+        }
+
+        .checkbox-group .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .checkbox-group .checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--azul-fuerte);
+        }
+
+        .checkbox-group .checkbox-item input[type="checkbox"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .checkbox-group .checkbox-item label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--azul);
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+
+        .table-wrapper {
+            border: 3px solid var(--gris);
+            border-radius: 14px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .table-wrapper thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table-wrapper th {
+            background: var(--azul);
+            color: white;
+            padding: 10px 8px;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .table-wrapper td {
+            padding: 5px 6px;
+            border-bottom: 2px solid #f0f0f0;
+            text-align: center;
+            vertical-align: middle;
+            background: white;
+        }
+
+        .table-wrapper td .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .table-wrapper td .input-wrapper input {
+            width: 100%;
+            padding: 6px 8px;
+            border: 3px solid var(--gris);
+            border-radius: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            background: #f5f5f5;
+            height: 38px;
+            font-weight: 600;
+            text-transform: uppercase;
+            cursor: default;
+            color: #000000 !important;
+        }
+
+        .table-wrapper td .input-wrapper input:focus {
+            outline: none;
+            border-color: var(--azul-fuerte);
+            box-shadow: 0 0 0 3px rgba(26,95,158,0.12);
+        }
+
+        .table-wrapper td .input-wrapper input.valid {
+            border-color: var(--verde);
+            background: #E8F8F0;
+        }
+
+        .table-wrapper td .input-wrapper input.invalid {
+            border-color: var(--rojo);
+            background: #FDEDEC;
+        }
+
+        .table-wrapper td .input-wrapper input:disabled {
+            background: #f5f5f5;
+            opacity: 0.5;
+            cursor: not-allowed;
+            color: #000000 !important;
+        }
+
+        .table-wrapper td .input-wrapper input.readonly {
+            background: #f5f5f5;
+            cursor: default;
+            color: #000000 !important;
+        }
+
+        .table-wrapper td .input-wrapper input.habilitado {
+            background: white !important;
+            cursor: text !important;
+            border-color: var(--azul-fuerte);
+        }
+
+        .marca-icon {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .num-fila {
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--azul);
+            text-align: center;
+            display: block;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 3px solid var(--gris);
+            flex-wrap: wrap;
+        }
+
+        .action-bar .btn {
+            font-size: 1.1rem;
+            padding: 10px 16px;
+        }
+
+        .action-bar-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .action-bar-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 28px;
+            border-radius: 14px;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+            transform: translateY(120px);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 99999;
+            max-width: 400px;
+            border: 3px solid rgba(255,255,255,0.15);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: var(--verde); }
+        .toast.error { background: var(--rojo); }
+        .toast.warning { background: var(--naranja); }
+        .toast.info { background: var(--azul-fuerte); }
+
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+        }
+
+        .loader-overlay.active {
+            display: flex;
+        }
+
+        .loader-content {
+            background: white;
+            padding: 36px 44px;
+            border-radius: 28px;
+            text-align: center;
+            border: 6px solid var(--amarillo);
+        }
+
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 7px solid var(--gris);
+            border-top-color: var(--azul-fuerte);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+
+        .loader-content p {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--azul);
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .modal-edicion .modal-content {
+            max-width: 420px;
+        }
+
+        .modal-edicion .modal-content .modal-field input {
+            font-size: 1.1rem;
+            height: 52px;
+        }
+
+        .validation-banner {
+            display: none;
+            padding: 6px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-align: center;
+            border: 3px solid;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 36px;
+        }
+
+        .validation-banner.validado {
+            display: flex;
+            background: #E8F8F0;
+            border-color: var(--verde);
+            color: var(--verde);
+        }
+
+        .validation-banner.pendiente {
+            display: flex;
+            background: #FEF9E7;
+            border-color: var(--naranja);
+            color: var(--naranja);
+        }
+
+        .validation-banner .icono {
+            font-size: 1.2rem;
+        }
+
+        .modal-consulta .modal-content {
+            max-width: 95%;
+            width: 1200px;
+            max-height: 85vh;
+            overflow-y: auto;
+            overflow-x: auto;
+        }
+
+        .modal-consulta .modal-content .resumen-consulta {
+            background: var(--gris-claro);
+            padding: 10px 14px;
+            border-radius: 10px;
+            margin-bottom: 14px;
+            text-align: left;
+            font-size: 0.85rem;
+            border-left: 4px solid var(--naranja);
+        }
+
+        .tabla-consulta-datos {
+            width: 100%;
+            min-width: 1000px;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            margin-top: 8px;
+        }
+
+        .tabla-consulta-datos th {
+            background: var(--azul);
+            color: white;
+            padding: 8px 6px;
+            text-align: center;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .tabla-consulta-datos td {
+            padding: 6px 4px;
+            border-bottom: 1px solid var(--gris);
+            text-align: center;
+            vertical-align: middle;
+            font-size: 0.7rem;
+        }
+
+        .tabla-consulta-datos tr:hover td {
+            background: var(--gris-claro);
+        }
+
+        .campo-busqueda-consulta {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .campo-busqueda-consulta input {
+            padding: 10px 16px;
+            border: 3px solid var(--gris);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 4px;
+            width: 200px;
+            height: 48px;
+            text-transform: uppercase;
+        }
+
+        .campo-busqueda-consulta input:focus {
+            outline: none;
+            border-color: var(--azul-fuerte);
+        }
+
+        /* TARJETAS DE TOTALES */
+        .totals-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 12px;
+            margin: 0 0 12px 0;
+            align-items: stretch;
+        }
+
+        .total-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            background: white;
+            border: 3px solid var(--gris);
+            min-height: 60px;
+        }
+
+        .total-card.dominos {
+            border-left: 6px solid var(--dominos);
+        }
+
+        .total-card.starbucks {
+            border-left: 6px solid var(--starbucks);
+        }
+
+        .total-card .number {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--azul);
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .total-card .label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .total-card img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+
+        .totals-edit-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 3px solid var(--gris);
+            border-radius: 12px;
+            padding: 0 16px;
+            min-height: 60px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1.5rem;
+            color: var(--azul-fuerte);
+            background: var(--gris-claro);
+            min-width: 56px;
+        }
+
+        .totals-edit-btn:hover:not(:disabled) {
+            background: var(--azul);
+            color: white;
+            border-color: var(--azul);
+            transform: scale(1.02);
+        }
+
+        .totals-edit-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Modal de validación */
+        .modal-warning .modal-actions .btn {
+            flex: 0 1 auto;
+            min-width: 120px;
+        }
+
+        .field-group .input-wrapper input,
+        .field-group .input-wrapper input:disabled,
+        .field-group .input-wrapper input.readonly,
+        .field-group .input-wrapper input.valid,
+        .field-group .input-wrapper input.invalid,
+        .table-wrapper td .input-wrapper input,
+        .table-wrapper td .input-wrapper input:disabled,
+        .table-wrapper td .input-wrapper input.readonly {
+            color: #000000 !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: #000000 !important;
+        }
+
+        /* Estilo para celda activa en navegación */
+        .table-wrapper td .input-wrapper input.celda-activa {
+            border-color: var(--azul-fuerte) !important;
+            box-shadow: 0 0 0 3px rgba(26,95,158,0.25) !important;
+        }
+
+        @media (max-width: 1024px) {
+            .general-fields {
+                grid-template-columns: 1fr 1fr 1fr;
+            }
+            .field-group.col-2 {
+                grid-column: span 1;
+            }
+            .totals-row {
+                grid-template-columns: 1fr 1fr auto;
+            }
+        }
+
+        @media (max-width: 820px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                padding: 12px 16px;
+            }
+            .header-left { justify-content: center; }
+            .header-center h1 { font-size: 1.1rem; }
+            .header-right { justify-content: center; flex-wrap: wrap; }
+        }
+
+        @media (max-width: 768px) {
+            .general-fields {
+                grid-template-columns: 1fr 1fr;
+            }
+            .modal-seleccion .modal-content,
+            .modal-consulta .modal-content {
+                max-width: 98%;
+                padding: 16px;
+            }
+            .tabla-consulta {
+                min-width: 500px;
+                font-size: 0.7rem;
+            }
+            .tabla-consulta th,
+            .tabla-consulta td {
+                padding: 4px 3px;
+                font-size: 0.65rem;
+            }
+            .tabla-consulta-datos {
+                min-width: 600px;
+                font-size: 0.6rem;
+            }
+            .tabla-consulta-datos th,
+            .tabla-consulta-datos td {
+                padding: 3px 2px;
+                font-size: 0.55rem;
+            }
+            .totals-row {
+                grid-template-columns: 1fr 1fr auto;
+                gap: 8px;
+            }
+            .total-card {
+                padding: 8px 12px;
+                min-height: 50px;
+                gap: 10px;
+            }
+            .total-card .number {
+                font-size: 1.6rem;
+                min-width: 35px;
+            }
+            .total-card img {
+                width: 32px;
+                height: 32px;
+            }
+            .totals-edit-btn {
+                min-height: 50px;
+                min-width: 48px;
+                font-size: 1.2rem;
+                padding: 0 12px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header-wrapper { padding: 8px 8px 0 8px; }
+            .container { padding: 0 12px 12px 12px; }
+            .general-fields {
+                grid-template-columns: 1fr;
+                padding: 12px;
+            }
+            .header { padding: 10px 12px; }
+            .header-center h1 { font-size: 0.95rem; }
+            .header-tab-btn { font-size: 0.75rem; padding: 4px 10px; }
+            .btn-header { width: 34px; height: 34px; font-size: 1rem; }
+            .modal-content { padding: 20px; }
+            .btn { font-size: 0.9rem; padding: 8px 12px; min-height: 36px; min-width: 36px; }
+            .table-wrapper td .input-wrapper input { font-size: 0.8rem; height: 34px; padding: 4px 6px; }
+            .marca-icon { width: 24px; height: 24px; }
+            .field-group .input-wrapper input,
+            .field-group .input-wrapper select {
+                font-size: 0.85rem;
+                height: 38px;
+                padding: 6px 10px;
+            }
+            .field-group .input-wrapper .btn-edit { font-size: 0.85rem; right: 4px; }
+            .num-fila { font-size: 0.85rem; }
+            .checkbox-group .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; }
+            .checkbox-group .checkbox-item label { font-size: 0.6rem; }
+            .modal-seleccion .modal-content,
+            .modal-consulta .modal-content {
+                max-width: 98%;
+                padding: 12px;
+            }
+            .tabla-consulta {
+                min-width: 400px;
+                font-size: 0.6rem;
+            }
+            .tabla-consulta th,
+            .tabla-consulta td {
+                padding: 3px 2px;
+                font-size: 0.55rem;
+            }
+            .tabla-consulta-datos {
+                min-width: 450px;
+                font-size: 0.5rem;
+            }
+            .tabla-consulta-datos th,
+            .tabla-consulta-datos td {
+                padding: 2px 1px;
+                font-size: 0.45rem;
+            }
+            .badge-validado,
+            .badge-pendiente {
+                font-size: 0.5rem;
+                padding: 1px 4px;
+            }
+            .modal-seleccion .modal-content .resumen-bitacora {
+                font-size: 0.7rem;
+                padding: 6px 10px;
+            }
+            .validation-banner {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+                min-height: 28px;
+                margin-bottom: 6px;
+                gap: 4px;
+            }
+            .validation-banner .icono {
+                font-size: 1rem;
+            }
+            .campo-busqueda-consulta input {
+                width: 150px;
+                font-size: 1rem;
+                height: 40px;
+                letter-spacing: 2px;
+            }
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .action-bar-left,
+            .action-bar-right {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .totals-row {
+                grid-template-columns: 1fr 1fr auto;
+                gap: 6px;
+            }
+            .total-card {
+                padding: 6px 10px;
+                min-height: 44px;
+                gap: 6px;
+            }
+            .total-card .number {
+                font-size: 1.3rem;
+                min-width: 28px;
+            }
+            .total-card img {
+                width: 26px;
+                height: 26px;
+            }
+            .total-card .label {
+                font-size: 0.5rem;
+            }
+            .totals-edit-btn {
+                min-height: 44px;
+                min-width: 40px;
+                font-size: 1rem;
+                padding: 0 10px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .container { padding: 0 8px 8px 8px; }
+            .header-center h1 { font-size: 0.8rem; }
+            .modal-content { padding: 14px; }
+            .modal-content h2 { font-size: 1.2rem; }
+            .tabla-consulta {
+                min-width: 320px;
+                font-size: 0.5rem;
+            }
+            .tabla-consulta th,
+            .tabla-consulta td {
+                padding: 2px 1px;
+                font-size: 0.5rem;
+            }
+            .tabla-consulta-datos {
+                min-width: 320px;
+                font-size: 0.45rem;
+            }
+            .tabla-consulta-datos th,
+            .tabla-consulta-datos td {
+                padding: 1px 0px;
+                font-size: 0.4rem;
+            }
+            .totals-row {
+                grid-template-columns: 1fr 1fr auto;
+                gap: 4px;
+            }
+            .total-card {
+                padding: 4px 8px;
+                min-height: 38px;
+                gap: 4px;
+            }
+            .total-card .number {
+                font-size: 1.1rem;
+                min-width: 22px;
+            }
+            .total-card img {
+                width: 20px;
+                height: 20px;
+            }
+            .total-card .label {
+                font-size: 0.4rem;
+            }
+            .totals-edit-btn {
+                min-height: 38px;
+                min-width: 34px;
+                font-size: 0.85rem;
+                padding: 0 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MODAL LOGIN -->
+    <div class="modal-overlay" id="modalLogin">
+        <div class="modal-content">
+            <div class="modal-icon">🔐</div>
+            <h2>Acceso al Sistema</h2>
+            <p>Ventanilla de Validación</p>
+            <div class="modal-field">
+                <label>👤 NÚMERO DE EMPLEADO</label>
+                <input type="text" id="loginEmpleado" placeholder="Ej: 8800" autocomplete="off">
+            </div>
+            <div class="modal-field">
+                <label>🔐 CONTRASEÑA</label>
+                <input type="password" id="loginPassword" placeholder="••••••••">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="iniciarSesion()">INGRESAR</button>
+            </div>
+            <div id="loginMensaje" style="display:none; margin-top:12px; font-size:0.85rem; font-weight:700; color:var(--rojo);"></div>
+        </div>
+    </div>
+
+    <!-- MODAL SELECCIÓN MÚLTIPLE -->
+    <div class="modal-overlay modal-seleccion hidden" id="modalSeleccion">
+        <div class="modal-content">
+            <div class="modal-icon">📋</div>
+            <h2>MÚLTIPLES REGISTROS ENCONTRADOS</h2>
+            <div id="modalSeleccionContenido"></div>
+            <div style="margin-top:16px;">
+                <button class="btn btn-danger" onclick="cerrarModalSeleccion()">✖ CERRAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL EDICIÓN -->
+    <div class="modal-overlay modal-edicion hidden" id="modalEdicion">
+        <div class="modal-content">
+            <div class="modal-icon">✏️</div>
+            <h2 id="modalEdicionTitulo">EDITAR CAMPO</h2>
+            <div class="modal-field">
+                <label id="modalEdicionLabel">NUEVO VALOR</label>
+                <input type="text" id="modalEdicionInput" placeholder="Escribe el nuevo valor">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-success" onclick="guardarEdicionModal()">✅ ACEPTAR</button>
+                <button class="btn btn-danger" onclick="cerrarModalEdicion()">✖ CANCELAR</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CONSULTA -->
+    <div class="modal-overlay modal-consulta hidden" id="modalConsulta">
+        <div class="modal-content">
+            <div class="modal-icon">🔍</div>
+            <h2>CONSULTA DE BITÁCORAS VALIDADAS</h2>
+            <p>Busca por número de bitácora para ver todos los registros validados</p>
+            <div class="campo-busqueda-consulta">
+                <input type="text" id="consultaBitacora" maxlength="6" inputmode="numeric" placeholder="BITÁCORA" style="text-transform:uppercase;">
+                <button class="btn btn-info" onclick="buscarConsulta()">🔍 BUSCAR</button>
+                <button class="btn btn-danger" onclick="cerrarModalConsulta()">✖ CERRAR</button>
+            </div>
+            <div id="modalConsultaContenido">
+                <p style="color:#888; font-size:0.9rem;">Ingresa 6 dígitos y presiona BUSCAR</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL VALIDACIÓN (para bloqueo de registro nuevo con cantidades) -->
+    <div class="modal-overlay hidden" id="modalValidacion">
+        <div class="modal-content modal-warning">
+            <div class="modal-icon">⚠️</div>
+            <h2>VALIDACIÓN REQUERIDA</h2>
+            <p style="font-size:1rem; font-weight:600; color:var(--naranja); margin:8px 0;">
+                Se detectaron tiendas con cantidad mayor a 0 en este registro nuevo.
+            </p>
+            <p style="font-size:0.9rem; color:#555;">
+                Por favor, reportar con <strong>responsable de charolas</strong> para validación previa antes de guardar.
+            </p>
+            <div class="modal-actions">
+                <button class="btn btn-warning" onclick="cerrarModalValidacion()">📋 ENTENDIDO</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <div class="header-wrapper">
+        <div class="header">
+            <div class="header-left"></div>
+            <div class="header-center">
+                <h1>🔍 Ventanilla de <span>Validación</span></h1>
+            </div>
+            <div class="header-right">
+                <div class="header-tabs">
+                    <button class="header-tab-btn active" data-tab="tab1">📋 DATOS</button>
+                    <button class="header-tab-btn" data-tab="tab2" id="tabTiendas" disabled>🏷️ TIENDAS</button>
+                </div>
+                <div class="header-buttons">
+                    <button class="btn-header btn-header-consulta" onclick="abrirModalConsulta()" title="Consultar bitácoras validadas">🔍</button>
+                    <button class="btn-header btn-header-chlila" onclick="window.open('https://forms.office.com/e/x8arYHrhHj','_blank')">🟣</button>
+                    <button class="btn-header btn-header-guardar" id="btnHeaderGuardar" onclick="guardarCambios()" disabled>💾</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="mainContainer">
+
+        <!-- BANNER DE VALIDACIÓN -->
+        <div class="validation-banner" id="validationBanner">
+            <span class="icono" id="bannerIcono">✅</span>
+            <span id="bannerTexto">Bitácora validada</span>
+            <span id="bannerDetalle"></span>
+        </div>
+
+        <!-- TAB 1: DATOS GENERALES -->
+        <div class="tab-content active" id="tab1">
+            <div class="general-fields">
+                <div class="field-group">
+                    <label>👤 NO. EMPLEADO <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="noEmpleado" class="no-icon" style="text-transform:uppercase;" placeholder="TU NÚMERO">
+                    </div>
+                    <div class="hint" id="empleadoMsg">👆 NÚMERO DE EMPLEADO (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>📝 BITÁCORA <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="bitacora" class="no-icon" maxlength="6" autocomplete="off" inputmode="numeric" style="text-transform:uppercase;" placeholder="BUSCAR">
+                    </div>
+                    <div class="hint waiting" id="bitacoraMsg">🔍 ESCRIBE 6 NÚMEROS Y PRESIONA ENTER</div>
+                </div>
+
+                <div class="field-group">
+                    <label>📍 RUTA <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="ruta" class="no-icon readonly" readonly disabled style="text-transform:uppercase; padding-right: 34px;">
+                        <button class="btn-edit" onclick="abrirModalEdicion('ruta', 'RUTA')" id="editRutaBtn" disabled>✏️</button>
+                    </div>
+                    <div class="hint" id="rutaMsg">📌 RUTA (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>🚚 UNIDAD <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="unidad" class="no-icon readonly" readonly disabled style="text-transform:uppercase; padding-right: 34px;">
+                        <button class="btn-edit" onclick="abrirModalEdicion('unidad', 'UNIDAD')" id="editUnidadBtn" disabled>✏️</button>
+                    </div>
+                    <div class="hint" id="unidadMsg">🚛 UNIDAD (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group col-2">
+                    <label>💬 COMENTARIOS</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="comentarios" class="no-icon readonly" readonly disabled style="text-transform:uppercase; padding-right: 34px;">
+                        <button class="btn-edit" onclick="abrirModalEdicion('comentarios', 'COMENTARIOS')" id="editComentariosBtn" disabled>✏️</button>
+                    </div>
+                    <div class="hint" id="comentariosMsg">📝 COMENTARIOS OPCIONALES</div>
+                </div>
+
+                <div class="field-group">
+                    <label>🚛 TRANSPORTE <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="transporte" style="text-transform:uppercase;" value="FFR">
+                    </div>
+                    <div class="hint" id="transporteMsg">🚛 TRANSPORTE (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>🛣️ VIAJE <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="viaje" style="text-transform:uppercase;">
+                    </div>
+                    <div class="hint" id="viajeMsg">🛣️ NÚMERO DE VIAJE (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>📅 FECHA BITÁCORA <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="date" id="fechaBitacora">
+                    </div>
+                    <div class="hint" id="fechaBitacoraMsg">📅 FECHA DE BITÁCORA (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>👤 OPERADOR <span class="required">*</span></label>
+                    <div class="input-wrapper">
+                        <input type="text" id="operador" style="text-transform:uppercase;" list="listaOperadores" placeholder="NOMBRE">
+                        <datalist id="listaOperadores"></datalist>
+                    </div>
+                    <div class="hint" id="operadorMsg">👤 NOMBRE DEL OPERADOR (OBLIGATORIO)</div>
+                </div>
+
+                <div class="field-group">
+                    <div style="display:flex; flex-direction:column; gap:6px; padding-top:6px;">
+                        <div class="checkbox-item" style="display:flex; align-items:center; gap:6px;">
+                            <input type="checkbox" id="firmada" checked>
+                            <label for="firmada">FIRMADA</label>
+                        </div>
+                        <div class="checkbox-item" style="display:flex; align-items:center; gap:6px;">
+                            <input type="checkbox" id="sellada" checked>
+                            <label for="sellada">SELLADA</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: TIENDAS -->
+        <div class="tab-content" id="tab2">
+            <!-- TARJETAS DE TOTALES CON LÁPIZ -->
+            <div class="totals-row">
+                <div class="total-card dominos">
+                    <img src="dominos.png" alt="Dominos" onerror="this.style.display='none'">
+                    <span class="number" id="totalDominos">0</span>
+                    <span class="label">CAPTURADO</span>
+                </div>
+                <div class="total-card starbucks">
+                    <img src="starbucks.png" alt="Starbucks" onerror="this.style.display='none'">
+                    <span class="number" id="totalStarbucks">0</span>
+                    <span class="label">CAPTURADO</span>
+                </div>
+                <button class="totals-edit-btn" id="btnHabilitarTiendas" onclick="habilitarEdicionTiendas()" disabled title="Habilitar edición de tiendas">✏️</button>
+            </div>
+
+            <div class="table-wrapper" id="tableWrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:10%;">#</th>
+                            <th style="width:20%;">🏢 MARCA</th>
+                            <th style="width:40%;">🏷️ CECO</th>
+                            <th style="width:30%;">📦 CANTIDAD</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody"></tbody>
+                </table>
+            </div>
+
+            <div class="action-bar">
+                <div class="action-bar-left"></div>
+                <div class="action-bar-right">
+                    <button class="btn btn-primary" id="btnAgregar" onclick="agregarFilas(5)" disabled>➕ +5</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <!-- LOADER -->
+    <div class="loader-overlay" id="loader">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p>⏳ CARGANDO...</p>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURACIÓN - URL ACTUALIZADA
+        // ============================================================
+        const APPS_SCRIPT_USUARIOS = 'https://script.google.com/macros/s/AKfycbxd8aGGh0iHu9mqKOdI-6rYroPQf0a1vCh6i0i7kaU_mY7c0sbrvVQLopBbHPenlsvy6g/exec';
+        const APPS_SCRIPT_REGISTRO = 'https://script.google.com/macros/s/AKfycbxsDP201kZk9XHB6T5rAib0Bqtz5lNqSKIT8BCWJUeywPsY3U1_3eFWmlNEm1HDMAMV/exec';
+        const APPS_SCRIPT_DATOS_GENERALES = 'https://script.google.com/macros/s/AKfycbx5r46YUhb3Sq7cYZU28WKhHTX0f27IhulDlD7Czd9jOUdeW7woAV5xLFdABzDhw_fM/exec';
+        const APPS_SCRIPT_HEADCOUNT = 'https://script.google.com/macros/s/AKfycbw1FSXUv0oZx_63MOpiMG7UMf3CVPjrTHffA0IfmzURBucKG9Dvy0yD6yy-RtReKoJsYQ/exec';
+        const APPS_SCRIPT_ORGANIGRAMA = 'https://script.google.com/macros/s/AKfycbyCoxtPvp7kSSUiyB5pS6T-OUNEh85RvhGLAOfvlfFxUpPoomTAJEBhLDbuMsvwgrl4/exec';
+
+        let usuarioActual = null;
+        let registroActual = null;
+        let registroOriginal = null;
+        let documentoIdActual = null;
+        let esNuevoRegistro = false;
+        let esRegistroValidado = false;
+        let datosOrganigrama = [];
+        let mapCeco = new Map();
+        let mapEmpleados = new Map();
+        let totalFilas = 0;
+        let operadoresUnicos = [];
+        let modalCampoId = null;
+        let modalCampoLabel = null;
+        let modalCampoData = null;
+        let tiendasHabilitadas = false;
+
+        // ============================================================
+        // FUNCIONES AUXILIARES
+        // ============================================================
+        function showToast(mensaje, tipo = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = mensaje;
+            el.className = `toast ${tipo}`;
+            setTimeout(() => el.classList.add('show'), 50);
+            clearTimeout(el._timeout);
+            el._timeout = setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        function showLoader() {
+            document.getElementById('loader').classList.add('active');
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').classList.remove('active');
+        }
+
+        function obtenerFechaHoraCDMX() {
+            return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+        }
+
+        function formatearFecha(fecha) {
+            if (!fecha) return '';
+            if (fecha instanceof Date) {
+                const d = fecha;
+                return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
+            }
+            if (typeof fecha === 'string' && fecha.includes('/')) return fecha;
+            return fecha;
+        }
+
+        function formatearHora(fecha) {
+            if (!fecha) return '';
+            if (fecha instanceof Date) {
+                return `${fecha.getHours().toString().padStart(2,'0')}:${fecha.getMinutes().toString().padStart(2,'0')}`;
+            }
+            if (typeof fecha === 'string') {
+                try {
+                    const d = new Date(fecha);
+                    if (!isNaN(d.getTime())) {
+                        return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                    }
+                } catch(e) {}
+                return fecha;
+            }
+            return '';
+        }
+
+        function formatearFechaHora(fecha) {
+            if (!fecha) return '';
+            if (fecha instanceof Date) {
+                const d = fecha;
+                return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
+            }
+            if (typeof fecha === 'string') {
+                try {
+                    const d = new Date(fecha);
+                    if (!isNaN(d.getTime())) {
+                        return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`;
+                    }
+                } catch(e) {}
+                return fecha;
+            }
+            return fecha;
+        }
+
+        function formatearFechaInput(fechaStr) {
+            if (!fechaStr) return '';
+            if (fechaStr.includes('/')) {
+                const partes = fechaStr.split('/');
+                if (partes.length === 3) {
+                    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+                }
+            }
+            return fechaStr;
+        }
+
+        function formatearFechaHoraCDMX(fechaStr) {
+            if (!fechaStr) return '';
+            try {
+                const d = new Date(fechaStr);
+                if (isNaN(d.getTime())) return fechaStr;
+                const dia = d.getDate().toString().padStart(2, '0');
+                const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+                const anio = d.getFullYear();
+                const horas = d.getHours().toString().padStart(2, '0');
+                const minutos = d.getMinutes().toString().padStart(2, '0');
+                return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+            } catch(e) {
+                return fechaStr;
+            }
+        }
+
+        // ============================================================
+        // TABS
+        // ============================================================
+        document.querySelectorAll('.header-tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (this.disabled) return;
+                document.querySelectorAll('.header-tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                const tabId = this.dataset.tab;
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // ============================================================
+        // LOGIN
+        // ============================================================
+        async function iniciarSesion() {
+            const empleado = document.getElementById('loginEmpleado').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            if (!empleado || !password) {
+                document.getElementById('loginMensaje').textContent = '⚠️ Completa todos los campos';
+                document.getElementById('loginMensaje').style.display = 'block';
+                return;
+            }
+
+            showLoader();
+            document.getElementById('loginMensaje').style.display = 'none';
+
+            try {
+                const response = await fetch(APPS_SCRIPT_USUARIOS + '?accion=getUsuarios');
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.error || 'Error al cargar usuarios');
+
+                const usuarios = result.data || [];
+                const usuario = usuarios.find(u => u.EMPLEADO === empleado);
+
+                if (!usuario) {
+                    document.getElementById('loginMensaje').textContent = '❌ Usuario no encontrado';
+                    document.getElementById('loginMensaje').style.display = 'block';
+                    hideLoader();
+                    return;
+                }
+
+                if (usuario.CONTRASEÑA === password) {
+                    usuarioActual = { empleado: empleado, nombre: usuario.NOMBRE || empleado };
+                    document.getElementById('modalLogin').classList.add('hidden');
+                    document.getElementById('tabTiendas').disabled = false;
+                    cargarHeadcount();
+                    cargarOrganigrama();
+                    cargarOperadores();
+                    inicializarAutocompletadoOperador();
+                    showToast(`✅ Bienvenido ${usuarioActual.nombre}`, 'success');
+                    
+                    setTimeout(() => {
+                        document.getElementById('bitacora').focus();
+                    }, 300);
+                } else {
+                    document.getElementById('loginMensaje').textContent = '❌ Contraseña incorrecta';
+                    document.getElementById('loginMensaje').style.display = 'block';
+                }
+
+            } catch (error) {
+                document.getElementById('loginMensaje').textContent = '❌ Error: ' + error.message;
+                document.getElementById('loginMensaje').style.display = 'block';
+            }
+
+            hideLoader();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('loginEmpleado').focus();
+            }, 200);
+        });
+
+        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') iniciarSesion();
+        });
+
+        // ============================================================
+        // CARGA DE DATOS
+        // ============================================================
+        async function cargarHeadcount() {
+            try {
+                const cached = localStorage.getItem('headcountCache');
+                const cacheTime = localStorage.getItem('headcountCacheTime');
+                const ahora = Date.now();
+
+                if (cached && cacheTime && (ahora - parseInt(cacheTime)) < 86400000) {
+                    const data = JSON.parse(cached);
+                    mapEmpleados = new Map(data);
+                    console.log('✅ Headcount desde caché:', mapEmpleados.size, 'empleados');
+                    return;
+                }
+
+                const response = await fetch(APPS_SCRIPT_HEADCOUNT + '?accion=getHeadcount');
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    const empleados = new Map();
+                    result.data.forEach(item => {
+                        const keys = Object.keys(item);
+                        const primerKey = keys[0] || '';
+                        const segundoKey = keys[1] || '';
+                        if (primerKey) {
+                            const clave = (item[primerKey] || '').toString().trim().toUpperCase();
+                            const nombre = (item[segundoKey] || '').toString().trim() || clave;
+                            if (clave) empleados.set(clave, nombre);
+                        }
+                    });
+
+                    mapEmpleados = empleados;
+                    localStorage.setItem('headcountCache', JSON.stringify(Array.from(empleados.entries())));
+                    localStorage.setItem('headcountCacheTime', ahora.toString());
+                    console.log('✅ Headcount descargado:', empleados.size, 'empleados');
+                }
+            } catch (error) {
+                console.error('Error cargando headcount:', error);
+            }
+        }
+
+        async function cargarOrganigrama() {
+            try {
+                const cached = localStorage.getItem('orgCache');
+                const cacheTime = localStorage.getItem('orgCacheTime');
+                const ahora = Date.now();
+
+                if (cached && cacheTime && (ahora - parseInt(cacheTime)) < 86400000) {
+                    datosOrganigrama = JSON.parse(cached);
+                    mapCeco.clear();
+                    datosOrganigrama.forEach(item => {
+                        const keys = Object.keys(item);
+                        const cecoKey = keys[2] || '';
+                        if (cecoKey) {
+                            const ceco = (item[cecoKey] || '').toString().trim().toUpperCase();
+                            const marcaKey = keys[1] || '';
+                            const marca = (item[marcaKey] || '').toString().trim().toUpperCase();
+                            if (ceco) {
+                                mapCeco.set(ceco, { MARCA: marca, TIENDA: item[keys[3]] || '', ESTADO: item[keys[4]] || '' });
+                            }
+                        }
+                    });
+                    return;
+                }
+
+                const response = await fetch(APPS_SCRIPT_ORGANIGRAMA + '?accion=getOrganigrama');
+                const result = await response.json();
+
+                if (result.success && result.data) {
+                    datosOrganigrama = result.data;
+                    localStorage.setItem('orgCache', JSON.stringify(datosOrganigrama));
+                    localStorage.setItem('orgCacheTime', ahora.toString());
+
+                    mapCeco.clear();
+                    datosOrganigrama.forEach(item => {
+                        const keys = Object.keys(item);
+                        const cecoKey = keys[2] || '';
+                        if (cecoKey) {
+                            const ceco = (item[cecoKey] || '').toString().trim().toUpperCase();
+                            const marcaKey = keys[1] || '';
+                            const marca = (item[marcaKey] || '').toString().trim().toUpperCase();
+                            if (ceco) {
+                                mapCeco.set(ceco, { MARCA: marca, TIENDA: item[keys[3]] || '', ESTADO: item[keys[4]] || '' });
+                            }
+                        }
+                    });
+                } else {
+                    throw new Error(result.error || 'No se pudo cargar el organigrama');
+                }
+
+            } catch (error) {
+                console.error('Error cargando organigrama:', error);
+                showToast('⚠️ No se pudo cargar el organigrama. Revisa la conexión.', 'warning');
+            }
+        }
+
+        async function cargarOperadores() {
+            try {
+                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getOperadores');
+                const result = await response.json();
+                if (result.success && result.data) {
+                    operadoresUnicos = result.data;
+                    console.log('✅ OPERADORES CARGADOS:', operadoresUnicos.length);
+                }
+            } catch (e) {
+                console.error('Error cargando operadores:', e);
+                operadoresUnicos = [];
+            }
+        }
+
+        function inicializarAutocompletadoOperador() {
+            const inputOperador = document.getElementById('operador');
+            inputOperador.addEventListener('input', function() {
+                const valor = this.value.toUpperCase();
+                if (valor.length < 2 || operadoresUnicos.length === 0) return;
+                const sugerencias = operadoresUnicos.filter(op => op.toUpperCase().includes(valor)).slice(0, 10);
+                const datalist = document.getElementById('listaOperadores');
+                datalist.innerHTML = '';
+                sugerencias.forEach(op => {
+                    const option = document.createElement('option');
+                    option.value = op;
+                    datalist.appendChild(option);
+                });
+            });
+        }
+
+        // ============================================================
+        // MODAL CONSULTA
+        // ============================================================
+        function abrirModalConsulta() {
+            document.getElementById('modalConsulta').classList.remove('hidden');
+            document.getElementById('consultaBitacora').value = '';
+            document.getElementById('modalConsultaContenido').innerHTML = '<p style="color:#888; font-size:0.9rem;">Ingresa 6 dígitos y presiona BUSCAR</p>';
+            setTimeout(() => {
+                document.getElementById('consultaBitacora').focus();
+            }, 300);
+        }
+
+        function cerrarModalConsulta() {
+            document.getElementById('modalConsulta').classList.add('hidden');
+        }
+
+        document.getElementById('consultaBitacora').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                buscarConsulta();
+            }
+        });
+
+        document.getElementById('consultaBitacora').addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+        });
+
+        async function buscarConsulta() {
+            const bitacora = document.getElementById('consultaBitacora').value.trim();
+            
+            if (!bitacora || bitacora.length !== 6) {
+                showToast('⚠️ Escribe 6 dígitos para buscar', 'warning');
+                document.getElementById('consultaBitacora').focus();
+                return;
+            }
+
+            showLoader();
+            const container = document.getElementById('modalConsultaContenido');
+
+            try {
+                const response = await fetch(APPS_SCRIPT_DATOS_GENERALES + '?accion=buscarDatosGenerales&bitacora=' + encodeURIComponent(bitacora));
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Error al buscar');
+                }
+
+                const datos = result.data || [];
+
+                if (datos.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding:20px; text-align:center; background:#FEF9E7; border-radius:12px; border:3px solid var(--naranja);">
+                            <p style="font-size:1.2rem; font-weight:700; color:var(--naranja);">🔍 No se encontraron registros para la bitácora ${bitacora}</p>
+                            <p style="color:#888; margin-top:8px;">Verifica que el número sea correcto o que el registro haya sido validado</p>
+                        </div>
+                    `;
+                    hideLoader();
+                    return;
+                }
+
+                let html = `<div class="resumen-consulta">
+                                <strong>📌 BITÁCORA:</strong> ${bitacora}<br>
+                                <strong>📊 TOTAL REGISTROS ENCONTRADOS:</strong> ${datos.length}
+                            </div>`;
+
+                html += `<div style="overflow-x:auto; width:100%;">
+                                <table class="tabla-consulta-datos">
+                                    <thead>
+                                        <tr>
+                                            <th>FECHA VALIDACIÓN</th>
+                                            <th>VALIDADOR</th>
+                                            <th>BITÁCORA</th>
+                                            <th>RUTA</th>
+                                            <th>UNIDAD</th>
+                                            <th>TOTAL TIENDAS</th>
+                                            <th>TOTAL CANTIDADES</th>
+                                            <th>TRANSPORTE</th>
+                                            <th>VIAJE</th>
+                                            <th>FECHA BITÁCORA</th>
+                                            <th>OPERADOR</th>
+                                            <th>FIRMADA</th>
+                                            <th>SELLADA</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>`;
+
+                datos.forEach(reg => {
+                    const fechaValidacion = reg.fechaValidacion || '';
+                    let fechaBitacora = reg.fechaBitacora || '';
+                    if (fechaBitacora && fechaBitacora.includes('00:00')) {
+                        fechaBitacora = fechaBitacora.replace(' 00:00', '');
+                    }
+                    
+                    html += `<tr>
+                                    <td style="font-size:0.65rem;">${fechaValidacion}</td>
+                                    <td>${reg.validador || ''}</td>
+                                    <td><strong>${reg.bitacora || ''}</strong></td>
+                                    <td>${reg.ruta || ''}</td>
+                                    <td>${reg.unidad || ''}</td>
+                                    <td style="font-weight:700; color:var(--azul-fuerte);">${reg.totalTiendas || 0}</td>
+                                    <td style="font-weight:700; color:var(--azul-fuerte);">${reg.totalCantidades || 0}</td>
+                                    <td>${reg.transporte || ''}</td>
+                                    <td>${reg.viaje || ''}</td>
+                                    <td style="font-size:0.65rem;">${fechaBitacora}</td>
+                                    <td>${reg.operador || ''}</td>
+                                    <td>${reg.firmada || ''}</td>
+                                    <td>${reg.sellada || ''}</td>
+                                </tr>`;
+                });
+
+                html += `</tbody></table></div>`;
+
+                container.innerHTML = html;
+
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+                console.error(error);
+                container.innerHTML = `<p style="color:var(--rojo); font-weight:700;">❌ Error al buscar: ${error.message}</p>`;
+            }
+
+            hideLoader();
+        }
+
+        // ============================================================
+        // MODAL VALIDACIÓN (para bloqueo de registro nuevo con cantidades)
+        // ============================================================
+        function abrirModalValidacion() {
+            document.getElementById('modalValidacion').classList.remove('hidden');
+        }
+
+        function cerrarModalValidacion() {
+            document.getElementById('modalValidacion').classList.add('hidden');
+        }
+
+        // ============================================================
+        // RECALCULAR TOTALES AUTOMÁTICAMENTE
+        // ============================================================
+        function recalcularTotales() {
+            let totalDom = 0, totalSb = 0;
+            const filas = document.querySelectorAll('#tablaBody tr');
+
+            filas.forEach(fila => {
+                const img = fila.querySelector('.marca-icon');
+                const cant = parseFloat(fila.querySelector('.campo-cantidad')?.value) || 0;
+                const src = img?.src || '';
+                if (src.includes('dominos.png')) totalDom += cant;
+                else if (src.includes('starbucks.png')) totalSb += cant;
+            });
+
+            document.getElementById('totalDominos').textContent = Math.round(totalDom);
+            document.getElementById('totalStarbucks').textContent = Math.round(totalSb);
+        }
+
+        // ============================================================
+        // HABILITAR EDICIÓN DE TIENDAS
+        // ============================================================
+        function habilitarEdicionTiendas() {
+            if (esRegistroValidado) {
+                showToast('🔒 No puedes editar un registro validado', 'warning');
+                return;
+            }
+
+            if (!registroActual && !esNuevoRegistro) {
+                showToast('⚠️ Primero carga o crea un registro', 'warning');
+                return;
+            }
+
+            tiendasHabilitadas = !tiendasHabilitadas;
+            const btn = document.getElementById('btnHabilitarTiendas');
+            const inputs = document.querySelectorAll('#tablaBody .table-input');
+
+            inputs.forEach(input => {
+                if (tiendasHabilitadas) {
+                    input.removeAttribute('readonly');
+                    input.removeAttribute('disabled');
+                    input.classList.add('habilitado');
+                    input.style.background = 'white';
+                    input.style.cursor = 'text';
+                    // Agregar eventos para recalcular totales en tiempo real
+                    input.addEventListener('input', recalcularTotales);
+                    input.addEventListener('change', recalcularTotales);
+                } else {
+                    input.setAttribute('readonly', 'readonly');
+                    input.setAttribute('disabled', 'disabled');
+                    input.classList.remove('habilitado');
+                    input.style.background = '#f5f5f5';
+                    input.style.cursor = 'default';
+                    input.removeEventListener('input', recalcularTotales);
+                    input.removeEventListener('change', recalcularTotales);
+                }
+            });
+
+            btn.textContent = tiendasHabilitadas ? '🔒' : '✏️';
+            btn.style.background = tiendasHabilitadas ? 'var(--rojo)' : 'var(--gris-claro)';
+            btn.style.color = tiendasHabilitadas ? 'white' : 'var(--azul-fuerte)';
+
+            // Si se habilitan, activar navegación con teclado
+            if (tiendasHabilitadas) {
+                activarNavegacionTeclado();
+            } else {
+                desactivarNavegacionTeclado();
+            }
+
+            showToast(tiendasHabilitadas ? '✅ Tiendas habilitadas para edición' : '🔒 Tiendas bloqueadas', 'info');
+        }
+
+        // ============================================================
+        // NAVEGACIÓN CON TECLADO EN TIENDAS
+        // ============================================================
+        let navegacionActiva = false;
+
+        function activarNavegacionTeclado() {
+            if (navegacionActiva) return;
+            navegacionActiva = true;
+            const inputs = document.querySelectorAll('#tablaBody .table-input.habilitado');
+            inputs.forEach(input => {
+                input.addEventListener('keydown', manejarTeclaNavegacion);
+            });
+        }
+
+        function desactivarNavegacionTeclado() {
+            navegacionActiva = false;
+            const inputs = document.querySelectorAll('#tablaBody .table-input');
+            inputs.forEach(input => {
+                input.removeEventListener('keydown', manejarTeclaNavegacion);
+                input.classList.remove('celda-activa');
+            });
+        }
+
+        function manejarTeclaNavegacion(e) {
+            const input = e.target;
+            const fila = input.closest('tr');
+            const inputsFila = fila.querySelectorAll('.table-input.habilitado');
+            const todosInputs = document.querySelectorAll('#tablaBody .table-input.habilitado');
+            const idxActual = Array.from(todosInputs).indexOf(input);
+            const esCeco = input.classList.contains('campo-tienda');
+            const esCantidad = input.classList.contains('campo-cantidad');
+
+            // Limpiar clase activa de todos
+            todosInputs.forEach(inp => inp.classList.remove('celda-activa'));
+
+            switch(e.key) {
+                case 'ArrowDown':
+                    e.preventDefault();
+                    const idxAbajo = idxActual + 2; // Saltar 2 porque son CECO + CANTIDAD por fila
+                    if (idxAbajo < todosInputs.length) {
+                        todosInputs[idxAbajo].focus();
+                        todosInputs[idxAbajo].classList.add('celda-activa');
+                    }
+                    break;
+
+                case 'ArrowUp':
+                    e.preventDefault();
+                    const idxArriba = idxActual - 2;
+                    if (idxArriba >= 0) {
+                        todosInputs[idxArriba].focus();
+                        todosInputs[idxArriba].classList.add('celda-activa');
+                    }
+                    break;
+
+                case 'ArrowRight':
+                    e.preventDefault();
+                    if (esCeco) {
+                        // Si es CECO, mover a CANTIDAD (misma fila)
+                        const siguiente = fila.querySelector('.campo-cantidad');
+                        if (siguiente && siguiente.classList.contains('habilitado')) {
+                            siguiente.focus();
+                            siguiente.classList.add('celda-activa');
+                        }
+                    } else if (esCantidad) {
+                        // Si es CANTIDAD, mover al siguiente CECO (siguiente fila)
+                        const siguienteFila = fila.nextElementSibling;
+                        if (siguienteFila) {
+                            const ceco = siguienteFila.querySelector('.campo-tienda');
+                            if (ceco && ceco.classList.contains('habilitado')) {
+                                ceco.focus();
+                                ceco.classList.add('celda-activa');
+                            }
+                        }
+                    }
+                    break;
+
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    if (esCantidad) {
+                        // Si es CANTIDAD, mover a CECO (misma fila)
+                        const anterior = fila.querySelector('.campo-tienda');
+                        if (anterior && anterior.classList.contains('habilitado')) {
+                            anterior.focus();
+                            anterior.classList.add('celda-activa');
+                        }
+                    } else if (esCeco) {
+                        // Si es CECO, mover a CANTIDAD de la fila anterior
+                        const filaAnterior = fila.previousElementSibling;
+                        if (filaAnterior) {
+                            const cantidad = filaAnterior.querySelector('.campo-cantidad');
+                            if (cantidad && cantidad.classList.contains('habilitado')) {
+                                cantidad.focus();
+                                cantidad.classList.add('celda-activa');
+                            }
+                        }
+                    }
+                    break;
+
+                case 'Enter':
+                    e.preventDefault();
+                    if (esCeco) {
+                        // ENTER en CECO → mover a CANTIDAD (misma fila)
+                        const siguiente = fila.querySelector('.campo-cantidad');
+                        if (siguiente && siguiente.classList.contains('habilitado')) {
+                            siguiente.focus();
+                            siguiente.classList.add('celda-activa');
+                        }
+                    } else if (esCantidad) {
+                        // ENTER en CANTIDAD → mover al siguiente CECO (siguiente fila)
+                        const siguienteFila = fila.nextElementSibling;
+                        if (siguienteFila) {
+                            const ceco = siguienteFila.querySelector('.campo-tienda');
+                            if (ceco && ceco.classList.contains('habilitado')) {
+                                ceco.focus();
+                                ceco.classList.add('celda-activa');
+                            }
+                        }
+                    }
+                    break;
+
+                case 'Tab':
+                    // TAB funciona normal, pero quitamos la clase activa al salir
+                    setTimeout(() => {
+                        const activo = document.activeElement;
+                        if (activo && activo.classList.contains('table-input')) {
+                            activo.classList.add('celda-activa');
+                        }
+                    }, 10);
+                    break;
+
+                default:
+                    // Para cualquier otra tecla, solo marcar la celda activa
+                    input.classList.add('celda-activa');
+                    break;
+            }
+
+            // Si el input perdió el foco pero sigue siendo el activo, marcar
+            setTimeout(() => {
+                const activo = document.activeElement;
+                if (activo && activo.classList.contains('table-input')) {
+                    activo.classList.add('celda-activa');
+                }
+            }, 5);
+        }
+
+        // ============================================================
+        // BUSCAR REGISTRO - CON LIMPIEZA PREVIA
+        // ============================================================
+        async function buscarRegistro(bitacora) {
+            if (!bitacora) {
+                bitacora = document.getElementById('bitacora').value.trim();
+            }
+
+            if (!bitacora || bitacora.length !== 6) {
+                showToast('⚠️ Escribe 6 dígitos para buscar', 'warning');
+                return;
+            }
+
+            limpiarFormularioCompleto();
+            tiendasHabilitadas = false;
+            const btn = document.getElementById('btnHabilitarTiendas');
+            btn.textContent = '✏️';
+            btn.style.background = 'var(--gris-claro)';
+            btn.style.color = 'var(--azul-fuerte)';
+
+            showLoader();
+
+            try {
+                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=buscarRegistrosPorBitacora&bitacora=' +
+                    encodeURIComponent(bitacora));
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.error || 'Error al buscar');
+
+                const registros = result.data || [];
+
+                if (registros.length === 0) {
+                    showToast('🔍 No existe registro para esta bitácora - CREANDO NUEVO', 'warning');
+                    esNuevoRegistro = true;
+                    esRegistroValidado = false;
+                    habilitarTodosLosCampos();
+                    ocultarBannerValidacion();
+                    
+                    setTimeout(() => {
+                        document.getElementById('noEmpleado').focus();
+                    }, 300);
+                    
+                    hideLoader();
+                    return;
+                }
+
+                if (registros.length > 1) {
+                    mostrarModalSeleccion(registros, bitacora);
+                    hideLoader();
+                    return;
+                }
+
+                const id = registros[0].id;
+                if (!id) {
+                    showToast('❌ ID de registro no encontrado', 'error');
+                    hideLoader();
+                    return;
+                }
+
+                const responseCompleto = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getRegistroPorId&id=' + encodeURIComponent(id));
+                const resultadoCompleto = await responseCompleto.json();
+
+                if (!resultadoCompleto.success) {
+                    throw new Error(resultadoCompleto.error || 'Error al obtener registro completo');
+                }
+
+                await cargarRegistro(resultadoCompleto.data);
+
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+                console.error(error);
+            }
+
+            hideLoader();
+        }
+
+        function buscarRegistroManual() {
+            const bitacora = document.getElementById('bitacora').value.trim();
+            if (!bitacora || bitacora.length !== 6) {
+                showToast('⚠️ Escribe 6 dígitos en la bitácora', 'warning');
+                document.getElementById('bitacora').focus();
+                return;
+            }
+            buscarRegistro(bitacora);
+        }
+
+        // ============================================================
+        // HABILITAR TODOS LOS CAMPOS (nuevo registro)
+        // ============================================================
+        function habilitarTodosLosCampos() {
+            document.getElementById('noEmpleado').readOnly = false;
+            document.getElementById('noEmpleado').disabled = false;
+            document.getElementById('noEmpleado').classList.remove('valid', 'invalid', 'readonly');
+            document.getElementById('empleadoMsg').className = 'hint waiting';
+            document.getElementById('empleadoMsg').textContent = '👆 ESCRIBE TU NÚMERO (OBLIGATORIO)';
+
+            document.getElementById('bitacora').readOnly = false;
+            document.getElementById('bitacora').disabled = false;
+            document.getElementById('bitacora').classList.remove('valid', 'invalid');
+            document.getElementById('bitacoraMsg').className = 'hint waiting';
+            document.getElementById('bitacoraMsg').textContent = '⏳ ESCRIBE 6 NÚMEROS';
+
+            document.getElementById('ruta').readOnly = false;
+            document.getElementById('ruta').disabled = false;
+            document.getElementById('ruta').classList.remove('readonly');
+
+            document.getElementById('unidad').readOnly = false;
+            document.getElementById('unidad').disabled = false;
+            document.getElementById('unidad').classList.remove('readonly');
+
+            document.getElementById('comentarios').readOnly = false;
+            document.getElementById('comentarios').disabled = false;
+            document.getElementById('comentarios').classList.remove('readonly');
+
+            document.getElementById('transporte').readOnly = false;
+            document.getElementById('transporte').disabled = false;
+            document.getElementById('viaje').readOnly = false;
+            document.getElementById('viaje').disabled = false;
+            document.getElementById('fechaBitacora').readOnly = false;
+            document.getElementById('fechaBitacora').disabled = false;
+            document.getElementById('operador').readOnly = false;
+            document.getElementById('operador').disabled = false;
+            document.getElementById('firmada').disabled = false;
+            document.getElementById('sellada').disabled = false;
+
+            document.getElementById('editRutaBtn').style.display = 'none';
+            document.getElementById('editUnidadBtn').style.display = 'none';
+            document.getElementById('editComentariosBtn').style.display = 'none';
+
+            document.querySelectorAll('.table-input').forEach(input => {
+                input.readOnly = true;
+                input.disabled = true;
+                input.classList.remove('habilitado');
+                input.style.background = '#f5f5f5';
+                input.style.cursor = 'default';
+                input.removeEventListener('input', recalcularTotales);
+                input.removeEventListener('change', recalcularTotales);
+                input.removeEventListener('keydown', manejarTeclaNavegacion);
+            });
+
+            const tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 30; i++) {
+                const fila = document.createElement('tr');
+                fila.dataset.fila = i;
+                fila.innerHTML = `
+                            <td><span class="num-fila">${i}</span></td>
+                            <td>
+                                <img class="marca-icon" src="logo.png" alt="marca" onerror="this.style.display='none'">
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-tienda" data-fila="${i}" value="" style="text-transform:uppercase; background:#f5f5f5; cursor:default;" readonly disabled>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-cantidad no-spinner" data-fila="${i}" value="" inputmode="numeric" style="background:#f5f5f5; cursor:default;" readonly disabled>
+                                </div>
+                            </td>
+                        `;
+                tbody.appendChild(fila);
+            }
+            totalFilas = 30;
+
+            document.getElementById('tabTiendas').disabled = false;
+            document.getElementById('btnHeaderGuardar').disabled = false;
+            document.getElementById('btnAgregar').disabled = false;
+            document.getElementById('btnHabilitarTiendas').disabled = false;
+            document.getElementById('totalDominos').textContent = '0';
+            document.getElementById('totalStarbucks').textContent = '0';
+            
+            ocultarBannerValidacion();
+            tiendasHabilitadas = false;
+            const btn = document.getElementById('btnHabilitarTiendas');
+            btn.textContent = '✏️';
+            btn.style.background = 'var(--gris-claro)';
+            btn.style.color = 'var(--azul-fuerte)';
+            navegacionActiva = false;
+        }
+
+        // ============================================================
+        // BLOQUEAR EDICIÓN REGISTRO VALIDADO
+        // ============================================================
+        function bloquearEdicionRegistroValidado() {
+            document.getElementById('noEmpleado').readOnly = true;
+            document.getElementById('noEmpleado').disabled = true;
+            document.getElementById('ruta').readOnly = true;
+            document.getElementById('ruta').disabled = true;
+            document.getElementById('ruta').classList.add('readonly');
+            document.getElementById('unidad').readOnly = true;
+            document.getElementById('unidad').disabled = true;
+            document.getElementById('unidad').classList.add('readonly');
+            document.getElementById('comentarios').readOnly = true;
+            document.getElementById('comentarios').disabled = true;
+            document.getElementById('comentarios').classList.add('readonly');
+            document.getElementById('transporte').readOnly = true;
+            document.getElementById('transporte').disabled = true;
+            document.getElementById('viaje').readOnly = true;
+            document.getElementById('viaje').disabled = true;
+            document.getElementById('fechaBitacora').readOnly = true;
+            document.getElementById('fechaBitacora').disabled = true;
+            document.getElementById('operador').readOnly = true;
+            document.getElementById('operador').disabled = true;
+            document.getElementById('firmada').disabled = true;
+            document.getElementById('sellada').disabled = true;
+
+            document.querySelectorAll('.table-input').forEach(input => {
+                input.readOnly = true;
+                input.disabled = true;
+                input.classList.remove('habilitado');
+                input.style.background = '#f5f5f5';
+                input.style.cursor = 'default';
+                input.removeEventListener('input', recalcularTotales);
+                input.removeEventListener('change', recalcularTotales);
+                input.removeEventListener('keydown', manejarTeclaNavegacion);
+            });
+
+            document.getElementById('btnHeaderGuardar').disabled = true;
+            document.getElementById('btnAgregar').disabled = true;
+            document.getElementById('btnHabilitarTiendas').disabled = true;
+            tiendasHabilitadas = false;
+            const btn = document.getElementById('btnHabilitarTiendas');
+            btn.textContent = '✏️';
+            btn.style.background = 'var(--gris-claro)';
+            btn.style.color = 'var(--azul-fuerte)';
+            navegacionActiva = false;
+        }
+
+        // ============================================================
+        // BANNERS
+        // ============================================================
+        function mostrarBannerValidacion(fechaValidacion, validador) {
+            const banner = document.getElementById('validationBanner');
+            const icono = document.getElementById('bannerIcono');
+            const texto = document.getElementById('bannerTexto');
+            const detalle = document.getElementById('bannerDetalle');
+
+            banner.className = 'validation-banner validado';
+            icono.textContent = '✅';
+            texto.textContent = 'BITÁCORA VALIDADA';
+            
+            let fechaStr = fechaValidacion || 'fecha no disponible';
+            if (fechaStr && typeof fechaStr === 'string') {
+                try {
+                    const d = new Date(fechaStr);
+                    if (!isNaN(d.getTime())) {
+                        fechaStr = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+                    }
+                } catch(e) {}
+            }
+            
+            detalle.textContent = ` | ${fechaStr} por ${validador || 'usuario desconocido'}`;
+            banner.style.display = 'flex';
+        }
+
+        function mostrarBannerPendiente() {
+            const banner = document.getElementById('validationBanner');
+            const icono = document.getElementById('bannerIcono');
+            const texto = document.getElementById('bannerTexto');
+            const detalle = document.getElementById('bannerDetalle');
+
+            banner.className = 'validation-banner pendiente';
+            icono.textContent = '📝';
+            texto.textContent = 'REGISTRO PENDIENTE DE VALIDACIÓN';
+            detalle.textContent = '';
+            banner.style.display = 'flex';
+        }
+
+        function ocultarBannerValidacion() {
+            document.getElementById('validationBanner').style.display = 'none';
+        }
+
+        // ============================================================
+        // MODAL SELECCIÓN MÚLTIPLE
+        // ============================================================
+        function mostrarModalSeleccion(registros, bitacora) {
+            const container = document.getElementById('modalSeleccionContenido');
+
+            const pendientes = registros.filter(r => r.estadoValidacion !== 'VALIDADA');
+            const validados = registros.filter(r => r.estadoValidacion === 'VALIDADA');
+
+            let html = `<div class="resumen-bitacora">
+                            <strong>📌 BITÁCORA:</strong> ${bitacora}<br>
+                            <strong>📊 TOTAL REGISTROS:</strong> ${registros.length} |
+                            <strong>⏳ PENDIENTES:</strong> ${pendientes.length} |
+                            <strong>✅ VALIDADOS:</strong> ${validados.length}
+                        </div>`;
+
+            html += `<div style="overflow-x:auto; width:100%;">
+                            <table class="tabla-consulta">
+                                <thead>
+                                    <tr>
+                                        <th>BITÁCORA</th>
+                                        <th>FECHA/HORA</th>
+                                        <th>RUTA</th>
+                                        <th>UNIDAD</th>
+                                        <th>DOMINO'S</th>
+                                        <th>STARBUCKS</th>
+                                        <th>ESTADO</th>
+                                        <th>ACCIÓN</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            registros.forEach(reg => {
+                const fechaFormateada = formatearFechaHora(reg.marcaTemporal);
+                const yaValidado = reg.estadoValidacion === 'VALIDADA';
+                const estadoHtml = yaValidado ? '<span class="badge-validado">✅ VALIDADA</span>' :
+                    '<span class="badge-pendiente">⏳ PENDIENTE</span>';
+
+                const btnTexto = yaValidado ? '👁️ VER' : '📝 SELECCIONAR';
+                const btnClase = yaValidado ? 'btn-info' : 'btn-success';
+
+                html += `<tr>
+                                <td><strong>${reg.bitacora || ''}</strong></td>
+                                <td style="font-size:0.7rem;">${fechaFormateada}</td>
+                                <td>${reg.ruta || ''}</td>
+                                <td>${reg.unidad || ''}</td>
+                                <td style="color:var(--dominos); font-weight:700;">${Math.round(reg.totalDominos || 0)}</td>
+                                <td style="color:var(--starbucks); font-weight:700;">${Math.round(reg.totalStarbucks || 0)}</td>
+                                <td>${estadoHtml}</td>
+                                <td>
+                                    <button class="btn ${btnClase}" style="padding:4px 12px; font-size:0.7rem; min-height:auto; min-width:auto;" onclick="cargarRegistroSeleccionado('${reg.id}')">${btnTexto}</button>
+                                </td>
+                            </tr>`;
+            });
+
+            html += `</tbody></table></div>`;
+
+            container.innerHTML = html;
+            document.getElementById('modalSeleccion').classList.remove('hidden');
+        }
+
+        function cerrarModalSeleccion() {
+            document.getElementById('modalSeleccion').classList.add('hidden');
+        }
+
+        window.cargarRegistroSeleccionado = async function(id) {
+            cerrarModalSeleccion();
+            showLoader();
+
+            try {
+                const response = await fetch(APPS_SCRIPT_REGISTRO + '?accion=getRegistroPorId&id=' + encodeURIComponent(id));
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.error);
+
+                await cargarRegistro(result.data);
+
+            } catch (error) {
+                showToast('❌ Error: ' + error.message, 'error');
+            }
+
+            hideLoader();
+        };
+
+        // ============================================================
+        // CARGAR REGISTRO
+        // ============================================================
+        async function cargarRegistro(registro) {
+            if (!registro) {
+                showToast('❌ Registro no encontrado', 'error');
+                return;
+            }
+
+            console.log('📥 Registro COMPLETO recibido:', registro);
+            console.log('📥 Tiendas en el registro:', registro.registros);
+
+            esNuevoRegistro = false;
+            
+            const tieneValidacion = registro.fechaValidacion && registro.fechaValidacion.trim() !== '';
+            const tieneValidador = registro.validador && registro.validador.trim() !== '';
+            esRegistroValidado = tieneValidacion || registro.estadoValidacion === 'VALIDADA';
+
+            documentoIdActual = registro.id;
+
+            registroOriginal = JSON.parse(JSON.stringify(registro));
+            registroActual = registro;
+
+            // Cargar empleado respetando el que ya tiene
+            if (registro.empleado) {
+                document.getElementById('noEmpleado').value = registro.empleado;
+                document.getElementById('noEmpleado').readOnly = true;
+                document.getElementById('noEmpleado').disabled = true;
+                document.getElementById('noEmpleado').classList.add('readonly');
+                
+                const msg = document.getElementById('empleadoMsg');
+                if (mapEmpleados.has(registro.empleado)) {
+                    const nombre = mapEmpleados.get(registro.empleado);
+                    document.getElementById('noEmpleado').classList.add('valid');
+                    msg.className = 'hint success';
+                    msg.textContent = `✅ ${registro.empleado} - ${nombre}`;
+                } else {
+                    document.getElementById('noEmpleado').classList.add('valid');
+                    msg.className = 'hint success';
+                    msg.textContent = `✅ ${registro.empleado}`;
+                }
+            } else {
+                document.getElementById('noEmpleado').value = '';
+                document.getElementById('noEmpleado').readOnly = false;
+                document.getElementById('noEmpleado').disabled = false;
+                document.getElementById('noEmpleado').classList.remove('readonly');
+                document.getElementById('empleadoMsg').className = 'hint waiting';
+                document.getElementById('empleadoMsg').textContent = '👆 ESCRIBE TU NÚMERO (OBLIGATORIO)';
+            }
+
+            document.getElementById('bitacora').value = registro.bitacora || '';
+            document.getElementById('ruta').value = registro.ruta || '';
+            document.getElementById('unidad').value = registro.unidad || '';
+            document.getElementById('comentarios').value = registro.comentarios || '';
+            document.getElementById('transporte').value = registro.transporte || 'FFR';
+            document.getElementById('firmada').checked = (registro.firmada || 'SI') === 'SI';
+            document.getElementById('sellada').checked = (registro.sellada || 'SI') === 'SI';
+            
+            // ✅ MOSTRAR FECHA BITÁCORA EN REGISTROS VALIDADOS
+            if (registro.fechaBitacora) {
+                const fechaFormateada = formatearFechaInput(registro.fechaBitacora);
+                document.getElementById('fechaBitacora').value = fechaFormateada;
+            } else {
+                document.getElementById('fechaBitacora').value = '';
+            }
+            
+            document.getElementById('operador').value = registro.operador || '';
+            document.getElementById('viaje').value = registro.viaje || '';
+
+            const tiendas = registro.registros || [];
+            console.log('📥 Tiendas a cargar:', tiendas.length);
+            cargarTiendasEnTabla(tiendas);
+
+            // Recalcular totales
+            recalcularTotales();
+
+            document.getElementById('tabTiendas').disabled = false;
+            
+            if (esRegistroValidado) {
+                bloquearEdicionRegistroValidado();
+                document.getElementById('btnHeaderGuardar').disabled = true;
+                document.getElementById('btnAgregar').disabled = true;
+                document.getElementById('btnHabilitarTiendas').disabled = true;
+                
+                const fechaValidacion = registro.fechaValidacion || registro.marcaTemporal || '';
+                const validador = registro.validador || 'usuario desconocido';
+                mostrarBannerValidacion(fechaValidacion, validador);
+                
+                showToast('🔒 Registro validado - Solo lectura', 'info');
+            } else {
+                document.getElementById('btnHeaderGuardar').disabled = false;
+                document.getElementById('btnAgregar').disabled = false;
+                document.getElementById('btnHabilitarTiendas').disabled = false;
+                mostrarBannerPendiente();
+            }
+
+            document.getElementById('bitacora').disabled = false;
+            document.getElementById('bitacora').readOnly = false;
+
+            showToast(`✅ Registro ${registro.bitacora || 'cargado'} cargado correctamente`, 'success');
+            document.querySelector('.header-tab-btn[data-tab="tab1"]').click();
+
+            console.log('✅ Registro cargado con', tiendas.length, 'tiendas');
+            console.log('✅ Estado validación:', esRegistroValidado ? 'VALIDADO' : 'PENDIENTE');
+        }
+
+        // ============================================================
+        // CARGAR TIENDAS EN TABLA
+        // ============================================================
+        function cargarTiendasEnTabla(tiendas) {
+            const tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = '';
+
+            const totalFilasMostrar = Math.max(30, (tiendas ? tiendas.length : 0));
+
+            for (let i = 0; i < totalFilasMostrar; i++) {
+                const numFila = i + 1;
+                const tienda = (tiendas && tiendas[i]) ? tiendas[i] : null;
+
+                const fila = document.createElement('tr');
+                fila.dataset.fila = numFila;
+
+                let ceco = '';
+                let cantidad = 0;
+                let tipo = '';
+
+                if (tienda) {
+                    ceco = tienda.tienda || '';
+                    cantidad = tienda.cantidadFisica || 0;
+                    tipo = tienda.tipo || '';
+                }
+
+                let imgSrc = 'logo.png';
+                if (tipo === 'DOMINOS') imgSrc = 'dominos.png';
+                else if (tipo === 'STARBUCKS') imgSrc = 'starbucks.png';
+
+                const disabledAttr = esRegistroValidado ? 'disabled' : '';
+                const readonlyAttr = esRegistroValidado ? 'readonly' : '';
+
+                fila.innerHTML = `
+                    <td><span class="num-fila">${numFila}</span></td>
+                    <td>
+                        <img class="marca-icon" src="${imgSrc}" alt="${tipo}" onerror="this.style.display='none'">
+                    </td>
+                    <td>
+                        <div class="input-wrapper">
+                            <input type="text" class="table-input campo-tienda" data-fila="${numFila}" value="${ceco}" style="text-transform:uppercase; background:#f5f5f5; cursor:default;" ${readonlyAttr} ${disabledAttr}>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="input-wrapper">
+                            <input type="text" class="table-input campo-cantidad no-spinner" data-fila="${numFila}" value="${cantidad}" style="background:#f5f5f5; cursor:default;" ${readonlyAttr} ${disabledAttr}>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(fila);
+            }
+
+            totalFilas = document.querySelectorAll('#tablaBody tr').length;
+            document.getElementById('btnAgregar').disabled = esRegistroValidado;
+            document.getElementById('btnHabilitarTiendas').disabled = esRegistroValidado;
+
+            console.log('✅ Tabla cargada con', tiendas ? tiendas.length : 0, 'tiendas');
+        }
+
+        // ============================================================
+        // AGREGAR FILAS
+        // ============================================================
+        function agregarFilas(cantidad = 5) {
+            if (esRegistroValidado) {
+                showToast('🔒 No puedes modificar un registro validado', 'warning');
+                return;
+            }
+
+            const filasActuales = document.querySelectorAll('#tablaBody tr').length;
+            const tbody = document.getElementById('tablaBody');
+
+            for (let i = 0; i < cantidad; i++) {
+                const numFila = filasActuales + i + 1;
+                const fila = document.createElement('tr');
+                fila.dataset.fila = numFila;
+
+                const disabledAttr = esRegistroValidado ? 'disabled' : '';
+                const readonlyAttr = esRegistroValidado ? 'readonly' : '';
+
+                fila.innerHTML = `
+                            <td><span class="num-fila">${numFila}</span></td>
+                            <td>
+                                <img class="marca-icon" src="logo.png" alt="marca" onerror="this.style.display='none'">
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-tienda" data-fila="${numFila}" value="" style="text-transform:uppercase; background:#f5f5f5; cursor:default;" ${readonlyAttr} ${disabledAttr}>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-cantidad no-spinner" data-fila="${numFila}" value="" inputmode="numeric" style="background:#f5f5f5; cursor:default;" ${readonlyAttr} ${disabledAttr}>
+                                </div>
+                            </td>
+                        `;
+
+                tbody.appendChild(fila);
+            }
+
+            totalFilas = document.querySelectorAll('#tablaBody tr').length;
+            showToast(`✅ ${cantidad} líneas agregadas`, 'success');
+        }
+
+        // ============================================================
+        // MODAL EDICIÓN
+        // ============================================================
+        function abrirModalEdicion(campoId, label) {
+            if (esRegistroValidado) {
+                showToast('🔒 No puedes modificar un registro validado', 'warning');
+                return;
+            }
+
+            const input = document.getElementById(campoId);
+            if (!input) return;
+
+            modalCampoId = campoId;
+            modalCampoLabel = label;
+
+            document.getElementById('modalEdicionTitulo').textContent = `EDITAR ${label}`;
+            document.getElementById('modalEdicionLabel').textContent = label;
+            document.getElementById('modalEdicionInput').value = input.value;
+            document.getElementById('modalEdicion').classList.remove('hidden');
+
+            setTimeout(() => document.getElementById('modalEdicionInput').focus(), 100);
+        }
+
+        function guardarEdicionModal() {
+            if (esRegistroValidado) {
+                showToast('🔒 No puedes modificar un registro validado', 'warning');
+                cerrarModalEdicion();
+                return;
+            }
+
+            const input = document.getElementById('modalEdicionInput');
+            const nuevoValor = input.value.trim().toUpperCase();
+
+            if (modalCampoId === 'fechaBitacora') {
+                const fechaInput = document.getElementById(modalCampoId);
+                fechaInput.value = input.value;
+            } else {
+                const campoInput = document.getElementById(modalCampoId);
+                campoInput.value = nuevoValor;
+            }
+
+            cerrarModalEdicion();
+
+            document.getElementById('btnHeaderGuardar').disabled = false;
+
+            if (registroActual) {
+                if (modalCampoId === 'ruta') {
+                    registroActual.ruta = nuevoValor;
+                } else if (modalCampoId === 'unidad') {
+                    registroActual.unidad = nuevoValor;
+                } else if (modalCampoId === 'comentarios') {
+                    registroActual.comentarios = nuevoValor;
+                }
+            }
+
+            showToast(`✅ ${modalCampoLabel} actualizado`, 'success');
+        }
+
+        function cerrarModalEdicion() {
+            document.getElementById('modalEdicion').classList.add('hidden');
+            document.getElementById('modalEdicionInput').value = '';
+            modalCampoId = null;
+            modalCampoLabel = null;
+        }
+
+        // ============================================================
+        // EVENTOS DE DATOS GENERALES
+        // ============================================================
+        document.getElementById('noEmpleado').addEventListener('input', function() {
+            if (!esNuevoRegistro) return;
+            const valor = this.value.trim().toUpperCase();
+            const msg = document.getElementById('empleadoMsg');
+
+            if (!valor) {
+                this.classList.remove('valid', 'invalid');
+                msg.className = 'hint waiting';
+                msg.textContent = '👆 ESCRIBE TU NÚMERO (OBLIGATORIO)';
+                return;
+            }
+
+            if (mapEmpleados.has(valor)) {
+                const nombre = mapEmpleados.get(valor);
+                this.classList.add('valid');
+                this.classList.remove('invalid');
+                msg.className = 'hint success';
+                msg.textContent = `✅ ${valor} - ${nombre}`;
+            } else {
+                this.classList.add('invalid');
+                this.classList.remove('valid');
+                msg.className = 'hint error';
+                msg.textContent = '❌ NÚMERO NO EXISTE';
+            }
+        });
+
+        // BITÁCORA - NO busca automáticamente al 6to dígito, solo con ENTER
+        document.getElementById('bitacora').addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '');
+            const msg = document.getElementById('bitacoraMsg');
+
+            if (this.value.length < 6) {
+                this.classList.remove('valid', 'invalid');
+                msg.className = 'hint waiting';
+                msg.textContent = `⏳ ESCRIBE 6 NÚMEROS (${this.value.length}/6)`;
+            } else if (this.value.length === 6) {
+                this.classList.add('valid');
+                this.classList.remove('invalid');
+                msg.className = 'hint success';
+                msg.textContent = '✅ BITÁCORA COMPLETA - PRESIONA ENTER PARA BUSCAR';
+                // NO ejecuta búsqueda automática
+            }
+        });
+
+        document.getElementById('bitacora').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (this.value.length === 6) {
+                    buscarRegistro(this.value);
+                } else {
+                    showToast('⚠️ Escribe 6 dígitos para buscar', 'warning');
+                }
+            }
+        });
+
+        // ============================================================
+        // VALIDAR CAMPOS OBLIGATORIOS
+        // ============================================================
+        function validarCamposObligatorios() {
+            const noEmpleado = document.getElementById('noEmpleado');
+            const ruta = document.getElementById('ruta');
+            const unidad = document.getElementById('unidad');
+            const transporte = document.getElementById('transporte');
+            const viaje = document.getElementById('viaje');
+            const fechaBitacora = document.getElementById('fechaBitacora');
+            const operador = document.getElementById('operador');
+
+            let valido = true;
+            let mensaje = '';
+
+            if (!noEmpleado.value.trim() || !noEmpleado.classList.contains('valid')) {
+                valido = false;
+                mensaje += '❌ Número de empleado inválido\n';
+                noEmpleado.focus();
+            } else if (!ruta.value.trim()) {
+                valido = false;
+                mensaje += '❌ Ruta es obligatoria\n';
+                ruta.focus();
+            } else if (!unidad.value.trim()) {
+                valido = false;
+                mensaje += '❌ Unidad es obligatoria\n';
+                unidad.focus();
+            } else if (!transporte.value.trim()) {
+                valido = false;
+                mensaje += '❌ Transporte es obligatorio\n';
+                transporte.focus();
+            } else if (!viaje.value.trim()) {
+                valido = false;
+                mensaje += '❌ Viaje es obligatorio\n';
+                viaje.focus();
+            } else if (!fechaBitacora.value.trim()) {
+                valido = false;
+                mensaje += '❌ Fecha de bitácora es obligatoria\n';
+                fechaBitacora.focus();
+            } else if (!operador.value.trim()) {
+                valido = false;
+                mensaje += '❌ Operador es obligatorio\n';
+                operador.focus();
+            }
+
+            if (!valido) {
+                showToast(mensaje, 'error');
+                return false;
+            }
+
+            return true;
+        }
+
+        // ============================================================
+        // VALIDAR TIENDAS CON CANTIDAD > 0 EN REGISTRO NUEVO
+        // ============================================================
+        function validarTiendasNuevoRegistro() {
+            if (!esNuevoRegistro) return true;
+
+            const filas = document.querySelectorAll('#tablaBody tr');
+            let tieneCecoConCantidad = false;
+
+            for (let fila of filas) {
+                const ceco = fila.querySelector('.campo-tienda')?.value?.trim() || '';
+                const cantidad = parseFloat(fila.querySelector('.campo-cantidad')?.value) || 0;
+
+                // Si hay CECO y cantidad > 0 → bloquear
+                if (ceco && cantidad > 0) {
+                    tieneCecoConCantidad = true;
+                    break;
+                }
+            }
+
+            if (tieneCecoConCantidad) {
+                abrirModalValidacion();
+                return false;
+            }
+
+            return true;
+        }
+
+        // ============================================================
+        // GUARDAR CAMBIOS
+        // ============================================================
+        async function guardarCambios() {
+            if (esRegistroValidado) {
+                showToast('🔒 No puedes guardar cambios en un registro validado', 'warning');
+                return;
+            }
+
+            if (!usuarioActual) {
+                showToast('❌ Debes iniciar sesión', 'error');
+                return;
+            }
+
+            if (!validarCamposObligatorios()) {
+                return;
+            }
+
+            // ✅ VALIDACIÓN PARA REGISTRO NUEVO: bloquear si CECO + Cantidad > 0
+            if (esNuevoRegistro) {
+                if (!validarTiendasNuevoRegistro()) {
+                    return; // No guarda, muestra modal
+                }
+            }
+
+            if (esNuevoRegistro) {
+                await guardarNuevoRegistro();
+                return;
+            }
+
+            if (!registroActual || !documentoIdActual) {
+                showToast('⚠️ No hay registro cargado para guardar', 'warning');
+                return;
+            }
+
+            const filas = document.querySelectorAll('#tablaBody tr');
+            const registros = [];
+
+            for (let fila of filas) {
+                const ceco = fila.querySelector('.campo-tienda')?.value?.trim() || '';
+                const cantidad = parseFloat(fila.querySelector('.campo-cantidad')?.value) || 0;
+
+                const img = fila.querySelector('.marca-icon');
+                const src = img?.src || '';
+                let tipo = '';
+                if (src.includes('dominos.png')) tipo = 'DOMINOS';
+                else if (src.includes('starbucks.png')) tipo = 'STARBUCKS';
+
+                if (ceco || cantidad > 0) {
+                    registros.push({
+                        tienda: ceco,
+                        cantidadBitacora: cantidad,
+                        diferencia: 0,
+                        cantidadFisica: cantidad,
+                        tipo: tipo
+                    });
+                }
+            }
+
+            showLoader();
+
+            try {
+                const ahora = obtenerFechaHoraCDMX();
+                const fechaModificacion = `${formatearFecha(ahora)} ${formatearHora(ahora)}`;
+
+                const payload = {
+                    accion: 'actualizarRegistro',
+                    id: documentoIdActual,
+                    fechaValidacion: fechaModificacion,
+                    validador: usuarioActual.nombre,
+                    transporte: document.getElementById('transporte').value.trim().toUpperCase(),
+                    firmada: document.getElementById('firmada').checked ? 'SI' : 'NO',
+                    sellada: document.getElementById('sellada').checked ? 'SI' : 'NO',
+                    fechaBitacora: document.getElementById('fechaBitacora').value,
+                    operador: document.getElementById('operador').value.trim().toUpperCase(),
+                    viaje: document.getElementById('viaje').value.trim().toUpperCase(),
+                    datosGenerales: {
+                        ruta: document.getElementById('ruta').value || '',
+                        unidad: document.getElementById('unidad').value || '',
+                        bitacora: document.getElementById('bitacora').value || '',
+                        comentarios: document.getElementById('comentarios').value || ''
+                    },
+                    registros: registros
+                };
+
+                console.log('📤 Guardando cambios:', payload);
+
+                await fetch(APPS_SCRIPT_REGISTRO, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                hideLoader();
+
+                showToast('✅ Cambios guardados correctamente', 'success');
+
+                limpiarFormularioCompleto();
+                document.getElementById('bitacora').disabled = false;
+                document.querySelector('.header-tab-btn[data-tab="tab1"]').click();
+                setTimeout(() => {
+                    document.getElementById('bitacora').focus();
+                }, 300);
+
+            } catch (error) {
+                hideLoader();
+                showToast('❌ Error al guardar: ' + error.message, 'error');
+                console.error('Error guardando:', error);
+            }
+        }
+
+        // ============================================================
+        // GUARDAR NUEVO REGISTRO
+        // ============================================================
+        async function guardarNuevoRegistro() {
+            if (!validarCamposObligatorios()) {
+                return;
+            }
+
+            const bitacora = document.getElementById('bitacora');
+
+            if (!bitacora.value || bitacora.value.length !== 6) {
+                showToast('❌ Bitácora debe tener 6 dígitos', 'error');
+                bitacora.focus();
+                return;
+            }
+
+            const filas = document.querySelectorAll('#tablaBody tr');
+            const registros = [];
+
+            for (let fila of filas) {
+                const ceco = fila.querySelector('.campo-tienda')?.value?.trim() || '';
+                const cantidad = parseFloat(fila.querySelector('.campo-cantidad')?.value) || 0;
+
+                if (ceco) {
+                    const img = fila.querySelector('.marca-icon');
+                    const src = img?.src || '';
+                    let tipo = '';
+                    if (src.includes('dominos.png')) tipo = 'DOMINOS';
+                    else if (src.includes('starbucks.png')) tipo = 'STARBUCKS';
+
+                    registros.push({
+                        tienda: ceco,
+                        cantidadBitacora: cantidad,
+                        diferencia: 0,
+                        cantidadFisica: cantidad,
+                        tipo: tipo
+                    });
+                }
+            }
+
+            showLoader();
+
+            try {
+                const ahora = obtenerFechaHoraCDMX();
+                const fecha = new Date(ahora);
+                const turno = obtenerTurnoRegistro();
+
+                const idUnico = Date.now() + '-' + Math.random().toString(36).substr(2, 8);
+
+                const payload = {
+                    accion: 'guardarRegistro',
+                    origen: 'ventanilla',
+                    id: idUnico,
+                    marcaTemporal: `${formatearFecha(fecha)} ${formatearHora(fecha)}`,
+                    fecha: formatearFecha(fecha),
+                    turno: turno,
+                    validador: usuarioActual.nombre, // ✅ Enviar validador
+                    datosGenerales: {
+                        noEmpleado: document.getElementById('noEmpleado').value.trim().toUpperCase(),
+                        ruta: document.getElementById('ruta').value.trim().toUpperCase(),
+                        bitacora: bitacora.value,
+                        unidad: document.getElementById('unidad').value.trim().toUpperCase(),
+                        comentarios: document.getElementById('comentarios').value.trim().toUpperCase() || ''
+                    },
+                    transporte: document.getElementById('transporte').value.trim().toUpperCase(),
+                    firmada: document.getElementById('firmada').checked ? 'SI' : 'NO',
+                    sellada: document.getElementById('sellada').checked ? 'SI' : 'NO',
+                    fechaBitacora: document.getElementById('fechaBitacora').value,
+                    operador: document.getElementById('operador').value.trim().toUpperCase(),
+                    viaje: document.getElementById('viaje').value.trim().toUpperCase(),
+                    registros: registros
+                };
+
+                console.log('📤 Guardando nuevo registro desde ventanilla:', payload);
+
+                await fetch(APPS_SCRIPT_REGISTRO, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                hideLoader();
+
+                showToast('✅ Registro guardado correctamente', 'success');
+
+                limpiarFormularioCompleto();
+                esNuevoRegistro = false;
+                esRegistroValidado = false;
+                document.getElementById('bitacora').disabled = false;
+                document.querySelector('.header-tab-btn[data-tab="tab1"]').click();
+                setTimeout(() => {
+                    document.getElementById('bitacora').focus();
+                }, 300);
+
+            } catch (error) {
+                hideLoader();
+                showToast('❌ Error al guardar: ' + error.message, 'error');
+                console.error('Error guardando:', error);
+            }
+        }
+
+        function obtenerTurnoRegistro() {
+            const h = obtenerFechaHoraCDMX().getHours();
+            const m = obtenerFechaHoraCDMX().getMinutes();
+            const horaCompleta = h + (m / 60);
+
+            if (horaCompleta >= 6 && horaCompleta < 14) {
+                return 'PRIMERO';
+            } else if (horaCompleta >= 14 && horaCompleta < 21.5) {
+                return 'SEGUNDO';
+            } else {
+                return 'TERCERO';
+            }
+        }
+
+        // ============================================================
+        // LIMPIAR FORMULARIO
+        // ============================================================
+        function limpiarFormularioCompleto() {
+            document.getElementById('noEmpleado').value = '';
+            document.getElementById('bitacora').value = '';
+            document.getElementById('ruta').value = '';
+            document.getElementById('unidad').value = '';
+            document.getElementById('comentarios').value = '';
+            document.getElementById('transporte').value = 'FFR';
+            document.getElementById('firmada').checked = true;
+            document.getElementById('sellada').checked = true;
+            document.getElementById('fechaBitacora').value = '';
+            document.getElementById('operador').value = '';
+            document.getElementById('viaje').value = '';
+            document.getElementById('totalDominos').textContent = '0';
+            document.getElementById('totalStarbucks').textContent = '0';
+
+            document.getElementById('noEmpleado').classList.remove('valid', 'invalid');
+            document.getElementById('bitacora').classList.remove('valid', 'invalid');
+
+            document.getElementById('empleadoMsg').className = 'hint';
+            document.getElementById('empleadoMsg').textContent = '👆 NÚMERO DE EMPLEADO (OBLIGATORIO)';
+            document.getElementById('bitacoraMsg').className = 'hint waiting';
+            document.getElementById('bitacoraMsg').textContent = '🔍 ESCRIBE 6 NÚMEROS Y PRESIONA ENTER';
+            document.getElementById('rutaMsg').textContent = '📌 RUTA (OBLIGATORIO)';
+            document.getElementById('unidadMsg').textContent = '🚛 UNIDAD (OBLIGATORIO)';
+            document.getElementById('transporteMsg').textContent = '🚛 TRANSPORTE (OBLIGATORIO)';
+            document.getElementById('viajeMsg').textContent = '🛣️ NÚMERO DE VIAJE (OBLIGATORIO)';
+            document.getElementById('fechaBitacoraMsg').textContent = '📅 FECHA DE BITÁCORA (OBLIGATORIO)';
+            document.getElementById('operadorMsg').textContent = '👤 NOMBRE DEL OPERADOR (OBLIGATORIO)';
+            document.getElementById('comentariosMsg').textContent = '📝 COMENTARIOS OPCIONALES';
+
+            const tbody = document.getElementById('tablaBody');
+            tbody.innerHTML = '';
+            for (let i = 1; i <= 30; i++) {
+                const fila = document.createElement('tr');
+                fila.dataset.fila = i;
+                fila.innerHTML = `
+                            <td><span class="num-fila">${i}</span></td>
+                            <td>
+                                <img class="marca-icon" src="logo.png" alt="marca" onerror="this.style.display='none'">
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-tienda" data-fila="${i}" value="" style="text-transform:uppercase; background:#f5f5f5; cursor:default;" readonly disabled>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-cantidad no-spinner" data-fila="${i}" value="" inputmode="numeric" style="background:#f5f5f5; cursor:default;" readonly disabled>
+                                </div>
+                            </td>
+                        `;
+                tbody.appendChild(fila);
+            }
+            totalFilas = 30;
+
+            document.getElementById('tabTiendas').disabled = true;
+            document.getElementById('btnHeaderGuardar').disabled = true;
+            document.getElementById('btnAgregar').disabled = true;
+            document.getElementById('btnHabilitarTiendas').disabled = true;
+
+            document.getElementById('bitacora').disabled = false;
+            document.getElementById('bitacora').readOnly = false;
+
+            registroActual = null;
+            registroOriginal = null;
+            documentoIdActual = null;
+            esNuevoRegistro = false;
+            esRegistroValidado = false;
+            tiendasHabilitadas = false;
+            const btn = document.getElementById('btnHabilitarTiendas');
+            btn.textContent = '✏️';
+            btn.style.background = 'var(--gris-claro)';
+            btn.style.color = 'var(--azul-fuerte)';
+            navegacionActiva = false;
+            ocultarBannerValidacion();
+
+            showToast('🧹 Formulario limpiado', 'warning');
+        }
+
+        // ============================================================
+        // TECLAS RÁPIDAS
+        // ============================================================
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                if (!esRegistroValidado) {
+                    guardarCambios();
+                } else {
+                    showToast('🔒 No puedes guardar cambios en un registro validado', 'warning');
+                }
+            }
+            if (e.key === 'Escape') {
+                const modalSeleccion = document.getElementById('modalSeleccion');
+                if (!modalSeleccion.classList.contains('hidden')) {
+                    cerrarModalSeleccion();
+                }
+                const modalEdicion = document.getElementById('modalEdicion');
+                if (!modalEdicion.classList.contains('hidden')) {
+                    cerrarModalEdicion();
+                }
+                const modalConsulta = document.getElementById('modalConsulta');
+                if (!modalConsulta.classList.contains('hidden')) {
+                    cerrarModalConsulta();
+                }
+                const modalValidacion = document.getElementById('modalValidacion');
+                if (!modalValidacion.classList.contains('hidden')) {
+                    cerrarModalValidacion();
+                }
+            }
+        });
+
+        // ============================================================
+        // INICIALIZACIÓN
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                document.getElementById('loginEmpleado').focus();
+            }, 200);
+
+            const tbody = document.getElementById('tablaBody');
+            for (let i = 1; i <= 30; i++) {
+                const fila = document.createElement('tr');
+                fila.dataset.fila = i;
+                fila.innerHTML = `
+                            <td><span class="num-fila">${i}</span></td>
+                            <td>
+                                <img class="marca-icon" src="logo.png" alt="marca" onerror="this.style.display='none'">
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-tienda" data-fila="${i}" value="" style="text-transform:uppercase; background:#f5f5f5; cursor:default;" readonly disabled>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="input-wrapper">
+                                    <input type="text" class="table-input campo-cantidad no-spinner" data-fila="${i}" value="" inputmode="numeric" style="background:#f5f5f5; cursor:default;" readonly disabled>
+                                </div>
+                            </td>
+                        `;
+                tbody.appendChild(fila);
+            }
+            totalFilas = 30;
+
+            document.getElementById('tabTiendas').disabled = true;
+            document.getElementById('btnHeaderGuardar').disabled = true;
+            document.getElementById('btnAgregar').disabled = true;
+            document.getElementById('btnHabilitarTiendas').disabled = true;
+
+            document.getElementById('bitacora').disabled = false;
+            document.getElementById('bitacora').readOnly = false;
+            ocultarBannerValidacion();
+
+            console.log('✅ Ventanilla de Validación cargada correctamente');
+            console.log('📊 Conectado a Registro:', APPS_SCRIPT_REGISTRO);
+            console.log('📊 Conectado a Datos_Generales:', APPS_SCRIPT_DATOS_GENERALES);
+        });
+    </script>
+</body>
+</html>

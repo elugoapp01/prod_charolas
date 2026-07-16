@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>Dashboard de Errores - Charolas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        }
+        :root {
+            --primary: #0A2342;
+            --secondary: #2C4C6B;
+            --accent: #4A89C5;
+            --light: #F5F9FF;
+            --white: #fff;
+            --gray: #E8EEF2;
+            --text-dark: #1E2B3C;
+            --success: #27AE60;
+            --danger: #E74C3C;
+            --border-radius: 10px;
+            --box-shadow: 0 4px 12px rgba(10, 35, 66, 0.06);
+        }
+        body {
+            background: var(--gray);
+            min-height: 100vh;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 220px;
+            min-width: 220px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0A2342 0%, #132f4f 100%);
+            color: #fff;
+            padding: 20px 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+        }
+        .sidebar .logo-area {
+            padding: 0 20px 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .sidebar .logo-area img {
+            height: 32px;
+            width: auto;
+        }
+        .sidebar .logo-area h2 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .sidebar .logo-area h2 span {
+            font-weight: 300;
+            color: #7aaccf;
+        }
+        .sidebar .logo-area .sub {
+            font-size: 0.55rem;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 0px;
+            letter-spacing: 0.5px;
+        }
+        .sidebar .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 20px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar .nav-item:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+        }
+        .sidebar .nav-item.active {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-left-color: #4A89C5;
+        }
+        .sidebar .nav-item .icon {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar .nav-item .label {
+            flex: 1;
+        }
+        .sidebar .nav-item .badge {
+            font-size: 0.55rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            flex: 1;
+            padding: 20px 24px 20px 24px;
+            overflow-y: auto;
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .main-content::-webkit-scrollbar-track {
+            background: #f0f4f8;
+        }
+        .main-content::-webkit-scrollbar-thumb {
+            background: #d0d8e0;
+            border-radius: 4px;
+        }
+
+        /* ===== HEADER ===== */
+        .dashboard-header {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 15px 20px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: var(--box-shadow);
+            border-bottom: 2px solid var(--accent);
+        }
+        .dashboard-header .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dashboard-header .logo-area img {
+            height: 36px;
+            width: auto;
+        }
+        .dashboard-header h1 {
+            color: var(--primary);
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        .dashboard-header h1 span {
+            font-weight: 300;
+            color: var(--accent);
+        }
+        .dashboard-header .badge-status {
+            background: var(--light);
+            padding: 6px 16px;
+            border-radius: 50px;
+            color: var(--secondary);
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(74, 137, 197, 0.15);
+        }
+        .dashboard-header .badge-status .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        /* ===== FILTROS ===== */
+        .filtros-container {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 12px 18px;
+            margin-bottom: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(74, 137, 197, 0.1);
+        }
+        .filtros-container label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--secondary);
+            letter-spacing: 0.3px;
+        }
+        .filtros-container select,
+        .filtros-container input {
+            padding: 6px 12px;
+            border: 1.5px solid var(--gray);
+            border-radius: 6px;
+            font-size: 0.78rem;
+            background: var(--light);
+            color: var(--text-dark);
+        }
+        .filtros-container select:focus,
+        .filtros-container input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(74, 137, 197, 0.12);
+        }
+        .filtros-container .btn-filtrar {
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .filtros-container .btn-filtrar:hover {
+            background: var(--secondary);
+        }
+        .filtros-container .btn-limpiar-icon {
+            background: transparent;
+            color: #7a8a9e;
+            border: 1.5px solid var(--gray);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .filtros-container .btn-limpiar-icon:hover {
+            background: #f5f6f8;
+            border-color: #bcc4ce;
+            color: var(--danger);
+        }
+
+        /* ===== SECCIONES ===== */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== TARJETAS KPI ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 14px 18px;
+            box-shadow: var(--box-shadow);
+            border: 1px solid rgba(74, 137, 197, 0.1);
+            transition: transform 0.15s, box-shadow 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(10, 35, 66, 0.08);
+        }
+        .kpi-card .kpi-label {
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--secondary);
+            letter-spacing: 0.4px;
+        }
+        .kpi-card .kpi-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-top: 2px;
+            line-height: 1.2;
+        }
+        .kpi-card .kpi-sub {
+            font-size: 0.6rem;
+            color: var(--secondary);
+            margin-top: 1px;
+        }
+        .kpi-card.error {
+            border-left: 3px solid var(--danger);
+        }
+        .kpi-card.turno {
+            border-left: 3px solid var(--accent);
+        }
+        .kpi-card.registra {
+            border-left: 3px solid var(--success);
+        }
+        .kpi-card.fecha {
+            border-left: 3px solid #F39C12;
+        }
+
+        /* ===== GRÁFICAS ===== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+        .chart-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 16px 20px 20px;
+            border: 1px solid rgba(74, 137, 197, 0.1);
+            box-shadow: var(--box-shadow);
+        }
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+        .chart-card .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .chart-card .chart-header h3 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .chart-card .chart-header .chart-badge {
+            font-size: 0.6rem;
+            font-weight: 600;
+            color: var(--secondary);
+            background: var(--light);
+            padding: 3px 10px;
+            border-radius: 50px;
+            border: 1px solid rgba(74, 137, 197, 0.1);
+        }
+        .chart-card canvas {
+            max-height: 220px;
+            max-width: 100%;
+        }
+
+        /* ===== TABLA ===== */
+        .table-card {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 16px 20px 20px;
+            border: 1px solid rgba(74, 137, 197, 0.1);
+            box-shadow: var(--box-shadow);
+            overflow-x: auto;
+        }
+        .table-card .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .table-card .table-header h3 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+        .table-card .table-header .badge-total {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--secondary);
+            background: var(--light);
+            padding: 3px 12px;
+            border-radius: 50px;
+            border: 1px solid rgba(74, 137, 197, 0.1);
+        }
+        .table-card table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+        .table-card table th {
+            text-align: left;
+            padding: 8px 8px;
+            font-weight: 700;
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: var(--secondary);
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid var(--gray);
+            background: var(--light);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .table-card table td {
+            padding: 6px 8px;
+            border-bottom: 1px solid var(--gray);
+            color: var(--text-dark);
+            font-size: 0.72rem;
+        }
+        .table-card table tr:hover td {
+            background: var(--light);
+        }
+        .table-card .badge-error {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 50px;
+            font-size: 0.6rem;
+            font-weight: 600;
+        }
+        .badge-error.ERROR_EN_RUTA {
+            background: #fef3f2;
+            color: #b91c1c;
+        }
+        .badge-error.ERROR_EN_UNIDAD {
+            background: #fffbeb;
+            color: #b45309;
+        }
+        .badge-error.ERROR_EN_TIENDA {
+            background: #fefce8;
+            color: #a16207;
+        }
+        .badge-error.NO_REGISTRADO {
+            background: #f0f9ff;
+            color: #0369a1;
+        }
+        .badge-error.ERROR_EN_CANTIDAD {
+            background: #faf5ff;
+            color: #6b21a5;
+        }
+        .badge-error.default {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .table-card .col-index {
+            width: 32px;
+            text-align: center;
+            color: #9aabbe;
+            font-weight: 600;
+            font-size: 0.65rem;
+        }
+
+        /* ===== FOOTER ===== */
+        .dashboard-footer {
+            margin-top: 10px;
+            color: var(--secondary);
+            font-size: 0.65rem;
+            text-align: right;
+            border-top: 1px solid var(--gray);
+            padding-top: 8px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 180px;
+                min-width: 180px;
+            }
+            .main-content {
+                padding: 12px 16px;
+            }
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .filtros-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .filtros-container .btn-filtrar {
+                width: 100%;
+                justify-content: center;
+            }
+            .filtros-container .btn-limpiar-icon {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        @media (max-width: 600px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+
+        /* ===== LOADING ===== */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loading-overlay .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .loading-overlay p {
+            margin-top: 12px;
+            color: var(--secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== LOADING ===== -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Cargando datos de errores...</p>
+    </div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="logo-area">
+            <img src="logo.png" alt="Logo" style="height:32px; width:auto;">
+            <div>
+                <h2>📊 <span>Errores</span></h2>
+                <div class="sub">Dashboard de Control</div>
+            </div>
+        </div>
+
+        <a class="nav-item active" data-section="kpi" onclick="navegar('kpi')">
+            <span class="icon">📈</span>
+            <span class="label">KPIs</span>
+            <span class="badge">resumen</span>
+        </a>
+        <a class="nav-item" data-section="tipo-turno" onclick="navegar('tipo-turno')">
+            <span class="icon">📊</span>
+            <span class="label">Tipo y Turno</span>
+        </a>
+        <a class="nav-item" data-section="fecha" onclick="navegar('fecha')">
+            <span class="icon">📈</span>
+            <span class="label">Evolución por Día</span>
+        </a>
+        <a class="nav-item" data-section="persona-tipo" onclick="navegar('persona-tipo')">
+            <span class="icon">👥</span>
+            <span class="label">Persona vs Tipo</span>
+        </a>
+        <a class="nav-item" data-section="registra" onclick="navegar('registra')">
+            <span class="icon">🏆</span>
+            <span class="label">Top Usuarios</span>
+        </a>
+        <a class="nav-item" data-section="tabla" onclick="navegar('tabla')">
+            <span class="icon">📋</span>
+            <span class="label">Lista de Errores</span>
+            <span class="badge" id="totalBadge">0</span>
+        </a>
+    </nav>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <div class="main-content" id="mainContent">
+
+        <!-- ===== HEADER ===== -->
+        <header class="dashboard-header">
+            <div class="logo-area">
+                <img src="logo.png" alt="Logo" style="height:36px; width:auto;">
+                <h1>Dashboard de <span>Errores</span></h1>
+            </div>
+            <div class="badge-status">
+                <span class="dot"></span>
+                <span id="fechaActualizacion">Actualizando...</span>
+            </div>
+        </header>
+
+        <!-- ===== FILTROS ===== -->
+        <div class="filtros-container" id="filtrosContainer">
+            <label>📅 Desde</label>
+            <input type="date" id="fechaDesde">
+
+            <label>📅 Hasta</label>
+            <input type="date" id="fechaHasta">
+
+            <label>👤 Registra</label>
+            <select id="filtroRegistra">
+                <option value="">Todos</option>
+            </select>
+
+            <button class="btn-filtrar" onclick="aplicarFiltros()">🔍 Filtrar</button>
+            <button class="btn-limpiar-icon" onclick="limpiarFiltros()" title="Limpiar filtros">✖</button>
+        </div>
+
+        <!-- ===== CONTENIDO DEL DASHBOARD ===== -->
+        <div id="dashboardContent">
+
+            <!-- ===== SECCIÓN: KPIs ===== -->
+            <section class="section active" id="sec-kpi">
+                <div class="kpi-grid" id="kpiGrid">
+                    <div class="kpi-card error">
+                        <div class="kpi-label">⚠️ Total Errores</div>
+                        <div class="kpi-value" id="totalErrores">0</div>
+                        <div class="kpi-sub">Registrados en el sistema</div>
+                    </div>
+                    <div class="kpi-card turno">
+                        <div class="kpi-label">🔄 Turno con más errores</div>
+                        <div class="kpi-value" id="turnoMasErrores">-</div>
+                        <div class="kpi-sub" id="turnoMasErroresCount">0 registros</div>
+                    </div>
+                    <div class="kpi-card registra">
+                        <div class="kpi-label">👤 Registra con más errores</div>
+                        <div class="kpi-value" id="registraMasErrores">-</div>
+                        <div class="kpi-sub" id="registraMasErroresCount">0 registros</div>
+                    </div>
+                    <div class="kpi-card fecha">
+                        <div class="kpi-label">📅 Día con más errores</div>
+                        <div class="kpi-value" id="diaMasErrores">-</div>
+                        <div class="kpi-sub" id="diaMasErroresCount">0 registros</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SECCIÓN: Tipo y Turno ===== -->
+            <section class="section" id="sec-tipo-turno">
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>📊 Errores por Tipo</h3>
+                            <span class="chart-badge">Distribución</span>
+                        </div>
+                        <canvas id="chartTipoError"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>🔄 Errores por Turno</h3>
+                            <span class="chart-badge">Frecuencia</span>
+                        </div>
+                        <canvas id="chartTurno"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SECCIÓN: Evolución por Día ===== -->
+            <section class="section" id="sec-fecha">
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <h3>📈 Evolución de Errores por Día</h3>
+                            <span class="chart-badge">Línea de tiempo</span>
+                        </div>
+                        <canvas id="chartFecha"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SECCIÓN: Persona vs Tipo ===== -->
+            <section class="section" id="sec-persona-tipo">
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <h3>👥 Errores por Persona y Tipo</h3>
+                            <span class="chart-badge">Desglose</span>
+                        </div>
+                        <canvas id="chartPersonaTipo"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SECCIÓN: Top Usuarios ===== -->
+            <section class="section" id="sec-registra">
+                <div class="charts-grid">
+                    <div class="chart-card full-width">
+                        <div class="chart-header">
+                            <h3>🏆 Top Usuarios con más Errores</h3>
+                            <span class="chart-badge">Ranking</span>
+                        </div>
+                        <canvas id="chartRegistra"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== SECCIÓN: Tabla ===== -->
+            <section class="section" id="sec-tabla">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3>📋 Lista de Errores</h3>
+                        <span class="badge-total" id="totalErroresTabla">0 registros</span>
+                    </div>
+                    <div style="overflow-x:auto; max-height: 450px; overflow-y: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="col-index">#</th>
+                                    <th>Fecha/Hora</th>
+                                    <th>Fecha</th>
+                                    <th>Turno</th>
+                                    <th>Bitácora</th>
+                                    <th>Registra</th>
+                                    <th>Tipo Error</th>
+                                    <th>Valor Anterior</th>
+                                    <th>Valor Nuevo</th>
+                                    <th>Validador</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaErroresBody">
+                                <tr>
+                                    <td colspan="10" style="text-align:center; padding:30px; color:#9aabbe;">
+                                        Cargando datos...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div class="dashboard-footer">
+            Sistema de control de Registro de retorno de charolas V3.0 | E.Lugo 2026
+        </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- SCRIPT PRINCIPAL -->
+    <!-- ============================================ -->
+    <script>
+        // ============================================
+        // CONFIGURACIÓN
+        // ============================================
+        const APPS_SCRIPT_URL =
+            'https://script.google.com/macros/s/AKfycbxLK8cNRueH7afhac3XoBGraXSD7OmGwC3m1f2eptIVZEyS2HXphysZjnSo6Dqi-CrmAg/exec';
+
+        let todosErrores = [];
+        let erroresFiltrados = [];
+        let registrasUnicos = [];
+
+        let chartTipoError = null;
+        let chartTurno = null;
+        let chartFecha = null;
+        let chartRegistra = null;
+        let chartPersonaTipo = null;
+
+        // ============================================
+        // FUNCIÓN PARA PARSEAR FECHA DD/MM/YYYY
+        // ============================================
+        function parseFechaDDMMYYYY(fechaStr) {
+            if (!fechaStr) return null;
+            try {
+                const partes = fechaStr.split('/');
+                if (partes.length === 3) {
+                    const dia = parseInt(partes[0]);
+                    const mes = parseInt(partes[1]) - 1;
+                    const anio = parseInt(partes[2]);
+                    if (!isNaN(dia) && !isNaN(mes) && !isNaN(anio)) {
+                        return new Date(anio, mes, dia);
+                    }
+                }
+                return null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        // ============================================
+        // NAVEGACIÓN
+        // ============================================
+        function navegar(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('sec-' + sectionId);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+                if (el.dataset.section === sectionId) el.classList.add('active');
+            });
+
+            setTimeout(() => {
+                if (chartTipoError) chartTipoError.resize();
+                if (chartTurno) chartTurno.resize();
+                if (chartFecha) chartFecha.resize();
+                if (chartRegistra) chartRegistra.resize();
+                if (chartPersonaTipo) chartPersonaTipo.resize();
+            }, 100);
+        }
+
+        // ============================================
+        // FUNCIONES AUXILIARES
+        // ============================================
+        function formatearFechaMostrar(fechaStr) {
+            if (!fechaStr) return 'N/A';
+            try {
+                const fecha = new Date(fechaStr);
+                if (isNaN(fecha.getTime())) return String(fechaStr);
+                const dia = fecha.getDate().toString().padStart(2, '0');
+                const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+                const anio = fecha.getFullYear();
+                const horas = fecha.getHours().toString().padStart(2, '0');
+                const minutos = fecha.getMinutes().toString().padStart(2, '0');
+                return `${dia}/${mes}/${anio} ${horas}:${minutos}`;
+            } catch (e) { return String(fechaStr); }
+        }
+
+        function obtenerSoloFecha(fechaStr) {
+            if (!fechaStr) return '';
+            try {
+                const fecha = new Date(fechaStr);
+                if (isNaN(fecha.getTime())) return '';
+                const dia = fecha.getDate().toString().padStart(2, '0');
+                const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+                const anio = fecha.getFullYear();
+                return `${dia}/${mes}/${anio}`;
+            } catch (e) { return ''; }
+        }
+
+        // ============================================
+        // CARGAR DATOS
+        // ============================================
+        async function cargarErrores() {
+            showLoading(true);
+            try {
+                const response = await fetch(APPS_SCRIPT_URL + '?accion=getErroresDashboard');
+                const result = await response.json();
+
+                if (!result.success) throw new Error(result.error || 'Error al obtener datos');
+
+                todosErrores = result.data || [];
+
+                if (todosErrores.length === 0) {
+                    todosErrores = obtenerDatosMuestra();
+                }
+
+                const registrasSet = new Set();
+                todosErrores.forEach(e => {
+                    if (e.registra && e.registra.trim() !== '') {
+                        registrasSet.add(e.registra.trim());
+                    }
+                });
+                registrasUnicos = Array.from(registrasSet).sort();
+
+                const selectRegistra = document.getElementById('filtroRegistra');
+                selectRegistra.innerHTML = '<option value="">Todos</option>';
+                registrasUnicos.forEach(r => {
+                    const option = document.createElement('option');
+                    option.value = r;
+                    option.textContent = r;
+                    selectRegistra.appendChild(option);
+                });
+
+                erroresFiltrados = [...todosErrores];
+                actualizarDashboard();
+
+            } catch (error) {
+                console.error('Error:', error);
+                todosErrores = obtenerDatosMuestra();
+                erroresFiltrados = [...todosErrores];
+                actualizarDashboard();
+                alert('⚠️ Usando datos de muestra. No se pudo conectar con el servidor.');
+            }
+            showLoading(false);
+        }
+
+        // ============================================
+        // DATOS DE MUESTRA (FALLBACK)
+        // ============================================
+        function obtenerDatosMuestra() {
+            const tipos = ['ERROR EN RUTA', 'ERROR EN UNIDAD', 'ERROR EN TIENDA', 'NO REGISTRADO', 'ERROR EN CANTIDAD'];
+            const turnos = ['PRIMERO', 'SEGUNDO', 'TERCERO'];
+            const registras = ['Jose Gerardo Recillas Barrera', 'Isaac Eliel Aguilera Martinez',
+                'Michelle Velazquez Godinez', 'Ariana Lopez Fernandez', 'Leticia Rodriguez Reyes',
+                'Edgar Lugo', 'Juan Perez', 'Ana Garcia', 'Carlos Hernandez', 'Maria Lopez'
+            ];
+            const validadores = ['Michelle Velazquez', 'Edgar Lugo', 'Sistema', 'Juan Perez', 'Ana Garcia'];
+            const datos = [];
+
+            const hoy = new Date();
+            for (let i = 0; i < 80; i++) {
+                const fecha = new Date(hoy);
+                fecha.setDate(fecha.getDate() - Math.floor(Math.random() * 30));
+                fecha.setHours(Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+
+                const tipo = tipos[Math.floor(Math.random() * tipos.length)];
+                const turno = turnos[Math.floor(Math.random() * turnos.length)];
+                const registra = registras[Math.floor(Math.random() * registras.length)];
+
+                datos.push({
+                    marcaTemporal: fecha.toISOString(),
+                    fecha: formatearFechaMostrar(fecha),
+                    turno: turno,
+                    bitacora: `${Math.floor(Math.random()*900000)+100000}`,
+                    registra: registra,
+                    idUnico: `ID-${Math.floor(Math.random()*10000)}`,
+                    tipoError: tipo,
+                    valorAnterior: `Valor ${Math.floor(Math.random()*200)}`,
+                    valorNuevo: `Valor ${Math.floor(Math.random()*200)}`,
+                    validador: validadores[Math.floor(Math.random() * validadores.length)],
+                    fechaValidacion: new Date(fecha.getTime() + 3600000).toISOString()
+                });
+            }
+            return datos;
+        }
+
+        // ============================================
+        // ACTUALIZAR DASHBOARD - CORREGIDO
+        // ============================================
+function actualizarDashboard() {
+    const fechaDesde = document.getElementById('fechaDesde').value;
+    const fechaHasta = document.getElementById('fechaHasta').value;
+    const filtroRegistra = document.getElementById('filtroRegistra').value;
+
+    let datos = [...todosErrores];
+
+    // Función para convertir DD/MM/YYYY a YYYY-MM-DD
+    function fechaAISO(fechaStr) {
+        if (!fechaStr) return '';
+        const partes = fechaStr.split('/');
+        if (partes.length === 3) {
+            const dia = partes[0].padStart(2, '0');
+            const mes = partes[1].padStart(2, '0');
+            const anio = partes[2];
+            return `${anio}-${mes}-${dia}`;
+        }
+        return fechaStr;
+    }
+
+    // FILTRO POR FECHA DESDE
+    if (fechaDesde) {
+        datos = datos.filter(e => {
+            const fechaISO = fechaAISO(e.fecha);
+            return fechaISO >= fechaDesde;
+        });
+    }
+
+    // FILTRO POR FECHA HASTA
+    if (fechaHasta) {
+        datos = datos.filter(e => {
+            const fechaISO = fechaAISO(e.fecha);
+            return fechaISO <= fechaHasta;
+        });
+    }
+
+    // FILTRO POR REGISTRA
+    if (filtroRegistra) {
+        datos = datos.filter(e => e.registra === filtroRegistra);
+    }
+
+    erroresFiltrados = datos;
+
+    actualizarKPIs(datos);
+    actualizarGraficas(datos);
+    actualizarTabla(datos);
+
+    document.getElementById('totalBadge').textContent = datos.length;
+    document.getElementById('fechaActualizacion').textContent =
+        `Última actualización: ${new Date().toLocaleString()}`;
+}
+
+        // ============================================
+        // KPI
+        // ============================================
+        function actualizarKPIs(datos) {
+            const total = datos.length;
+            document.getElementById('totalErrores').textContent = total;
+
+            const turnoCount = {};
+            datos.forEach(e => { turnoCount[e.turno] = (turnoCount[e.turno] || 0) + 1; });
+            let maxTurno = '-',
+                maxTurnoCount = 0;
+            for (const [k, v] of Object.entries(turnoCount)) {
+                if (v > maxTurnoCount) { maxTurnoCount = v;
+                    maxTurno = k; }
+            }
+            document.getElementById('turnoMasErrores').textContent = maxTurno;
+            document.getElementById('turnoMasErroresCount').textContent = `${maxTurnoCount} registros`;
+
+            const registraCount = {};
+            datos.forEach(e => { registraCount[e.registra] = (registraCount[e.registra] || 0) + 1; });
+            let maxRegistra = '-',
+                maxRegistraCount = 0;
+            for (const [k, v] of Object.entries(registraCount)) {
+                if (v > maxRegistraCount) { maxRegistraCount = v;
+                    maxRegistra = k; }
+            }
+            document.getElementById('registraMasErrores').textContent = maxRegistra;
+            document.getElementById('registraMasErroresCount').textContent = `${maxRegistraCount} registros`;
+
+            // 🔴 CORREGIDO: usa e.fecha
+            const fechaCount = {};
+            datos.forEach(e => {
+                const fecha = e.fecha || '';
+                if (fecha) { fechaCount[fecha] = (fechaCount[fecha] || 0) + 1; }
+            });
+            let maxFecha = '-',
+                maxFechaCount = 0;
+            for (const [k, v] of Object.entries(fechaCount)) {
+                if (v > maxFechaCount) { maxFechaCount = v;
+                    maxFecha = k; }
+            }
+            document.getElementById('diaMasErrores').textContent = maxFecha;
+            document.getElementById('diaMasErroresCount').textContent = `${maxFechaCount} registros`;
+        }
+
+        // ============================================
+        // GRÁFICAS
+        // ============================================
+        function actualizarGraficas(datos) {
+            const colors = {
+                'ERROR EN RUTA': '#E74C3C',
+                'ERROR EN UNIDAD': '#F39C12',
+                'ERROR EN TIENDA': '#F1C40F',
+                'NO REGISTRADO': '#3498DB',
+                'ERROR EN CANTIDAD': '#9B59B6'
+            };
+
+            const tiposError = ['ERROR EN RUTA', 'ERROR EN UNIDAD', 'ERROR EN TIENDA', 'NO REGISTRADO', 'ERROR EN CANTIDAD'];
+
+            // --- Gráfica 1: Tipo de Error ---
+            const tipoCount = {};
+            datos.forEach(e => { tipoCount[e.tipoError] = (tipoCount[e.tipoError] || 0) + 1; });
+            const tipoLabels = Object.keys(tipoCount);
+            const tipoValues = Object.values(tipoCount);
+            const tipoColors = tipoLabels.map(l => colors[l] || '#95A5A6');
+
+            if (chartTipoError) chartTipoError.destroy();
+            chartTipoError = new Chart(document.getElementById('chartTipoError'), {
+                type: 'doughnut',
+                data: {
+                    labels: tipoLabels,
+                    datasets: [{
+                        data: tipoValues,
+                        backgroundColor: tipoColors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 10 } },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 10 },
+                            formatter: (v) => v > 0 ? v : ''
+                        }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            // --- Gráfica 2: Turno ---
+            const turnoCount = {};
+            datos.forEach(e => { turnoCount[e.turno] = (turnoCount[e.turno] || 0) + 1; });
+            const turnoLabels = Object.keys(turnoCount);
+            const turnoValues = Object.values(turnoCount);
+
+            if (chartTurno) chartTurno.destroy();
+            chartTurno = new Chart(document.getElementById('chartTurno'), {
+                type: 'bar',
+                data: {
+                    labels: turnoLabels,
+                    datasets: [{
+                        label: 'Errores por Turno',
+                        data: turnoValues,
+                        backgroundColor: ['#4A89C5', '#2C7AB1', '#1a4f7a'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            font: { weight: 'bold', size: 10 },
+                            color: '#0A2342'
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0f4f8' } },
+                        x: { grid: { display: false } }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            // --- Gráfica 3: Evolución por Día - CORREGIDO: usa e.fecha ---
+            const fechaCount = {};
+            datos.forEach(e => {
+                const fecha = e.fecha || '';
+                if (fecha) { fechaCount[fecha] = (fechaCount[fecha] || 0) + 1; }
+            });
+            const sortedFechas = Object.keys(fechaCount).sort((a, b) => {
+                const [da, ma, aa] = a.split('/');
+                const [db, mb, ab] = b.split('/');
+                return new Date(aa, ma - 1, da) - new Date(ab, mb - 1, db);
+            });
+            const fechaValues = sortedFechas.map(f => fechaCount[f]);
+
+            if (chartFecha) chartFecha.destroy();
+            chartFecha = new Chart(document.getElementById('chartFecha'), {
+                type: 'line',
+                data: {
+                    labels: sortedFechas,
+                    datasets: [{
+                        label: 'Errores por Día',
+                        data: fechaValues,
+                        borderColor: '#4A89C5',
+                        backgroundColor: 'rgba(74, 137, 197, 0.06)',
+                        fill: true,
+                        tension: 0.3,
+                        pointBackgroundColor: '#0A2342',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            font: { size: 8, weight: 'bold' },
+                            color: '#4a5b6e',
+                            formatter: (v) => v > 0 ? v : ''
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f0f4f8' } },
+                        x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 8 } } }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            // --- Gráfica 4: Persona vs Tipo ---
+            const personaTipoData = {};
+            const personas = [];
+
+            datos.forEach(e => {
+                const persona = e.registra || 'Desconocido';
+                const tipo = e.tipoError || 'OTRO';
+                if (!personas.includes(persona)) personas.push(persona);
+                if (!personaTipoData[persona]) {
+                    personaTipoData[persona] = {};
+                }
+                personaTipoData[persona][tipo] = (personaTipoData[persona][tipo] || 0) + 1;
+            });
+
+            const allTipos = tiposError;
+            personas.forEach(p => {
+                allTipos.forEach(t => {
+                    if (!personaTipoData[p]) personaTipoData[p] = {};
+                    if (!personaTipoData[p][t]) personaTipoData[p][t] = 0;
+                });
+            });
+
+            const datasets = allTipos.map(tipo => {
+                return {
+                    label: tipo,
+                    data: personas.map(p => personaTipoData[p]?.[tipo] || 0),
+                    backgroundColor: colors[tipo] || '#95A5A6',
+                    borderRadius: 2
+                };
+            });
+
+            if (chartPersonaTipo) chartPersonaTipo.destroy();
+            chartPersonaTipo = new Chart(document.getElementById('chartPersonaTipo'), {
+                type: 'bar',
+                data: {
+                    labels: personas,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            font: { size: 8, weight: 'bold' },
+                            color: '#0A2342',
+                            formatter: (v) => v > 0 ? v : ''
+                        }
+                    },
+                    scales: {
+                        x: { stacked: false, grid: { display: false } },
+                        y: { beginAtZero: true, grid: { color: '#f0f4f8' } }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+
+            // --- Gráfica 5: Top Usuarios ---
+            const registraCount = {};
+            datos.forEach(e => {
+                const nombre = e.registra || 'Desconocido';
+                registraCount[nombre] = (registraCount[nombre] || 0) + 1;
+            });
+            const sortedRegistra = Object.entries(registraCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 15);
+            const registraLabels = sortedRegistra.map(r => r[0]);
+            const registraValues = sortedRegistra.map(r => r[1]);
+
+            if (chartRegistra) chartRegistra.destroy();
+            chartRegistra = new Chart(document.getElementById('chartRegistra'), {
+                type: 'bar',
+                data: {
+                    labels: registraLabels,
+                    datasets: [{
+                        label: 'Errores por Usuario',
+                        data: registraValues,
+                        backgroundColor: '#4A89C5',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            font: { weight: 'bold', size: 9 },
+                            color: '#0A2342'
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: '#f0f4f8' } },
+                        y: { grid: { display: false } }
+                    }
+                },
+                plugins: [ChartDataLabels]
+            });
+        }
+
+        // ============================================
+        // TABLA
+        // ============================================
+        function actualizarTabla(datos) {
+            const tbody = document.getElementById('tablaErroresBody');
+            document.getElementById('totalErroresTabla').textContent = `${datos.length} registros`;
+
+            if (datos.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="10" style="text-align:center; padding:30px; color:#9aabbe;">No hay registros de errores</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            const mostrar = datos.slice(0, 100);
+            mostrar.forEach((e, index) => {
+                const badgeClass = e.tipoError.replace(/ /g, '_') || 'default';
+                html += `<tr>
+                    <td class="col-index">${index + 1}</td>
+                    <td>${formatearFechaMostrar(e.marcaTemporal)}</td>
+                    <td>${e.fecha || 'N/A'}</td>
+                    <td><strong>${e.turno || 'N/A'}</strong></td>
+                    <td><strong>${e.bitacora || 'N/A'}</strong></td>
+                    <td>${e.registra || 'N/A'}</td>
+                    <td><span class="badge-error ${badgeClass}">${e.tipoError || 'N/A'}</span></td>
+                    <td>${e.valorAnterior || '-'}</td>
+                    <td>${e.valorNuevo || '-'}</td>
+                    <td>${e.validador || 'N/A'}</td>
+                </tr>`;
+            });
+
+            if (datos.length > 100) {
+                html +=
+                    `<tr><td colspan="10" style="text-align:center; padding:10px; color:#9aabbe; font-style:italic;">Mostrando 100 de ${datos.length} registros</td></tr>`;
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        // ============================================
+        // FILTROS
+        // ============================================
+        function aplicarFiltros() {
+            actualizarDashboard();
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('fechaDesde').value = '';
+            document.getElementById('fechaHasta').value = '';
+            document.getElementById('filtroRegistra').value = '';
+            actualizarDashboard();
+        }
+
+        // ============================================
+        // LOADING
+        // ============================================
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // ============================================
+        // INICIALIZAR
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarErrores();
+
+            setInterval(() => {
+                cargarErrores();
+            }, 300000);
+        });
+    </script>
+
+</body>
+</html>

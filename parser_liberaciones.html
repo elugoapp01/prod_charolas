@@ -480,6 +480,128 @@
             margin-right: 8px;
         }
 
+        /* ========== NUEVO: ESTILOS PARA LOADER INDIVIDUAL ========== */
+        .processing-status {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 15px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .processing-status.active {
+            display: block;
+        }
+
+        .processing-status .status-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .processing-status .status-title i {
+            margin-right: 8px;
+            color: var(--accent-color);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+
+        .status-item .status-icon {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-item .status-icon.pending {
+            color: #6c757d;
+        }
+
+        .status-item .status-icon.processing {
+            color: var(--accent-color);
+            animation: spin 1s linear infinite;
+        }
+
+        .status-item .status-icon.success {
+            color: var(--success-color);
+        }
+
+        .status-item .status-icon.error {
+            color: #dc3545;
+        }
+
+        .status-item .status-text {
+            flex: 1;
+            color: #333;
+        }
+
+        .status-item .status-text .filename {
+            font-weight: 500;
+        }
+
+        .status-item .status-text .detail {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-left: 8px;
+        }
+
+        .status-item .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .status-item .status-badge.pending {
+            background: #e8eaf6;
+            color: #6c757d;
+        }
+
+        .status-item .status-badge.processing {
+            background: #bbdefb;
+            color: #0d47a1;
+        }
+
+        .status-item .status-badge.success {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+
+        .status-item .status-badge.error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .status-item .status-progress {
+            width: 80px;
+            height: 4px;
+            background: #e8eaf6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .status-item .status-progress .progress-bar {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
         .processing-overlay {
             display: none;
             position: fixed;
@@ -538,6 +660,13 @@
                 min-height: 140px;
                 padding: 20px;
             }
+            .status-item {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .status-item .status-progress {
+                width: 60px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -595,6 +724,14 @@
             <button class="btn-process" id="processBtn" disabled>
                 <i class="fas fa-play"></i> Procesar Archivos
             </button>
+
+            <!-- ========== NUEVO: PANEL DE ESTADO INDIVIDUAL ========== -->
+            <div class="processing-status" id="processingStatus">
+                <div class="status-title">
+                    <i class="fas fa-tasks"></i> Progreso de procesamiento
+                </div>
+                <div id="statusList"></div>
+            </div>
         </div>
 
         <div class="summary-section">
@@ -684,18 +821,39 @@
         const sheetNameDisplay = document.getElementById('sheetNameDisplay');
         const columnsFound = document.getElementById('columnsFound');
         const columnsList = document.getElementById('columnsList');
+        // NUEVOS
+        const processingStatus = document.getElementById('processingStatus');
+        const statusList = document.getElementById('statusList');
 
         // Almacenamiento de datos
         let selectedFiles = [];
         let allRows = [];
         let frequencyMap = new Map();
         let usedSheetName = '';
+        let isProcessing = false;
 
         // --- FUNCIONES AUXILIARES ---
 
+        // ========== MODIFICADO: Extraer frecuencia después de LIBERACION, LIBERACIONES, RUTA, RUTAS ==========
         function extractFrequency(filename) {
-            const match = filename.match(/(\d{2,4}S)/i);
-            return match ? match[1].toUpperCase() : null;
+            const patterns = [
+                /liberacion(?:es)?\s*(\d{2,4})\s*['´]?s?/i,
+                /ruta(?:s)?\s*(\d{2,4})\s*['´]?s?/i,
+                /(\d{2,4})\s*['´]?s?/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = filename.match(pattern);
+                if (match) {
+                    const num = match[1];
+                    const hasS = filename.substring(match.index).match(/^(\d{2,4})\s*['´]?s/i);
+                    if (hasS) {
+                        return num + 'S';
+                    }
+                    return num + 'S';
+                }
+            }
+            return null;
         }
 
         function extractCC(text) {
@@ -733,58 +891,60 @@
             return null;
         }
 
-        function findHeaderRow(worksheet) {
+        // NUEVO: Buscar la fila que contiene "Nombre Artículo" de forma EXACTA
+        function findHeaderRowByKeyword(worksheet) {
             const range = XLSX.utils.decode_range(worksheet['!ref']);
             const maxRows = range.e.r + 1;
+            const maxCols = range.e.c + 1;
             
-            const keywords = [
-                'artículo', 'articulo', 'paquetes', 'ruta', 'viaje', 'destino', 'cc',
-                'nombre', 'ubicación', 'ubicacion', 'frecuencia', 'id', 'orden'
-            ];
+            const searchRows = Math.min(50, maxRows);
             
-            const searchRows = Math.min(20, maxRows);
-            
+            // Buscar la frase EXACTA "Nombre Artículo" (con sus variantes)
             for (let rowIdx = 0; rowIdx < searchRows; rowIdx++) {
-                const rowData = [];
-                let hasData = false;
-                
-                for (let colIdx = 0; colIdx < 50; colIdx++) {
+                for (let colIdx = 0; colIdx < maxCols; colIdx++) {
                     const cellAddress = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
                     const cell = worksheet[cellAddress];
                     if (cell && cell.v) {
                         const value = String(cell.v).trim();
-                        if (value) {
-                            rowData.push(value);
-                            hasData = true;
+                        // Coincidencia EXACTA (ignorando mayúsculas)
+                        if (value.toLowerCase() === 'nombre artículo' || 
+                            value.toLowerCase() === 'nombre articulo') {
+                            console.log(`✅ Encontrado "${value}" en fila ${rowIdx + 1}, columna ${colIdx + 1}`);
+                            return rowIdx;
                         }
                     }
                 }
-                
-                if (!hasData) continue;
-                
-                let matches = 0;
-                const rowText = rowData.join(' ').toLowerCase();
-                
-                for (const keyword of keywords) {
-                    if (rowText.includes(keyword)) {
-                        matches++;
+            }
+            
+            // Si no encuentra "Nombre Artículo", buscar "Artículo" o "Articulo" (pero con más precisión)
+            for (let rowIdx = 0; rowIdx < searchRows; rowIdx++) {
+                for (let colIdx = 0; colIdx < maxCols; colIdx++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
+                    const cell = worksheet[cellAddress];
+                    if (cell && cell.v) {
+                        const value = String(cell.v).trim();
+                        const lowerValue = value.toLowerCase();
+                        // Buscar "artículo" o "articulo" como palabra completa o al inicio
+                        if (lowerValue === 'artículo' || 
+                            lowerValue === 'articulo' ||
+                            lowerValue.startsWith('artículo') ||
+                            lowerValue.startsWith('articulo')) {
+                            console.log(`⚠️ Encontrado "${value}" en fila ${rowIdx + 1} (posible encabezado)`);
+                            return rowIdx;
+                        }
                     }
-                }
-                
-                if (matches >= 2) {
-                    return rowIdx;
                 }
             }
             
+            // Fallback: usar fila 0
+            console.warn('⚠️ No se encontró "Nombre Artículo", usando fila 1 como encabezados');
             return 0;
         }
 
-        // BUSCAR COLUMNAS POR NOMBRE (sin importar la posición)
+        // BUSCAR COLUMNAS POR NOMBRE
         function findColumnsByNames(headers) {
-            // Limpiar encabezados
             const cleanHeaders = headers.map(h => String(h).trim());
             
-            // Definir las columnas que necesitamos con sus posibles nombres
             const columnDefinitions = {
                 paquetes: ['Recuento total de paquetes', 'Paquetes', 'Total paquetes', 'Cantidad paquetes'],
                 articulo: ['Nombre Artículo', 'Articulo', 'Artículo', 'Nombre articulo', 'Nombre del artículo'],
@@ -795,7 +955,6 @@
             const foundColumns = {};
             const foundNames = [];
             
-            // Buscar cada columna
             for (const [key, possibleNames] of Object.entries(columnDefinitions)) {
                 let found = false;
                 for (const name of possibleNames) {
@@ -809,7 +968,6 @@
                         break;
                     }
                 }
-                // Búsqueda más flexible (contiene la palabra)
                 if (!found) {
                     for (const name of possibleNames) {
                         const idx = cleanHeaders.findIndex(h => 
@@ -829,6 +987,80 @@
             }
             
             return { foundColumns, foundNames };
+        }
+
+        // ========== NUEVO: Actualizar estado individual de cada archivo ==========
+        function updateStatus(fileName, status, message) {
+            const statusIcons = {
+                pending: '⏳',
+                processing: '🔄',
+                success: '✅',
+                error: '❌'
+            };
+            
+            const statusClasses = {
+                pending: 'pending',
+                processing: 'processing',
+                success: 'success',
+                error: 'error'
+            };
+            
+            const statusLabels = {
+                pending: 'Pendiente',
+                processing: 'Procesando...',
+                success: 'Completado',
+                error: 'Error'
+            };
+            
+            let item = statusList.querySelector(`[data-file="${CSS.escape(fileName)}"]`);
+            
+            if (!item) {
+                item = document.createElement('div');
+                item.className = 'status-item';
+                item.dataset.file = fileName;
+                statusList.appendChild(item);
+            }
+            
+            item.innerHTML = `
+                <span class="status-icon ${statusClasses[status]}">${statusIcons[status]}</span>
+                <span class="status-text">
+                    <span class="filename">${fileName}</span>
+                    <span class="detail">${message || statusLabels[status]}</span>
+                </span>
+                <span class="status-badge ${statusClasses[status]}">${statusLabels[status]}</span>
+                ${status === 'processing' ? `
+                    <div class="status-progress">
+                        <div class="progress-bar" style="width: 0%;"></div>
+                    </div>
+                ` : ''}
+            `;
+            
+            if (status === 'processing') {
+                const progressBar = item.querySelector('.progress-bar');
+                if (progressBar) {
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        if (progress > 90) {
+                            clearInterval(interval);
+                            progress = 90;
+                        }
+                        progressBar.style.width = progress + '%';
+                    }, 300);
+                    item.dataset.progressInterval = interval;
+                }
+            } else if (status === 'success' || status === 'error') {
+                const interval = item.dataset.progressInterval;
+                if (interval) {
+                    clearInterval(interval);
+                    delete item.dataset.progressInterval;
+                }
+                const progressBar = item.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = status === 'success' ? '100%' : '0%';
+                    progressBar.style.background = status === 'success' ? 'var(--success-color)' : '#dc3545';
+                }
+            }
         }
 
         // Actualizar lista de archivos
@@ -897,7 +1129,11 @@
             }
 
             const sorted = Array.from(frequencyMap.entries())
-                .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+                .sort((a, b) => {
+                    const numA = parseInt(a[0]);
+                    const numB = parseInt(b[0]);
+                    return numA - numB;
+                });
 
             let total = 0;
             sorted.forEach(([freq, count]) => {
@@ -961,14 +1197,15 @@
                 const sheetName = findOTMSheet(workbook.SheetNames);
                 
                 if (!sheetName) {
-                    console.warn(`❌ ${filename}: No se encontró hoja "OTM"`);
+                    updateStatus(filename, 'error', 'No se encontró hoja "OTM"');
                     return;
                 }
 
                 usedSheetName = sheetName;
                 const worksheet = workbook.Sheets[sheetName];
                 
-                const headerRow = findHeaderRow(worksheet);
+                // Buscar la fila que contiene "Nombre Artículo" de forma EXACTA
+                const headerRow = findHeaderRowByKeyword(worksheet);
                 
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, {
                     header: 1,
@@ -976,105 +1213,166 @@
                 });
                 
                 if (jsonData.length === 0) {
-                    console.warn(`⚠️ ${filename}: La hoja "${sheetName}" está vacía`);
+                    updateStatus(filename, 'error', 'La hoja está vacía');
                     return;
                 }
                 
                 const headers = jsonData[headerRow] || [];
                 
-                // BUSCAR COLUMNAS POR NOMBRE
-                const { foundColumns, foundNames } = findColumnsByNames(headers);
+                // Verificar si los encabezados son válidos (no deben ser datos de producto)
+                const firstHeader = String(headers[0] || '').trim().toLowerCase();
+                const isDataRow = firstHeader.includes('alsea') || 
+                                 firstHeader.includes('mexico') ||
+                                 firstHeader.includes('kg') ||
+                                 firstHeader.includes('lomo') ||
+                                 firstHeader.includes('cerdo');
                 
-                const idxPaquetes = foundColumns.paquetes;
-                const idxArticulo = foundColumns.articulo;
-                const idxUbicacion = foundColumns.ubicacion;
-                const idxRuta = foundColumns.ruta;
-                
-                // Mostrar qué columnas se encontraron
-                if (foundNames.length > 0) {
-                    console.log(`📋 ${filename}: Columnas encontradas: ${foundNames.join(', ')}`);
-                }
-                
-                if (idxArticulo === -1) {
-                    console.warn(`❌ ${filename}: No se encontró columna "Nombre Artículo"`);
-                    console.warn(`   Encabezados: ${headers.join(', ')}`);
-                    return;
-                }
-                
-                const frecuencia = extractFrequency(filename);
-                if (!frecuencia) {
-                    console.warn(`⚠️ ${filename}: No se pudo extraer frecuencia`);
-                    return;
-                }
-                
-                let countFrecuencia = 0;
-                
-                for (let i = headerRow + 1; i < jsonData.length; i++) {
-                    const row = jsonData[i];
-                    if (!row || row.length === 0) continue;
-                    
-                    const articulo = String(row[idxArticulo] || '').trim();
-                    
-                    if (articulo.toLowerCase().startsWith('masa fresca')) {
-                        const ubicacionDestino = idxUbicacion !== -1 ? String(row[idxUbicacion] || '').trim() : '';
-                        const cc = extractCC(ubicacionDestino);
-                        
-                        const newRow = {
-                            frecuencia: frecuencia,
-                            paquetes: idxPaquetes !== -1 ? row[idxPaquetes] : '',
-                            articulo: articulo,
-                            ubicacion_destino: ubicacionDestino,
-                            ruta: idxRuta !== -1 ? row[idxRuta] : '',
-                            cc: cc
-                        };
-                        allRows.push(newRow);
-                        countFrecuencia++;
+                if (isDataRow && headerRow < 10) {
+                    console.warn(`⚠️ ${filename}: Fila ${headerRow + 1} parece ser datos, buscando encabezados reales...`);
+                    for (let rowIdx = 0; rowIdx < headerRow; rowIdx++) {
+                        const testHeaders = jsonData[rowIdx] || [];
+                        const testText = testHeaders.join(' ').toLowerCase();
+                        if (testText.includes('id') || testText.includes('nombre') || 
+                            testText.includes('paquetes') || testText.includes('ruta')) {
+                            console.log(`✅ ${filename}: Usando fila ${rowIdx + 1} como encabezados`);
+                            const newHeaders = jsonData[rowIdx] || [];
+                            const { foundColumns, foundNames } = findColumnsByNames(newHeaders);
+                            processDataWithHeaders(jsonData, rowIdx, newHeaders, foundColumns, filename);
+                            return;
+                        }
                     }
                 }
                 
-                if (countFrecuencia > 0) {
-                    const currentCount = frequencyMap.get(frecuencia) || 0;
-                    frequencyMap.set(frecuencia, currentCount + countFrecuencia);
-                    console.log(`✅ ${filename}: ${countFrecuencia} líneas de "masa fresca" encontradas`);
-                } else {
-                    console.log(`ℹ️ ${filename}: No se encontraron líneas con "masa fresca"`);
-                }
+                const { foundColumns, foundNames } = findColumnsByNames(headers);
+                processDataWithHeaders(jsonData, headerRow, headers, foundColumns, filename);
 
             } catch (error) {
                 console.error(`❌ Error procesando ${filename}:`, error);
+                updateStatus(filename, 'error', error.message);
             }
         }
 
+        // Función auxiliar para procesar datos con los encabezados encontrados
+        function processDataWithHeaders(jsonData, headerRow, headers, foundColumns, filename) {
+            const idxPaquetes = foundColumns.paquetes;
+            const idxArticulo = foundColumns.articulo;
+            const idxUbicacion = foundColumns.ubicacion;
+            const idxRuta = foundColumns.ruta;
+            
+            const foundNames = Object.keys(foundColumns).filter(k => foundColumns[k] !== -1)
+                .map(k => {
+                    const names = {
+                        paquetes: 'Paquetes',
+                        articulo: 'Nombre Artículo',
+                        ubicacion: 'Ubicación destino',
+                        ruta: 'Ruta'
+                    };
+                    return names[k];
+                });
+            
+            if (foundNames.length > 0) {
+                console.log(`📋 ${filename}: Columnas encontradas: ${foundNames.join(', ')}`);
+                columnsList.textContent = foundNames.join(', ');
+                columnsFound.style.display = 'block';
+            }
+            
+            if (idxArticulo === -1) {
+                console.warn(`❌ ${filename}: No se encontró columna "Nombre Artículo"`);
+                console.warn(`   Encabezados: ${headers.slice(0, 8).join(', ')}...`);
+                updateStatus(filename, 'error', 'No se encontró "Nombre Artículo"');
+                return;
+            }
+            
+            const frecuencia = extractFrequency(filename);
+            if (!frecuencia) {
+                console.warn(`⚠️ ${filename}: No se pudo extraer frecuencia`);
+                updateStatus(filename, 'error', 'No se pudo extraer frecuencia');
+                return;
+            }
+            console.log(`📊 ${filename}: Frecuencia detectada: ${frecuencia}`);
+            
+            let countFrecuencia = 0;
+            
+            for (let i = headerRow + 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (!row || row.length === 0) continue;
+                
+                const articulo = String(row[idxArticulo] || '').trim();
+                
+                if (articulo.toLowerCase().startsWith('masa fresca')) {
+                    const ubicacionDestino = idxUbicacion !== -1 ? String(row[idxUbicacion] || '').trim() : '';
+                    const cc = extractCC(ubicacionDestino);
+                    
+                    const newRow = {
+                        frecuencia: frecuencia,
+                        paquetes: idxPaquetes !== -1 ? row[idxPaquetes] : '',
+                        articulo: articulo,
+                        ubicacion_destino: ubicacionDestino,
+                        ruta: idxRuta !== -1 ? row[idxRuta] : '',
+                        cc: cc
+                    };
+                    allRows.push(newRow);
+                    countFrecuencia++;
+                }
+            }
+            
+            if (countFrecuencia > 0) {
+                const currentCount = frequencyMap.get(frecuencia) || 0;
+                frequencyMap.set(frecuencia, currentCount + countFrecuencia);
+                console.log(`✅ ${filename}: ${countFrecuencia} líneas de "masa fresca" encontradas`);
+                updateStatus(filename, 'success', `${countFrecuencia} líneas encontradas`);
+            } else {
+                console.log(`ℹ️ ${filename}: No se encontraron líneas con "masa fresca"`);
+                updateStatus(filename, 'success', '0 líneas de "masa fresca"');
+            }
+        }
+
+        // Procesar archivo Excel suelto
         async function processSingleExcelFile(file) {
             try {
+                updateStatus(file.name, 'processing', 'Leyendo archivo...');
                 const data = await file.arrayBuffer();
+                updateStatus(file.name, 'processing', 'Procesando datos...');
                 processExcelFile(data, file.name);
             } catch (error) {
                 console.error(`Error al leer Excel ${file.name}:`, error);
+                updateStatus(file.name, 'error', error.message);
             }
         }
 
+        // Procesar archivo ZIP
         async function processZipFile(file) {
             try {
+                updateStatus(file.name, 'processing', 'Extrayendo ZIP...');
                 const zip = await JSZip.loadAsync(file);
                 const excelFiles = Object.keys(zip.files).filter(name => 
                     name.match(/\.(xlsx|xls)$/i) && !zip.files[name].dir
                 );
 
+                if (excelFiles.length === 0) {
+                    updateStatus(file.name, 'error', 'No se encontraron archivos Excel');
+                    return;
+                }
+
                 for (const excelName of excelFiles) {
+                    updateStatus(file.name, 'processing', `Procesando: ${excelName}`);
                     const fileData = await zip.files[excelName].async('arraybuffer');
                     processExcelFile(fileData, excelName);
                 }
+                updateStatus(file.name, 'success', 'ZIP procesado');
             } catch (error) {
                 console.error(`Error al leer ZIP ${file.name}:`, error);
+                updateStatus(file.name, 'error', error.message);
             }
         }
 
+        // Procesar archivo RAR
         async function processRarFile(file) {
+            updateStatus(file.name, 'error', 'Formato RAR no compatible');
             console.warn('Los archivos RAR requieren una librería especial.');
-            alert('Los archivos RAR no son compatibles en este momento. Por favor usa archivos ZIP o Excel sueltos.');
         }
 
+        // Procesar archivos al hacer clic en el botón
         async function processFiles() {
             if (selectedFiles.length === 0) {
                 alert('No hay archivos para procesar');
@@ -1086,23 +1384,43 @@
                 return;
             }
 
+            if (isProcessing) {
+                alert('Ya hay un proceso en ejecución');
+                return;
+            }
+
+            isProcessing = true;
+            processBtn.disabled = true;
+            processingStatus.classList.add('active');
+            statusList.innerHTML = '';
+            
+            // Agregar todos los archivos como pendientes
+            selectedFiles.forEach(file => {
+                updateStatus(file.name, 'pending', 'En cola...');
+            });
+
             overlay.classList.add('active');
 
             allRows = [];
             frequencyMap = new Map();
             usedSheetName = '';
+            columnsFound.style.display = 'none';
 
             for (const file of selectedFiles) {
                 const ext = getFileExtension(file.name);
                 
-                if (ext === 'xlsx' || ext === 'xls') {
-                    await processSingleExcelFile(file);
-                } else if (ext === 'zip') {
-                    await processZipFile(file);
-                } else if (ext === 'rar') {
-                    await processRarFile(file);
-                } else {
-                    console.warn(`Tipo de archivo no soportado: ${file.name}`);
+                try {
+                    if (ext === 'xlsx' || ext === 'xls') {
+                        await processSingleExcelFile(file);
+                    } else if (ext === 'zip') {
+                        await processZipFile(file);
+                    } else if (ext === 'rar') {
+                        await processRarFile(file);
+                    } else {
+                        updateStatus(file.name, 'error', 'Tipo no soportado');
+                    }
+                } catch (error) {
+                    updateStatus(file.name, 'error', error.message);
                 }
             }
 
@@ -1110,6 +1428,8 @@
             renderTable();
             
             overlay.classList.remove('active');
+            isProcessing = false;
+            processBtn.disabled = false;
         }
 
         // --- EVENT LISTENERS ---

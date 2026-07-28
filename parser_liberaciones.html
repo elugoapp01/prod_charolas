@@ -192,6 +192,26 @@
             white-space: nowrap;
         }
 
+        .file-list .file-item .file-type-badge {
+            font-size: 0.65rem;
+            padding: 2px 10px;
+            border-radius: 50px;
+            margin-right: 8px;
+            font-weight: 600;
+            background: #e8eaf6;
+            color: var(--primary-color);
+        }
+
+        .file-list .file-item .file-type-badge.excel {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+
+        .file-list .file-item .file-type-badge.zip {
+            background: #bbdefb;
+            color: #0d47a1;
+        }
+
         .file-list .file-item .file-remove {
             color: #dc3545;
             cursor: pointer;
@@ -541,10 +561,10 @@
         <div class="drop-section">
             <div class="drop-zone" id="dropZone">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <h5>Arrastra tus carpetas comprimidas</h5>
-                <p>o haz clic para seleccionar archivos <strong>.zip</strong></p>
+                <h5>Arrastra tus archivos aquí</h5>
+                <p>ZIP, RAR o Excel <strong>(.xlsx, .xls)</strong></p>
                 <span class="max-files"><i class="fas fa-info-circle"></i> Máximo 10 archivos</span>
-                <input type="file" class="file-input" id="fileInput" accept=".zip,.rar" multiple>
+                <input type="file" class="file-input" id="fileInput" accept=".zip,.rar,.xlsx,.xls" multiple>
             </div>
 
             <!-- LISTA DE ARCHIVOS -->
@@ -659,6 +679,20 @@
             return match ? match[1] : '';
         }
 
+        // Obtener el tipo de archivo para el badge
+        function getFileType(filename) {
+            const ext = filename.toLowerCase();
+            if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) return 'excel';
+            if (ext.endsWith('.zip')) return 'zip';
+            if (ext.endsWith('.rar')) return 'rar';
+            return 'other';
+        }
+
+        // Obtener la extensión de un archivo
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
+
         // Actualizar lista de archivos
         function updateFileList() {
             fileList.innerHTML = '';
@@ -675,11 +709,19 @@
             }
 
             selectedFiles.forEach((file, index) => {
+                const fileType = getFileType(file.name);
+                const typeLabels = {
+                    'excel': '📊 Excel',
+                    'zip': '📦 ZIP',
+                    'rar': '🗜️ RAR',
+                    'other': '📄 Archivo'
+                };
+                
                 const item = document.createElement('div');
                 item.className = 'file-item';
                 item.innerHTML = `
                     <span class="file-name" title="${file.name}">
-                        <i class="fas fa-file-archive" style="color:var(--secondary-color); margin-right:8px;"></i>
+                        <span class="file-type-badge ${fileType}">${typeLabels[fileType] || 'Archivo'}</span>
                         ${file.name}
                     </span>
                     <span class="file-remove" data-index="${index}" title="Quitar archivo">
@@ -767,7 +809,7 @@
             rowCountSpan.textContent = allRows.length;
         }
 
-        // --- LÓGICA PRINCIPAL DE PROCESAMIENTO ---
+        // --- FUNCIONES DE PROCESAMIENTO ---
 
         function processExcelFile(data, filename) {
             try {
@@ -823,9 +865,7 @@
                     const articulo = String(row[colArticulo] || '').trim();
                     
                     if (articulo.toLowerCase().startsWith('masa fresca')) {
-                        // Obtener el valor de ubicación destino
                         const ubicacionDestino = colUbicacion ? String(row[colUbicacion] || '').trim() : '';
-                        // Extraer CC de los primeros 5 dígitos de ubicación destino
                         const cc = extractCC(ubicacionDestino);
                         
                         const newRow = {
@@ -851,6 +891,17 @@
             }
         }
 
+        // Procesar archivo Excel suelto
+        async function processSingleExcelFile(file) {
+            try {
+                const data = await file.arrayBuffer();
+                processExcelFile(data, file.name);
+            } catch (error) {
+                console.error(`Error al leer Excel ${file.name}:`, error);
+            }
+        }
+
+        // Procesar archivo ZIP
         async function processZipFile(file) {
             try {
                 const zip = await JSZip.loadAsync(file);
@@ -867,9 +918,10 @@
             }
         }
 
+        // Procesar archivo RAR
         async function processRarFile(file) {
-            console.warn('Los archivos RAR requieren una librería especial. Por favor usa ZIP.');
-            alert('Los archivos RAR no son compatibles en este momento. Por favor usa archivos ZIP.');
+            console.warn('Los archivos RAR requieren una librería especial. Por favor usa ZIP o Excel suelto.');
+            alert('Los archivos RAR no son compatibles en este momento. Por favor usa archivos ZIP o Excel sueltos.');
         }
 
         // Procesar archivos al hacer clic en el botón
@@ -889,15 +941,21 @@
             allRows = [];
             frequencyMap = new Map();
 
-            const zipFiles = selectedFiles.filter(f => f.name.toLowerCase().endsWith('.zip'));
-            const rarFiles = selectedFiles.filter(f => f.name.toLowerCase().endsWith('.rar'));
-
-            for (const file of zipFiles) {
-                await processZipFile(file);
-            }
-
-            for (const file of rarFiles) {
-                await processRarFile(file);
+            for (const file of selectedFiles) {
+                const ext = getFileExtension(file.name);
+                
+                if (ext === 'xlsx' || ext === 'xls') {
+                    // Excel suelto
+                    await processSingleExcelFile(file);
+                } else if (ext === 'zip') {
+                    // ZIP
+                    await processZipFile(file);
+                } else if (ext === 'rar') {
+                    // RAR
+                    await processRarFile(file);
+                } else {
+                    console.warn(`Tipo de archivo no soportado: ${file.name}`);
+                }
             }
 
             updateSummary();
@@ -922,9 +980,11 @@
             dropZone.classList.remove('dragover');
             
             const files = Array.from(e.dataTransfer.files);
-            const newFiles = files.filter(f => 
-                f.name.toLowerCase().endsWith('.zip') || f.name.toLowerCase().endsWith('.rar')
-            );
+            const validExtensions = ['zip', 'rar', 'xlsx', 'xls'];
+            const newFiles = files.filter(f => {
+                const ext = getFileExtension(f.name);
+                return validExtensions.includes(ext);
+            });
 
             if (selectedFiles.length + newFiles.length > 10) {
                 alert('Máximo 10 archivos permitidos');
@@ -942,9 +1002,11 @@
 
         fileInput.addEventListener('change', (e) => {
             const files = Array.from(e.target.files);
-            const newFiles = files.filter(f => 
-                f.name.toLowerCase().endsWith('.zip') || f.name.toLowerCase().endsWith('.rar')
-            );
+            const validExtensions = ['zip', 'rar', 'xlsx', 'xls'];
+            const newFiles = files.filter(f => {
+                const ext = getFileExtension(f.name);
+                return validExtensions.includes(ext);
+            });
 
             if (selectedFiles.length + newFiles.length > 10) {
                 alert('Máximo 10 archivos permitidos');

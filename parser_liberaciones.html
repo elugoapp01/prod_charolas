@@ -39,7 +39,6 @@
             margin: 0 auto;
         }
 
-        /* HEADER CORPORATIVO */
         .header-corporate {
             background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
             color: white;
@@ -74,7 +73,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* CONTENEDOR DE 2 COLUMNAS */
         .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -88,7 +86,6 @@
             }
         }
 
-        /* COLUMNA IZQUIERDA - DROP ZONE REDUCIDO */
         .drop-section {
             background: white;
             border-radius: 16px;
@@ -164,7 +161,6 @@
             margin-top: 8px;
         }
 
-        /* LISTA DE ARCHIVOS CARGADOS */
         .file-list {
             margin-top: 15px;
             max-height: 150px;
@@ -212,6 +208,11 @@
             color: #0d47a1;
         }
 
+        .file-list .file-item .file-type-badge.rar {
+            background: #ffccbc;
+            color: #bf360c;
+        }
+
         .file-list .file-item .file-remove {
             color: #dc3545;
             cursor: pointer;
@@ -232,7 +233,6 @@
             font-style: italic;
         }
 
-        /* BOTÓN PROCESAR */
         .btn-process {
             background: var(--secondary-color);
             color: white;
@@ -263,7 +263,6 @@
             margin-right: 10px;
         }
 
-        /* COLUMNA DERECHA - RESUMEN DE FRECUENCIAS */
         .summary-section {
             background: white;
             border-radius: 16px;
@@ -341,10 +340,6 @@
             font-weight: 600;
         }
 
-        .summary-item .freq-lines.highlight {
-            background: var(--success-color);
-        }
-
         .summary-total {
             margin-top: 15px;
             padding-top: 12px;
@@ -355,7 +350,6 @@
             color: var(--primary-color);
         }
 
-        /* TABLA DE RESULTADOS */
         .table-container {
             background: white;
             border-radius: 16px;
@@ -456,7 +450,21 @@
             margin-bottom: 15px;
         }
 
-        /* OVERLAY DE PROCESAMIENTO */
+        .sheet-info {
+            background: #e3f2fd;
+            border-left: 4px solid #1a237e;
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #0d47a1;
+            display: none;
+        }
+
+        .sheet-info i {
+            margin-right: 8px;
+        }
+
         .processing-overlay {
             display: none;
             position: fixed;
@@ -492,7 +500,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* RESPONSIVE */
         @media (max-width: 768px) {
             .header-corporate {
                 flex-direction: column;
@@ -537,7 +544,6 @@
 </head>
 <body>
 
-<!-- OVERLAY DE PROCESAMIENTO -->
 <div class="processing-overlay" id="processingOverlay">
     <div class="spinner-custom"></div>
     <h4 style="font-weight:300;">Procesando archivos...</h4>
@@ -546,7 +552,6 @@
 
 <div class="main-container">
 
-    <!-- HEADER -->
     <div class="header-corporate">
         <h1><i class="fas fa-boxes"></i> Liberaciones <span style="font-weight:200;">| Dashboard</span></h1>
         <div class="badge-corporate">
@@ -554,10 +559,8 @@
         </div>
     </div>
 
-    <!-- 2 COLUMNAS -->
     <div class="two-columns">
         
-        <!-- COLUMNA IZQUIERDA: DROP + LISTA + BOTÓN -->
         <div class="drop-section">
             <div class="drop-zone" id="dropZone">
                 <i class="fas fa-cloud-upload-alt"></i>
@@ -567,7 +570,6 @@
                 <input type="file" class="file-input" id="fileInput" accept=".zip,.rar,.xlsx,.xls" multiple>
             </div>
 
-            <!-- LISTA DE ARCHIVOS -->
             <div class="file-list" id="fileList">
                 <div class="file-list-empty" id="emptyFileList">
                     <i class="fas fa-folder-open" style="display:block; font-size:1.2rem; margin-bottom:5px; opacity:0.5;"></i>
@@ -575,13 +577,11 @@
                 </div>
             </div>
 
-            <!-- BOTÓN PROCESAR -->
             <button class="btn-process" id="processBtn" disabled>
                 <i class="fas fa-play"></i> Procesar Archivos
             </button>
         </div>
 
-        <!-- COLUMNA DERECHA: RESUMEN DE FRECUENCIAS -->
         <div class="summary-section">
             <div class="summary-title">
                 <i class="fas fa-chart-bar"></i> Resumen de Frecuencias
@@ -599,7 +599,6 @@
         </div>
     </div>
 
-    <!-- TABLA DE RESULTADOS -->
     <div class="table-container">
         <div class="table-header">
             <h5><i class="fas fa-table me-2" style="color:var(--secondary-color);"></i> Reporte de Masa Fresca</h5>
@@ -614,6 +613,10 @@
                 <p>Procesa archivos para generar el reporte</p>
             </div>
             <div style="display:none;" id="tableContent">
+                <div class="sheet-info" id="sheetInfo">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Usando hoja: <strong id="sheetNameDisplay">OTM</strong></span>
+                </div>
                 <div style="overflow-x:auto;">
                     <table class="table-corporate" id="resultTable">
                         <thead>
@@ -658,11 +661,14 @@
         const emptyTable = document.getElementById('emptyTable');
         const tableContent = document.getElementById('tableContent');
         const overlay = document.getElementById('processingOverlay');
+        const sheetInfo = document.getElementById('sheetInfo');
+        const sheetNameDisplay = document.getElementById('sheetNameDisplay');
 
         // Almacenamiento de datos
         let selectedFiles = [];
         let allRows = [];
         let frequencyMap = new Map();
+        let usedSheetName = '';
 
         // --- FUNCIONES AUXILIARES ---
 
@@ -691,6 +697,82 @@
         // Obtener la extensión de un archivo
         function getFileExtension(filename) {
             return filename.split('.').pop().toLowerCase();
+        }
+
+        // Buscar hoja OTM (INDEPENDIENTE DE LA POSICIÓN)
+        function findOTMSheet(sheetNames) {
+            for (const name of sheetNames) {
+                const cleanName = name.trim();
+                if (cleanName.toUpperCase() === 'OTM') {
+                    return cleanName;
+                }
+            }
+            
+            for (const name of sheetNames) {
+                const cleanName = name.trim().toUpperCase();
+                if (cleanName === 'OTM' || cleanName.match(/^\s*OTM\s*$/)) {
+                    return name.trim();
+                }
+            }
+            
+            console.warn(`No se encontró la hoja exacta "OTM". Hojas disponibles: ${sheetNames.join(', ')}`);
+            return null;
+        }
+
+        // DETECTAR AUTOMÁTICAMENTE DÓNDE EMPIEZAN LOS ENCABEZADOS
+        function findHeaderRow(worksheet) {
+            // Obtener todas las filas del worksheet
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            const maxRows = range.e.r + 1;
+            
+            // Lista de palabras clave que deben estar en los encabezados
+            const keywords = [
+                'artículo', 'articulo', 'paquetes', 'ruta', 'viaje', 'destino', 'cc',
+                'nombre', 'ubicación', 'ubicacion', 'frecuencia', 'id', 'orden'
+            ];
+            
+            // Buscar en las primeras 20 filas (o menos si la hoja es más pequeña)
+            const searchRows = Math.min(20, maxRows);
+            
+            for (let rowIdx = 0; rowIdx < searchRows; rowIdx++) {
+                // Obtener la fila como array
+                const rowData = [];
+                let hasData = false;
+                
+                for (let colIdx = 0; colIdx < 50; colIdx++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
+                    const cell = worksheet[cellAddress];
+                    if (cell && cell.v) {
+                        const value = String(cell.v).trim();
+                        if (value) {
+                            rowData.push(value);
+                            hasData = true;
+                        }
+                    }
+                }
+                
+                if (!hasData) continue;
+                
+                // Verificar si esta fila contiene palabras clave de encabezados
+                let matches = 0;
+                const rowText = rowData.join(' ').toLowerCase();
+                
+                for (const keyword of keywords) {
+                    if (rowText.includes(keyword)) {
+                        matches++;
+                    }
+                }
+                
+                // Si encuentra al menos 2 palabras clave, asume que es la fila de encabezados
+                if (matches >= 2) {
+                    console.log(`Encabezados encontrados en la fila ${rowIdx + 1}: ${rowData.join(', ')}`);
+                    return rowIdx;
+                }
+            }
+            
+            // Si no encuentra encabezados, asume que es la fila 0 (primera fila)
+            console.warn('No se detectaron encabezados automáticamente, usando fila 1');
+            return 0;
         }
 
         // Actualizar lista de archivos
@@ -786,12 +868,18 @@
                 emptyTable.style.display = 'block';
                 tableContent.style.display = 'none';
                 exportBtn.disabled = true;
+                sheetInfo.style.display = 'none';
                 return;
             }
 
             emptyTable.style.display = 'none';
             tableContent.style.display = 'block';
             exportBtn.disabled = false;
+            
+            if (usedSheetName) {
+                sheetNameDisplay.textContent = usedSheetName;
+                sheetInfo.style.display = 'block';
+            }
 
             allRows.forEach(row => {
                 const tr = document.createElement('tr');
@@ -815,76 +903,109 @@
             try {
                 const workbook = XLSX.read(data, { type: 'array' });
                 
-                const sheetName = 'OTM';
-                if (!workbook.SheetNames.includes(sheetName)) {
-                    console.warn(`No se encontró la hoja "OTM" en ${filename}`);
+                // Buscar la hoja OTM
+                const sheetName = findOTMSheet(workbook.SheetNames);
+                
+                if (!sheetName) {
+                    console.warn(`No se encontró hoja exacta "OTM" en ${filename}`);
                     return;
                 }
 
+                usedSheetName = sheetName;
                 const worksheet = workbook.Sheets[sheetName];
-                const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
+                
+                // DETECTAR AUTOMÁTICAMENTE LA FILA DE ENCABEZADOS
+                const headerRow = findHeaderRow(worksheet);
+                
+                // Convertir a JSON usando la fila detectada como encabezados
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                    header: 1, // Obtener como array de arrays
+                    defval: '' // Valor por defecto para celdas vacías
+                });
+                
+                // Si no hay datos, salir
                 if (jsonData.length === 0) {
-                    console.warn(`La hoja OTM de ${filename} está vacía`);
+                    console.warn(`La hoja "${sheetName}" de ${filename} está vacía`);
                     return;
                 }
-
+                
+                // Obtener los encabezados desde la fila detectada
+                const headers = jsonData[headerRow] || [];
+                
+                // Limpiar encabezados (trim y lowercase para comparar)
+                const cleanHeaders = headers.map(h => String(h).trim());
+                
+                // Buscar índices de columnas
+                function findColumnIndex(possibleNames) {
+                    for (const name of possibleNames) {
+                        const idx = cleanHeaders.findIndex(h => 
+                            h.toLowerCase() === name.toLowerCase()
+                        );
+                        if (idx !== -1) return idx;
+                    }
+                    // Búsqueda más flexible
+                    for (const name of possibleNames) {
+                        const idx = cleanHeaders.findIndex(h => 
+                            h.toLowerCase().includes(name.toLowerCase())
+                        );
+                        if (idx !== -1) return idx;
+                    }
+                    return -1;
+                }
+                
+                const idxPaquetes = findColumnIndex(['Recuento total de paquetes', 'Paquetes']);
+                const idxArticulo = findColumnIndex(['Nombre Artículo', 'Articulo', 'Artículo']);
+                const idxUbicacion = findColumnIndex(['Nombre ubicación destino', 'Ubicación destino', 'Destino']);
+                const idxRuta = findColumnIndex(['Ruta']);
+                
+                if (idxArticulo === -1) {
+                    console.warn(`No se encontró columna "Nombre Artículo" en hoja "${sheetName}" de ${filename}`);
+                    console.warn(`Encabezados encontrados: ${cleanHeaders.join(', ')}`);
+                    return;
+                }
+                
                 const frecuencia = extractFrequency(filename);
                 if (!frecuencia) {
                     console.warn(`No se pudo extraer frecuencia de: ${filename}`);
                     return;
                 }
-
-                const headers = Object.keys(jsonData[0] || {});
                 
-                function findColumn(possibleNames) {
-                    for (const name of possibleNames) {
-                        const found = headers.find(h => h.trim().toLowerCase() === name.toLowerCase());
-                        if (found) return found;
-                    }
-                    for (const name of possibleNames) {
-                        const found = headers.find(h => h.trim().toLowerCase().includes(name.toLowerCase()));
-                        if (found) return found;
-                    }
-                    return null;
-                }
-
-                const colPaquetes = findColumn(['Recuento total de paquetes', 'Paquetes']);
-                const colArticulo = findColumn(['Nombre Artículo', 'Articulo', 'Artículo']);
-                const colUbicacion = findColumn(['Nombre ubicación destino', 'Ubicación destino', 'Destino']);
-                const colRuta = findColumn(['Ruta']);
-
-                if (!colArticulo) {
-                    console.warn(`No se encontró columna "Nombre Artículo" en hoja OTM de ${filename}`);
-                    return;
-                }
-
                 let countFrecuencia = 0;
-
-                jsonData.forEach(row => {
-                    const articulo = String(row[colArticulo] || '').trim();
+                
+                // Procesar datos desde la fila siguiente a los encabezados
+                for (let i = headerRow + 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || row.length === 0) continue;
+                    
+                    const articulo = String(row[idxArticulo] || '').trim();
                     
                     if (articulo.toLowerCase().startsWith('masa fresca')) {
-                        const ubicacionDestino = colUbicacion ? String(row[colUbicacion] || '').trim() : '';
+                        const ubicacionDestino = idxUbicacion !== -1 ? String(row[idxUbicacion] || '').trim() : '';
                         const cc = extractCC(ubicacionDestino);
                         
                         const newRow = {
                             frecuencia: frecuencia,
-                            paquetes: colPaquetes ? row[colPaquetes] : '',
+                            paquetes: idxPaquetes !== -1 ? row[idxPaquetes] : '',
                             articulo: articulo,
                             ubicacion_destino: ubicacionDestino,
-                            ruta: colRuta ? row[colRuta] : '',
+                            ruta: idxRuta !== -1 ? row[idxRuta] : '',
                             cc: cc
                         };
                         allRows.push(newRow);
                         countFrecuencia++;
                     }
-                });
-
+                }
+                
                 if (countFrecuencia > 0) {
                     const currentCount = frequencyMap.get(frecuencia) || 0;
                     frequencyMap.set(frecuencia, currentCount + countFrecuencia);
+                    console.log(`✅ ${filename}: ${countFrecuencia} líneas de "masa fresca" encontradas`);
+                } else {
+                    console.log(`⚠️ ${filename}: No se encontraron líneas con "masa fresca"`);
                 }
+                
+                // Mostrar información de la fila de encabezados encontrada
+                console.log(`📋 ${filename}: Encabezados en fila ${headerRow + 1}`);
 
             } catch (error) {
                 console.error(`Error procesando ${filename}:`, error);
@@ -940,18 +1061,16 @@
 
             allRows = [];
             frequencyMap = new Map();
+            usedSheetName = '';
 
             for (const file of selectedFiles) {
                 const ext = getFileExtension(file.name);
                 
                 if (ext === 'xlsx' || ext === 'xls') {
-                    // Excel suelto
                     await processSingleExcelFile(file);
                 } else if (ext === 'zip') {
-                    // ZIP
                     await processZipFile(file);
                 } else if (ext === 'rar') {
-                    // RAR
                     await processRarFile(file);
                 } else {
                     console.warn(`Tipo de archivo no soportado: ${file.name}`);

@@ -603,7 +603,6 @@
                                 <th>Nombre Artículo</th>
                                 <th>Nombre ubicación destino</th>
                                 <th>Ruta</th>
-                                <th>Viaje</th>
                                 <th>CC</th>
                             </tr>
                         </thead>
@@ -629,10 +628,8 @@
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileList = document.getElementById('fileList');
-        const emptyFileList = document.getElementById('emptyFileList');
         const processBtn = document.getElementById('processBtn');
         const summaryList = document.getElementById('summaryList');
-        const emptySummary = document.getElementById('emptySummary');
         const summaryTotal = document.getElementById('summaryTotal');
         const totalLinesSummary = document.getElementById('totalLinesSummary');
         const tableBody = document.getElementById('tableBody');
@@ -652,6 +649,14 @@
         function extractFrequency(filename) {
             const match = filename.match(/(\d{2,4}S)/i);
             return match ? match[1].toUpperCase() : null;
+        }
+
+        // Extraer los primeros 5 dígitos de una cadena
+        function extractCC(text) {
+            if (!text) return '';
+            const str = String(text).trim();
+            const match = str.match(/^\s*(\d{5})/);
+            return match ? match[1] : '';
         }
 
         // Actualizar lista de archivos
@@ -684,14 +689,12 @@
                 fileList.appendChild(item);
             });
 
-            // Eventos para eliminar archivos
             document.querySelectorAll('.file-remove').forEach(el => {
                 el.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const index = parseInt(this.dataset.index);
                     selectedFiles.splice(index, 1);
                     updateFileList();
-                    // Resetear input
                     fileInput.value = '';
                 });
             });
@@ -756,7 +759,6 @@
                     <td>${row.articulo || ''}</td>
                     <td>${row.ubicacion_destino || ''}</td>
                     <td>${row.ruta || ''}</td>
-                    <td>${row.viaje || ''}</td>
                     <td>${row.cc || ''}</td>
                 `;
                 tableBody.appendChild(tr);
@@ -809,8 +811,6 @@
                 const colArticulo = findColumn(['Nombre Artículo', 'Articulo', 'Artículo']);
                 const colUbicacion = findColumn(['Nombre ubicación destino', 'Ubicación destino', 'Destino']);
                 const colRuta = findColumn(['Ruta']);
-                const colViaje = findColumn(['Viaje']);
-                const colCC = findColumn(['CC', 'cc']);
 
                 if (!colArticulo) {
                     console.warn(`No se encontró columna "Nombre Artículo" en hoja OTM de ${filename}`);
@@ -823,14 +823,18 @@
                     const articulo = String(row[colArticulo] || '').trim();
                     
                     if (articulo.toLowerCase().startsWith('masa fresca')) {
+                        // Obtener el valor de ubicación destino
+                        const ubicacionDestino = colUbicacion ? String(row[colUbicacion] || '').trim() : '';
+                        // Extraer CC de los primeros 5 dígitos de ubicación destino
+                        const cc = extractCC(ubicacionDestino);
+                        
                         const newRow = {
                             frecuencia: frecuencia,
                             paquetes: colPaquetes ? row[colPaquetes] : '',
                             articulo: articulo,
-                            ubicacion_destino: colUbicacion ? row[colUbicacion] : '',
+                            ubicacion_destino: ubicacionDestino,
                             ruta: colRuta ? row[colRuta] : '',
-                            viaje: colViaje ? row[colViaje] : '',
-                            cc: colCC ? row[colCC] : ''
+                            cc: cc
                         };
                         allRows.push(newRow);
                         countFrecuencia++;
@@ -880,10 +884,8 @@
                 return;
             }
 
-            // Mostrar overlay
             overlay.classList.add('active');
 
-            // Resetear datos
             allRows = [];
             frequencyMap = new Map();
 
@@ -898,7 +900,6 @@
                 await processRarFile(file);
             }
 
-            // Actualizar UI
             updateSummary();
             renderTable();
             
@@ -907,7 +908,6 @@
 
         // --- EVENT LISTENERS ---
 
-        // Drag & Drop
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
@@ -936,7 +936,6 @@
             fileInput.value = '';
         });
 
-        // Click para abrir selector
         dropZone.addEventListener('click', () => {
             fileInput.click();
         });
@@ -958,10 +957,8 @@
             fileInput.value = '';
         });
 
-        // Botón procesar
         processBtn.addEventListener('click', processFiles);
 
-        // Exportar a Excel
         exportBtn.addEventListener('click', () => {
             if (allRows.length === 0) {
                 alert('No hay datos para exportar');
@@ -974,7 +971,6 @@
                 'Nombre Artículo': row.articulo || '',
                 'Nombre ubicación destino': row.ubicacion_destino || '',
                 'Ruta': row.ruta || '',
-                'Viaje': row.viaje || '',
                 'CC': row.cc || ''
             }));
 

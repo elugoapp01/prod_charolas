@@ -465,6 +465,21 @@
             margin-right: 8px;
         }
 
+        .columns-found {
+            background: #e8f5e9;
+            border-left: 4px solid var(--success-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            color: #1b5e20;
+            display: none;
+        }
+
+        .columns-found i {
+            margin-right: 8px;
+        }
+
         .processing-overlay {
             display: none;
             position: fixed;
@@ -617,6 +632,10 @@
                     <i class="fas fa-info-circle"></i>
                     <span>Usando hoja: <strong id="sheetNameDisplay">OTM</strong></span>
                 </div>
+                <div class="columns-found" id="columnsFound">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Columnas encontradas: <strong id="columnsList"></strong></span>
+                </div>
                 <div style="overflow-x:auto;">
                     <table class="table-corporate" id="resultTable">
                         <thead>
@@ -663,6 +682,8 @@
         const overlay = document.getElementById('processingOverlay');
         const sheetInfo = document.getElementById('sheetInfo');
         const sheetNameDisplay = document.getElementById('sheetNameDisplay');
+        const columnsFound = document.getElementById('columnsFound');
+        const columnsList = document.getElementById('columnsList');
 
         // Almacenamiento de datos
         let selectedFiles = [];
@@ -677,7 +698,6 @@
             return match ? match[1].toUpperCase() : null;
         }
 
-        // Extraer los primeros 5 dígitos de una cadena
         function extractCC(text) {
             if (!text) return '';
             const str = String(text).trim();
@@ -685,7 +705,6 @@
             return match ? match[1] : '';
         }
 
-        // Obtener el tipo de archivo para el badge
         function getFileType(filename) {
             const ext = filename.toLowerCase();
             if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) return 'excel';
@@ -694,12 +713,10 @@
             return 'other';
         }
 
-        // Obtener la extensión de un archivo
         function getFileExtension(filename) {
             return filename.split('.').pop().toLowerCase();
         }
 
-        // Buscar hoja OTM (INDEPENDIENTE DE LA POSICIÓN)
         function findOTMSheet(sheetNames) {
             for (const name of sheetNames) {
                 const cleanName = name.trim();
@@ -707,35 +724,27 @@
                     return cleanName;
                 }
             }
-            
             for (const name of sheetNames) {
                 const cleanName = name.trim().toUpperCase();
                 if (cleanName === 'OTM' || cleanName.match(/^\s*OTM\s*$/)) {
                     return name.trim();
                 }
             }
-            
-            console.warn(`No se encontró la hoja exacta "OTM". Hojas disponibles: ${sheetNames.join(', ')}`);
             return null;
         }
 
-        // DETECTAR AUTOMÁTICAMENTE DÓNDE EMPIEZAN LOS ENCABEZADOS
         function findHeaderRow(worksheet) {
-            // Obtener todas las filas del worksheet
             const range = XLSX.utils.decode_range(worksheet['!ref']);
             const maxRows = range.e.r + 1;
             
-            // Lista de palabras clave que deben estar en los encabezados
             const keywords = [
                 'artículo', 'articulo', 'paquetes', 'ruta', 'viaje', 'destino', 'cc',
                 'nombre', 'ubicación', 'ubicacion', 'frecuencia', 'id', 'orden'
             ];
             
-            // Buscar en las primeras 20 filas (o menos si la hoja es más pequeña)
             const searchRows = Math.min(20, maxRows);
             
             for (let rowIdx = 0; rowIdx < searchRows; rowIdx++) {
-                // Obtener la fila como array
                 const rowData = [];
                 let hasData = false;
                 
@@ -753,7 +762,6 @@
                 
                 if (!hasData) continue;
                 
-                // Verificar si esta fila contiene palabras clave de encabezados
                 let matches = 0;
                 const rowText = rowData.join(' ').toLowerCase();
                 
@@ -763,16 +771,64 @@
                     }
                 }
                 
-                // Si encuentra al menos 2 palabras clave, asume que es la fila de encabezados
                 if (matches >= 2) {
-                    console.log(`Encabezados encontrados en la fila ${rowIdx + 1}: ${rowData.join(', ')}`);
                     return rowIdx;
                 }
             }
             
-            // Si no encuentra encabezados, asume que es la fila 0 (primera fila)
-            console.warn('No se detectaron encabezados automáticamente, usando fila 1');
             return 0;
+        }
+
+        // BUSCAR COLUMNAS POR NOMBRE (sin importar la posición)
+        function findColumnsByNames(headers) {
+            // Limpiar encabezados
+            const cleanHeaders = headers.map(h => String(h).trim());
+            
+            // Definir las columnas que necesitamos con sus posibles nombres
+            const columnDefinitions = {
+                paquetes: ['Recuento total de paquetes', 'Paquetes', 'Total paquetes', 'Cantidad paquetes'],
+                articulo: ['Nombre Artículo', 'Articulo', 'Artículo', 'Nombre articulo', 'Nombre del artículo'],
+                ubicacion: ['Nombre ubicación destino', 'Ubicación destino', 'Destino', 'Nombre destino', 'Ubicacion destino'],
+                ruta: ['Ruta', 'Ruta destino']
+            };
+            
+            const foundColumns = {};
+            const foundNames = [];
+            
+            // Buscar cada columna
+            for (const [key, possibleNames] of Object.entries(columnDefinitions)) {
+                let found = false;
+                for (const name of possibleNames) {
+                    const idx = cleanHeaders.findIndex(h => 
+                        h.toLowerCase() === name.toLowerCase()
+                    );
+                    if (idx !== -1) {
+                        foundColumns[key] = idx;
+                        foundNames.push(name);
+                        found = true;
+                        break;
+                    }
+                }
+                // Búsqueda más flexible (contiene la palabra)
+                if (!found) {
+                    for (const name of possibleNames) {
+                        const idx = cleanHeaders.findIndex(h => 
+                            h.toLowerCase().includes(name.toLowerCase())
+                        );
+                        if (idx !== -1) {
+                            foundColumns[key] = idx;
+                            foundNames.push(name + ' (contiene)');
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    foundColumns[key] = -1;
+                }
+            }
+            
+            return { foundColumns, foundNames };
         }
 
         // Actualizar lista de archivos
@@ -826,7 +882,6 @@
             processBtn.disabled = false;
         }
 
-        // Actualizar resumen de frecuencias
         function updateSummary() {
             summaryList.innerHTML = '';
             
@@ -860,7 +915,6 @@
             totalLinesSummary.textContent = total;
         }
 
-        // Mostrar tabla
         function renderTable() {
             tableBody.innerHTML = '';
             
@@ -869,6 +923,7 @@
                 tableContent.style.display = 'none';
                 exportBtn.disabled = true;
                 sheetInfo.style.display = 'none';
+                columnsFound.style.display = 'none';
                 return;
             }
 
@@ -903,76 +958,57 @@
             try {
                 const workbook = XLSX.read(data, { type: 'array' });
                 
-                // Buscar la hoja OTM
                 const sheetName = findOTMSheet(workbook.SheetNames);
                 
                 if (!sheetName) {
-                    console.warn(`No se encontró hoja exacta "OTM" en ${filename}`);
+                    console.warn(`❌ ${filename}: No se encontró hoja "OTM"`);
                     return;
                 }
 
                 usedSheetName = sheetName;
                 const worksheet = workbook.Sheets[sheetName];
                 
-                // DETECTAR AUTOMÁTICAMENTE LA FILA DE ENCABEZADOS
                 const headerRow = findHeaderRow(worksheet);
                 
-                // Convertir a JSON usando la fila detectada como encabezados
                 const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-                    header: 1, // Obtener como array de arrays
-                    defval: '' // Valor por defecto para celdas vacías
+                    header: 1,
+                    defval: ''
                 });
                 
-                // Si no hay datos, salir
                 if (jsonData.length === 0) {
-                    console.warn(`La hoja "${sheetName}" de ${filename} está vacía`);
+                    console.warn(`⚠️ ${filename}: La hoja "${sheetName}" está vacía`);
                     return;
                 }
                 
-                // Obtener los encabezados desde la fila detectada
                 const headers = jsonData[headerRow] || [];
                 
-                // Limpiar encabezados (trim y lowercase para comparar)
-                const cleanHeaders = headers.map(h => String(h).trim());
+                // BUSCAR COLUMNAS POR NOMBRE
+                const { foundColumns, foundNames } = findColumnsByNames(headers);
                 
-                // Buscar índices de columnas
-                function findColumnIndex(possibleNames) {
-                    for (const name of possibleNames) {
-                        const idx = cleanHeaders.findIndex(h => 
-                            h.toLowerCase() === name.toLowerCase()
-                        );
-                        if (idx !== -1) return idx;
-                    }
-                    // Búsqueda más flexible
-                    for (const name of possibleNames) {
-                        const idx = cleanHeaders.findIndex(h => 
-                            h.toLowerCase().includes(name.toLowerCase())
-                        );
-                        if (idx !== -1) return idx;
-                    }
-                    return -1;
+                const idxPaquetes = foundColumns.paquetes;
+                const idxArticulo = foundColumns.articulo;
+                const idxUbicacion = foundColumns.ubicacion;
+                const idxRuta = foundColumns.ruta;
+                
+                // Mostrar qué columnas se encontraron
+                if (foundNames.length > 0) {
+                    console.log(`📋 ${filename}: Columnas encontradas: ${foundNames.join(', ')}`);
                 }
                 
-                const idxPaquetes = findColumnIndex(['Recuento total de paquetes', 'Paquetes']);
-                const idxArticulo = findColumnIndex(['Nombre Artículo', 'Articulo', 'Artículo']);
-                const idxUbicacion = findColumnIndex(['Nombre ubicación destino', 'Ubicación destino', 'Destino']);
-                const idxRuta = findColumnIndex(['Ruta']);
-                
                 if (idxArticulo === -1) {
-                    console.warn(`No se encontró columna "Nombre Artículo" en hoja "${sheetName}" de ${filename}`);
-                    console.warn(`Encabezados encontrados: ${cleanHeaders.join(', ')}`);
+                    console.warn(`❌ ${filename}: No se encontró columna "Nombre Artículo"`);
+                    console.warn(`   Encabezados: ${headers.join(', ')}`);
                     return;
                 }
                 
                 const frecuencia = extractFrequency(filename);
                 if (!frecuencia) {
-                    console.warn(`No se pudo extraer frecuencia de: ${filename}`);
+                    console.warn(`⚠️ ${filename}: No se pudo extraer frecuencia`);
                     return;
                 }
                 
                 let countFrecuencia = 0;
                 
-                // Procesar datos desde la fila siguiente a los encabezados
                 for (let i = headerRow + 1; i < jsonData.length; i++) {
                     const row = jsonData[i];
                     if (!row || row.length === 0) continue;
@@ -1001,18 +1037,14 @@
                     frequencyMap.set(frecuencia, currentCount + countFrecuencia);
                     console.log(`✅ ${filename}: ${countFrecuencia} líneas de "masa fresca" encontradas`);
                 } else {
-                    console.log(`⚠️ ${filename}: No se encontraron líneas con "masa fresca"`);
+                    console.log(`ℹ️ ${filename}: No se encontraron líneas con "masa fresca"`);
                 }
-                
-                // Mostrar información de la fila de encabezados encontrada
-                console.log(`📋 ${filename}: Encabezados en fila ${headerRow + 1}`);
 
             } catch (error) {
-                console.error(`Error procesando ${filename}:`, error);
+                console.error(`❌ Error procesando ${filename}:`, error);
             }
         }
 
-        // Procesar archivo Excel suelto
         async function processSingleExcelFile(file) {
             try {
                 const data = await file.arrayBuffer();
@@ -1022,7 +1054,6 @@
             }
         }
 
-        // Procesar archivo ZIP
         async function processZipFile(file) {
             try {
                 const zip = await JSZip.loadAsync(file);
@@ -1039,13 +1070,11 @@
             }
         }
 
-        // Procesar archivo RAR
         async function processRarFile(file) {
-            console.warn('Los archivos RAR requieren una librería especial. Por favor usa ZIP o Excel suelto.');
+            console.warn('Los archivos RAR requieren una librería especial.');
             alert('Los archivos RAR no son compatibles en este momento. Por favor usa archivos ZIP o Excel sueltos.');
         }
 
-        // Procesar archivos al hacer clic en el botón
         async function processFiles() {
             if (selectedFiles.length === 0) {
                 alert('No hay archivos para procesar');

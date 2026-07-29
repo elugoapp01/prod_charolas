@@ -15,6 +15,8 @@
         .controls input, .controls select { padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; }
         .controls input { width: 70px; text-align: center; }
         button { background: #2c7da0; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .btn-vacaciones { background: #f59e0b; }
+        .btn-vacaciones:hover { background: #d97706; }
         .table-wrapper { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 800px; }
         th { background: #f1f5f9; padding: 12px 6px; font-weight: 600; color: #1e4663; border-bottom: 1px solid #e2e8f0; }
@@ -24,6 +26,7 @@
         .nombre-col { font-weight: 500; text-align: left; padding-left: 10px; white-space: nowrap; background-color: white; }
         .asiste { color: #1e5a7d; }
         .descanso { color: #0059b3; font-weight: bold; background: #e0f0ff; border-radius: 20px; padding: 3px 10px; display: inline-block; }
+        .vacaciones { background-color: #fef3c7; color: #b91c1c; font-weight: bold; border-radius: 20px; padding: 3px 10px; display: inline-block; }
         .footer-note { text-align: center; font-size: 0.7rem; padding: 12px; color: #5b7a99; border-top: 1px solid #e9edf2; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: white; border-radius: 20px; width: 90%; max-width: 500px; max-height: 85vh; overflow: auto; }
@@ -47,6 +50,20 @@
         .password-box input { width: 100%; padding: 8px; margin: 15px 0; border: 1px solid #cbd5e1; border-radius: 8px; }
         .loading { text-align: center; padding: 20px; color: #1e4663; }
         .error { text-align: center; padding: 20px; color: #b91c1c; }
+
+        .vacation-form { padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .vacation-form label { font-weight: 500; color: #1e4663; }
+        .vacation-form select, .vacation-form input { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; width: 100%; }
+        .vacation-list { padding: 10px 20px; max-height: 40vh; overflow-y: auto; }
+        .vacation-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eef2f5; gap: 10px; }
+        .vacation-item .info { flex: 1; display: flex; gap: 15px; flex-wrap: wrap; }
+        .vacation-item .info span { background: #f1f5f9; padding: 2px 10px; border-radius: 12px; font-size: 0.8rem; }
+        .btn-eliminar-vac { background: #dc3545; color: white; border: none; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-size: 0.7rem; }
+        .btn-eliminar-vac:hover { background: #c82333; }
+        .btn-guardar-vac { background: #28a745; }
+        .btn-guardar-vac:hover { background: #218838; }
+        .vacation-form .btn-guardar-vac { align-self: flex-start; }
+        .no-vacations { color: #6c757d; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
@@ -60,16 +77,20 @@
                 <label>Año:</label>
                 <select id="yearSelect"><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option></select>
             </div>
-            <button id="openModalBtn">👥 Colaboradores</button>
+            <div style="display: flex; gap: 8px;">
+                <button id="openModalBtn">👥 Colaboradores</button>
+                <button id="openVacModalBtn" class="btn-vacaciones">🏖 Vacaciones</button>
+            </div>
         </div>
     </div>
     <div class="card">
         <div class="card-header"><h2 id="weekTitle">Cargando...</h2></div>
         <div class="table-wrapper" id="tableContainer"><div class="loading">Cargando datos desde Head Count...</div></div>
-        <div class="footer-note">🔵 D fijo | Vacante se queda en fila 5 (14:00 a 21:30, segundo turno)</div>
+        <div class="footer-note">🔵 D fijo | Vacante se queda en fila 5 (14:00 a 21:30, segundo turno) | 🟡 V = Vacaciones (a partir de semana 32 afecta rotación)</div>
     </div>
 </div>
 
+<!-- Modal Colaboradores -->
 <div id="employeeModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -88,69 +109,127 @@
     </div>
 </div>
 
+<!-- Modal Vacaciones -->
+<div id="vacationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🏖 Vacaciones Programadas</h3>
+            <div class="modal-buttons">
+                <button id="closeVacModalBtn" class="btn-cerrar-modal">✖️ Cerrar</button>
+            </div>
+        </div>
+        <div class="vacation-form">
+            <label>Colaborador</label>
+            <select id="vacColaborador"><option value="">-- Seleccionar --</option></select>
+            <label>Fecha Inicio</label>
+            <input type="date" id="vacInicio">
+            <label>Fecha Fin</label>
+            <input type="date" id="vacFin">
+            <button id="guardarVacBtn" class="btn-guardar-vac">📥 Guardar Vacación</button>
+        </div>
+        <div id="vacationListContainer" class="vacation-list">
+            <div class="no-vacations">No hay vacaciones registradas</div>
+        </div>
+    </div>
+</div>
+
 <script>
     // ========== CONFIGURACIÓN ==========
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwuACH7nHnR_m2hHq7fK3hKVTvDkjtGLIgEYLKxunJh2-MW5ZeoB7jeqaZU7_c6WIRF/exec';
-    
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwV3KHyPZTtN_WsQ7_HhucV8CQv0-1YwltAK3ZerQUBYkWXjB9lZWfRfRW29Kp65S/exec';
+
     const horariosFijos = ["6:00 a 14:00", "6:00 a 14:00", "10:00 a 18:00", "14:00 a 21:30", "14:00 a 21:30", "21:30 a 6:00", "21:30 a 6:00"];
     const descansosPorFila = [["Lunes"], ["Martes"], ["Miércoles"], ["Jueves"], ["Viernes"], ["Lunes", "Martes"], ["Miércoles", "Jueves"]];
     const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
     const movimientoNormal = [3, 4, 1, 2, 5, 6, 0];
     const POSICION_VACANTE_FIJA = 4;
     const SEMANA_BASE = 30;
+    const FILA_TURNO_MIXTO = 2;
+    const SEMANA_ACTIVAR_ROTACION_VACACIONES = 32; // A partir de esta semana las vacaciones afectan la rotación
 
     let colaboradores = [];
     let colaboradoresTemp = [];
+    let vacaciones = [];
+    let passwordValid = false;
 
-    // ========== CONEXIÓN APPS SCRIPT ==========
-    async function cargarColaboradores() {
+    // ========== FUNCIÓN PARA OBTENER SEMANA ACTUAL ==========
+    function getSemanaActual() {
+        const ahora = new Date();
+        const año = ahora.getFullYear();
+        const inicioAño = new Date(año, 0, 1);
+        const dias = Math.floor((ahora - inicioAño) / 86400000);
+        const semana = Math.ceil((dias + inicioAño.getDay() + 1) / 7);
+        return semana;
+    }
+
+    // ========== CARGA DE DATOS ==========
+    async function cargarDatos() {
         try {
             console.log("Cargando desde:", SCRIPT_URL);
             const response = await fetch(SCRIPT_URL);
-            console.log("Respuesta status:", response.status);
             const data = await response.json();
             console.log("Datos recibidos:", data);
-            if (data.success && data.data && data.data.length === 7) {
-                colaboradores = data.data;
-            } else {
-                // ORDEN EXACTO QUE PEDISTE PARA LA SEMANA 30
-                colaboradores = [
-                    "ROJAS DAVILA, BRUNO AARON",           // Fila 0 - 6:00 a 14:00
-                    "DIAZ ALARCON, JESUS FRANCISCO",        // Fila 1 - 6:00 a 14:00
-                    "ROMERO RUIZ, JULIO CESAR",             // Fila 2 - 10:00 a 18:00
-                    "JESUS ARIEL NAVARRO ALBERTO",          // Fila 3 - 14:00 a 21:30
-                    "JOSE GERARDO RECILLAS BARRERA",        // Fila 4 - 14:00 a 21:30
-                    "AGUILERA MARTINEZ, ISAAC ELIEL",       // Fila 5 - 21:30 a 6:00
-                    "AYALA MARTINEZ, DEMIAN VENTURA"        // Fila 6 - 21:30 a 6:00
-                ];
+            
+            if (data.success) {
+                colaboradores = data.colaboradores || [];
+                vacaciones = data.vacaciones || [];
+                
+                // Si los colaboradores vienen como strings, convertirlos a objetos
+                if (colaboradores.length > 0 && typeof colaboradores[0] === 'string') {
+                    colaboradores = colaboradores.map((nombre, index) => ({
+                        id: index + 1,
+                        nombre: nombre
+                    }));
+                }
+                
+                // Asegurar 7 colaboradores
+                if (colaboradores.length < 7) {
+                    const nombresDefault = [
+                        "ROJAS DAVILA, BRUNO AARON",
+                        "DIAZ ALARCON, JESUS FRANCISCO",
+                        "ROMERO RUIZ, JULIO CESAR",
+                        "JESUS ARIEL NAVARRO ALBERTO",
+                        "JOSE GERARDO RECILLAS BARRERA",
+                        "AGUILERA MARTINEZ, ISAAC ELIEL",
+                        "AYALA MARTINEZ, DEMIAN VENTURA"
+                    ];
+                    for (let i = colaboradores.length; i < 7; i++) {
+                        colaboradores.push({ id: i + 1, nombre: nombresDefault[i] || `Colaborador ${i+1}` });
+                    }
+                }
             }
-            colaboradoresTemp = [...colaboradores];
-            console.log("Colaboradores finales:", colaboradores);
         } catch (error) {
             console.error("Error al cargar:", error);
             colaboradores = [
-                "ROJAS DAVILA, BRUNO AARON",
-                "DIAZ ALARCON, JESUS FRANCISCO",
-                "ROMERO RUIZ, JULIO CESAR",
-                "JESUS ARIEL NAVARRO ALBERTO",
-                "JOSE GERARDO RECILLAS BARRERA",
-                "AGUILERA MARTINEZ, ISAAC ELIEL",
-                "AYALA MARTINEZ, DEMIAN VENTURA"
+                { id: 1, nombre: "ROJAS DAVILA, BRUNO AARON" },
+                { id: 2, nombre: "DIAZ ALARCON, JESUS FRANCISCO" },
+                { id: 3, nombre: "ROMERO RUIZ, JULIO CESAR" },
+                { id: 4, nombre: "JESUS ARIEL NAVARRO ALBERTO" },
+                { id: 5, nombre: "JOSE GERARDO RECILLAS BARRERA" },
+                { id: 6, nombre: "AGUILERA MARTINEZ, ISAAC ELIEL" },
+                { id: 7, nombre: "AYALA MARTINEZ, DEMIAN VENTURA" }
             ];
-            colaboradoresTemp = [...colaboradores];
+            vacaciones = [];
         }
+        
+        colaboradoresTemp = JSON.parse(JSON.stringify(colaboradores));
+        llenarSelectVacaciones();
+        console.log("Colaboradores finales:", colaboradores);
     }
 
     async function guardarColaboradores(lista) {
         try {
-            const response = await fetch(SCRIPT_URL, {
+            const payload = {
+                accion: 'guardarColaboradores',
+                colaboradores: lista
+            };
+            await fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ colaboradores: lista })
+                body: JSON.stringify(payload)
             });
-            colaboradores = [...lista];
-            colaboradoresTemp = [...lista];
+            colaboradores = JSON.parse(JSON.stringify(lista));
+            colaboradoresTemp = JSON.parse(JSON.stringify(lista));
             alert("✅ Guardado en Google Sheets");
             return true;
         } catch (error) {
@@ -160,43 +239,123 @@
         }
     }
 
-    // ========== ROTACIÓN ==========
-    function aplicarMovimiento(arr) {
-        let trabajo = [...arr];
-        let posVac = trabajo.indexOf("Vacante");
-        if (posVac !== -1 && posVac !== POSICION_VACANTE_FIJA) {
-            let temp = trabajo[POSICION_VACANTE_FIJA];
-            trabajo[POSICION_VACANTE_FIJA] = "Vacante";
-            trabajo[posVac] = temp;
+    async function guardarVacacion(id, nombre, inicio, fin) {
+        try {
+            const payload = {
+                accion: 'guardarVacacion',
+                id: id,
+                nombre: nombre,
+                inicio: inicio,
+                fin: fin
+            };
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            await cargarDatos();
+            return true;
+        } catch (error) {
+            console.error("Error al guardar vacación:", error);
+            alert("❌ Error al guardar vacación: " + error.message);
+            return false;
         }
-        let rotado = new Array(7);
-        for (let i = 0; i < 7; i++) rotado[movimientoNormal[i]] = trabajo[i];
-        let nuevaPos = rotado.indexOf("Vacante");
-        if (nuevaPos !== -1 && nuevaPos !== POSICION_VACANTE_FIJA) {
-            let temp = rotado[POSICION_VACANTE_FIJA];
-            rotado[POSICION_VACANTE_FIJA] = "Vacante";
-            rotado[nuevaPos] = temp;
-        }
-        return rotado;
     }
 
-    function getNombresSemana(semana) {
+    async function eliminarVacacion(idRegistro) {
+        try {
+            const payload = {
+                accion: 'eliminarVacacion',
+                idRegistro: idRegistro
+            };
+            await fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            await cargarDatos();
+            return true;
+        } catch (error) {
+            console.error("Error al eliminar vacación:", error);
+            alert("❌ Error al eliminar vacación: " + error.message);
+            return false;
+        }
+    }
+
+    // ========== ROTACIÓN ==========
+    function getNombresSemana(semana, fechaInicioSemana) {
         if (colaboradores.length !== 7) return null;
-        if (semana === SEMANA_BASE) return [...colaboradores];
-        let res = [...colaboradores];
-        for (let i = 0; i < semana - SEMANA_BASE; i++) res = aplicarMovimiento(res);
+        
+        let baseNombres = colaboradores.map(c => c.nombre);
+        
+        // Determinar quiénes están de vacaciones en esta semana (para mostrar la V)
+        const vacacionesEnSemana = new Set();
+        if (vacaciones.length > 0 && fechaInicioSemana) {
+            let finSemana = new Date(fechaInicioSemana);
+            finSemana.setDate(finSemana.getDate() + 6);
+            for (let vac of vacaciones) {
+                let inicio = new Date(vac.inicio);
+                let fin = new Date(vac.fin);
+                if (!(fin < fechaInicioSemana || inicio > finSemana)) {
+                    vacacionesEnSemana.add(vac.nombre);
+                }
+            }
+        }
+
+        // DETERMINAR SI LAS VACACIONES AFECTAN LA ROTACIÓN (mover al turno mixto)
+        // Solo a partir de SEMANA_ACTIVAR_ROTACION_VACACIONES
+        const afectaRotacion = semana >= SEMANA_ACTIVAR_ROTACION_VACACIONES;
+
+        // Si es semana base, solo mover vacaciones al turno mixto si afectaRotacion es true
+        if (semana === SEMANA_BASE) {
+            let resultado = [...baseNombres];
+            if (afectaRotacion) {
+                for (let i = 0; i < resultado.length; i++) {
+                    if (vacacionesEnSemana.has(resultado[i]) && i !== FILA_TURNO_MIXTO) {
+                        let temp = resultado[FILA_TURNO_MIXTO];
+                        resultado[FILA_TURNO_MIXTO] = resultado[i];
+                        resultado[i] = temp;
+                    }
+                }
+            }
+            return resultado;
+        }
+
+        // Aplicar rotación normal
+        let res = [...baseNombres];
+        for (let i = 0; i < semana - SEMANA_BASE; i++) {
+            // Rotación normal
+            let rotado = new Array(7);
+            for (let j = 0; j < 7; j++) {
+                rotado[movimientoNormal[j]] = res[j];
+            }
+            res = rotado;
+            
+            // Mover vacaciones al turno mixto SOLO si afectaRotacion es true
+            if (afectaRotacion) {
+                for (let j = 0; j < res.length; j++) {
+                    if (vacacionesEnSemana.has(res[j]) && j !== FILA_TURNO_MIXTO) {
+                        let temp = res[FILA_TURNO_MIXTO];
+                        res[FILA_TURNO_MIXTO] = res[j];
+                        res[j] = temp;
+                    }
+                }
+            }
+            
+            // Mover Vacante a posición fija
+            let posVac = res.indexOf("Vacante");
+            if (posVac !== -1 && posVac !== POSICION_VACANTE_FIJA) {
+                let temp = res[POSICION_VACANTE_FIJA];
+                res[POSICION_VACANTE_FIJA] = "Vacante";
+                res[posVac] = temp;
+            }
+        }
         return res;
     }
 
     // ========== FECHAS ==========
-    function getSemanaActualCDMX() {
-        let f = new Date();
-        let year = f.getFullYear();
-        let start = new Date(year, 0, 1);
-        let days = Math.floor((f - start) / 86400000);
-        return Math.ceil((days + start.getDay() + 1) / 7);
-    }
-
     function getFechaInicioSemana(week, year) {
         let f = new Date(year, 0, 1 + (week - 1) * 7);
         let dia = f.getDay();
@@ -205,7 +364,14 @@
         return f;
     }
 
-    function formatearFecha(d) { return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; }
+    function formatearFecha(d) { 
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`; 
+    }
+
+    function fechaStrToDate(str) {
+        let partes = str.split('-');
+        return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+    }
 
     // ========== MOSTRAR TABLA ==========
     function mostrarTabla(semana, año) {
@@ -213,37 +379,87 @@
             document.getElementById("tableContainer").innerHTML = `<div class="error">⚠️ Se requieren 7 colaboradores. Actual: ${colaboradores.length}</div>`;
             return;
         }
-        let nombres = getNombresSemana(semana);
-        if (!nombres) return;
+        
         let inicio = getFechaInicioSemana(semana, año);
-        let fin = new Date(inicio); fin.setDate(inicio.getDate() + 6);
+        let fin = new Date(inicio);
+        fin.setDate(fin.getDate() + 6);
         document.getElementById("weekTitle").innerHTML = `Semana ${semana} · ${formatearFecha(inicio)}/${inicio.getFullYear()} - ${formatearFecha(fin)}/${fin.getFullYear()}`;
+
+        let nombres = getNombresSemana(semana, inicio);
+        if (!nombres) return;
+
         let html = `<table><thead><tr><th>HORARIO</th><th>COLABORADOR</th>`;
         let fa = new Date(inicio);
-        for (let i = 0; i < DIAS.length; i++) { html += `<th>${DIAS[i]}<br>${formatearFecha(fa)}</th>`; fa.setDate(fa.getDate() + 1); }
+        let fechasDia = [];
+        for (let i = 0; i < DIAS.length; i++) {
+            html += `<th>${DIAS[i]}<br>${formatearFecha(fa)}</th>`;
+            fechasDia.push(new Date(fa));
+            fa.setDate(fa.getDate() + 1);
+        }
         html += `</tr></thead><tbody>`;
+
         for (let i = 0; i < 7; i++) {
             let nombre = nombres[i];
             let rests = descansosPorFila[i];
             html += `<tr><td class="horario-col">${horariosFijos[i]}</td><td class="nombre-col">${escapeHtml(nombre)}</td>`;
-            for (let d of DIAS) { let esD = rests.includes(d) && d !== "Sábado" && d !== "Domingo"; html += `<td>${esD ? '<span class="descanso">D</span>' : '<span class="asiste">AS</span>'}</td>`; }
+            
+            for (let d = 0; d < DIAS.length; d++) {
+                let dia = DIAS[d];
+                let esDescanso = rests.includes(dia) && dia !== "Sábado" && dia !== "Domingo";
+                let fechaCelda = fechasDia[d];
+                
+                // Verificar vacaciones SIEMPRE (para mostrar la V en cualquier semana)
+                let enVac = false;
+                for (let vac of vacaciones) {
+                    if (vac.nombre === nombre) {
+                        let inicioVac = fechaStrToDate(vac.inicio);
+                        let finVac = fechaStrToDate(vac.fin);
+                        if (fechaCelda >= inicioVac && fechaCelda <= finVac) {
+                            enVac = true;
+                            break;
+                        }
+                    }
+                }
+                
+                let celda;
+                if (enVac) {
+                    celda = '<span class="vacaciones">V</span>';
+                } else if (esDescanso) {
+                    celda = '<span class="descanso">D</span>';
+                } else {
+                    celda = '<span class="asiste">AS</span>';
+                }
+                html += `<td>${celda}</td>`;
+            }
             html += `</tr>`;
         }
         html += `</tbody></table>`;
         document.getElementById("tableContainer").innerHTML = html;
     }
 
-    function escapeHtml(s) { return s.replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function escapeHtml(s) { 
+        return String(s).replace(/[&<>]/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m])); 
+    }
 
-    // ========== MODAL ==========
-    let passwordValid = false;
+    // ========== MODALES ==========
     function pedirPassword(callback) {
         if (passwordValid) { callback(); return; }
-        let div = document.createElement('div'); div.className = 'password-prompt';
+        let div = document.createElement('div');
+        div.className = 'password-prompt';
         div.innerHTML = `<div class="password-box"><h3>🔐 Acceso</h3><input type="password" id="pwdInput" placeholder="Contraseña"><button id="pwdBtn">Acceder</button></div>`;
         document.body.appendChild(div);
-        let input = document.getElementById('pwdInput'), btn = document.getElementById('pwdBtn');
-        let check = () => { if (input.value === "Hapack90.") { passwordValid = true; div.remove(); callback(); } else { alert("Contraseña incorrecta"); div.remove(); } };
+        let input = document.getElementById('pwdInput');
+        let btn = document.getElementById('pwdBtn');
+        let check = () => {
+            if (input.value === "Hapack90.") {
+                passwordValid = true;
+                div.remove();
+                callback();
+            } else {
+                alert("Contraseña incorrecta");
+                div.remove();
+            }
+        };
         btn.onclick = check;
         input.addEventListener('keypress', (e) => { if (e.key === 'Enter') check(); });
         input.focus();
@@ -251,27 +467,42 @@
 
     function renderizarModal() {
         let cont = document.getElementById("employeeList");
-        cont.innerHTML = colaboradoresTemp.map((e,i) => `<div class="employee-item"><span class="employee-name">${escapeHtml(e)}</span><button class="edit-name" data-idx="${i}">✏️ Editar</button></div>`).join('');
+        cont.innerHTML = colaboradoresTemp.map((e, i) => 
+            `<div class="employee-item">
+                <span class="employee-name">${escapeHtml(e.nombre)}</span>
+                <button class="edit-name" data-idx="${i}">✏️ Editar</button>
+            </div>`
+        ).join('');
+        
         document.querySelectorAll('.edit-name').forEach(btn => {
             btn.onclick = () => {
                 let idx = parseInt(btn.dataset.idx);
-                let nuevo = prompt("Editar nombre:", colaboradoresTemp[idx]);
-                if (nuevo && nuevo.trim()) colaboradoresTemp[idx] = nuevo.trim();
-                renderizarModal();
+                let nuevo = prompt("Editar nombre:", colaboradoresTemp[idx].nombre);
+                if (nuevo && nuevo.trim()) {
+                    colaboradoresTemp[idx].nombre = nuevo.trim();
+                    renderizarModal();
+                }
             };
         });
     }
 
     function abrirModal() {
         pedirPassword(() => {
-            colaboradoresTemp = [...colaboradores];
+            colaboradoresTemp = JSON.parse(JSON.stringify(colaboradores));
             renderizarModal();
             document.getElementById("employeeModal").style.display = "flex";
         });
     }
 
+    function cerrarModal() {
+        document.getElementById("employeeModal").style.display = "none";
+    }
+
     async function guardarYCerrar() {
-        if (colaboradoresTemp.length !== 7) { alert(`Deben ser 7 colaboradores. Actual: ${colaboradoresTemp.length}`); return; }
+        if (colaboradoresTemp.length !== 7) {
+            alert(`Deben ser 7 colaboradores. Actual: ${colaboradoresTemp.length}`);
+            return;
+        }
         await guardarColaboradores(colaboradoresTemp);
         let s = parseInt(document.getElementById("weekNumber").value);
         let a = parseInt(document.getElementById("yearSelect").value);
@@ -279,17 +510,94 @@
         cerrarModal();
     }
 
-    function cerrarModal() { document.getElementById("employeeModal").style.display = "none"; }
-
     function agregarTemp() {
         let nombre = document.getElementById("newName").value.trim();
         if (!nombre) return alert("Ingrese nombre");
-        let idxVac = colaboradoresTemp.indexOf("Vacante");
-        if (idxVac !== -1) colaboradoresTemp[idxVac] = nombre;
-        else colaboradoresTemp.push(nombre);
+        let idxVac = colaboradoresTemp.findIndex(c => c.nombre === "Vacante");
+        if (idxVac !== -1) {
+            colaboradoresTemp[idxVac].nombre = nombre;
+        } else {
+            colaboradoresTemp.push({ id: colaboradoresTemp.length + 1, nombre: nombre });
+        }
         document.getElementById("newName").value = "";
         renderizarModal();
         if (colaboradoresTemp.length > 7) alert("Hay más de 7. Guarde y luego edite.");
+    }
+
+    // Modal Vacaciones
+    function llenarSelectVacaciones() {
+        let select = document.getElementById("vacColaborador");
+        select.innerHTML = '<option value="">-- Seleccionar --</option>';
+        colaboradores.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = c.nombre;
+            select.appendChild(opt);
+        });
+    }
+
+    function renderizarListaVacaciones() {
+        let cont = document.getElementById("vacationListContainer");
+        if (!vacaciones || vacaciones.length === 0) {
+            cont.innerHTML = '<div class="no-vacations">No hay vacaciones registradas</div>';
+            return;
+        }
+        let html = '';
+        vacaciones.forEach(v => {
+            html += `<div class="vacation-item">
+                <div class="info">
+                    <strong>${escapeHtml(v.nombre)}</strong>
+                    <span>📅 ${v.inicio}</span>
+                    <span>➜ ${v.fin}</span>
+                </div>
+                <button class="btn-eliminar-vac" data-id="${v.idRegistro}">🗑 Eliminar</button>
+            </div>`;
+        });
+        cont.innerHTML = html;
+        cont.querySelectorAll('.btn-eliminar-vac').forEach(btn => {
+            btn.onclick = async () => {
+                if (confirm("¿Eliminar esta vacación?")) {
+                    await eliminarVacacion(parseInt(btn.dataset.id));
+                    renderizarListaVacaciones();
+                    let s = parseInt(document.getElementById("weekNumber").value);
+                    let a = parseInt(document.getElementById("yearSelect").value);
+                    mostrarTabla(s, a);
+                }
+            };
+        });
+    }
+
+    function abrirModalVacaciones() {
+        pedirPassword(() => {
+            llenarSelectVacaciones();
+            renderizarListaVacaciones();
+            document.getElementById("vacationModal").style.display = "flex";
+        });
+    }
+
+    function cerrarModalVacaciones() {
+        document.getElementById("vacationModal").style.display = "none";
+    }
+
+    async function guardarVacacionDesdeForm() {
+        let select = document.getElementById("vacColaborador");
+        let id = parseInt(select.value);
+        if (!id) { alert("Seleccione un colaborador"); return; }
+        let nombre = select.options[select.selectedIndex].text;
+        let inicio = document.getElementById("vacInicio").value;
+        let fin = document.getElementById("vacFin").value;
+        if (!inicio || !fin) { alert("Seleccione fechas"); return; }
+        if (inicio > fin) { alert("Fecha inicio debe ser menor o igual a fecha fin"); return; }
+        
+        await guardarVacacion(id, nombre, inicio, fin);
+        renderizarListaVacaciones();
+        let s = parseInt(document.getElementById("weekNumber").value);
+        let a = parseInt(document.getElementById("yearSelect").value);
+        mostrarTabla(s, a);
+        document.getElementById("vacInicio").value = '';
+        document.getElementById("vacFin").value = '';
+        document.getElementById("vacColaborador").value = '';
+        alert("✅ Vacación guardada");
     }
 
     function actualizarManual() {
@@ -300,29 +608,40 @@
 
     // ========== INICIALIZACIÓN ==========
     async function init() {
-        await cargarColaboradores();
-        document.getElementById("weekNumber").value = 30;
-        document.getElementById("yearSelect").value = 2026;
-        mostrarTabla(30, 2026);
+        await cargarDatos();
+        
+        // Obtener semana actual y mostrarla
+        const semanaActual = getSemanaActual();
+        const añoActual = new Date().getFullYear();
+        
+        document.getElementById("weekNumber").value = semanaActual;
+        document.getElementById("yearSelect").value = añoActual;
+        mostrarTabla(semanaActual, añoActual);
     }
 
     // Eventos
-    const openBtn = document.getElementById("openModalBtn");
-    const closeBtn = document.getElementById("closeModalBtn");
-    const saveBtn = document.getElementById("saveModalBtn");
-    const addBtn = document.getElementById("addEmployeeBtn");
-    const weekInput = document.getElementById("weekNumber");
-    const yearSelect = document.getElementById("yearSelect");
+    document.getElementById("openModalBtn").onclick = abrirModal;
+    document.getElementById("closeModalBtn").onclick = cerrarModal;
+    document.getElementById("saveModalBtn").onclick = guardarYCerrar;
+    document.getElementById("addEmployeeBtn").onclick = agregarTemp;
+    document.getElementById("weekNumber").oninput = actualizarManual;
+    document.getElementById("yearSelect").onchange = actualizarManual;
 
-    if (openBtn) openBtn.onclick = abrirModal;
-    if (closeBtn) closeBtn.onclick = cerrarModal;
-    if (saveBtn) saveBtn.onclick = guardarYCerrar;
-    if (addBtn) addBtn.onclick = agregarTemp;
-    if (weekInput) weekInput.oninput = actualizarManual;
-    if (yearSelect) yearSelect.onchange = actualizarManual;
+    document.getElementById("openVacModalBtn").onclick = abrirModalVacaciones;
+    document.getElementById("closeVacModalBtn").onclick = cerrarModalVacaciones;
+    document.getElementById("guardarVacBtn").onclick = guardarVacacionDesdeForm;
 
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarModal(); });
-    window.onclick = e => { if (e.target === document.getElementById("employeeModal")) cerrarModal(); };
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            cerrarModal();
+            cerrarModalVacaciones();
+        }
+    });
+    
+    window.onclick = e => {
+        if (e.target === document.getElementById("employeeModal")) cerrarModal();
+        if (e.target === document.getElementById("vacationModal")) cerrarModalVacaciones();
+    };
 
     init();
 </script>

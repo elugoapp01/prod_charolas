@@ -2529,7 +2529,7 @@
         };
 
         // ============================================================
-        // CARGAR REGISTRO
+        // CARGAR REGISTRO - CORREGIDO
         // ============================================================
         async function cargarRegistro(registro) {
             if (!registro) {
@@ -2545,6 +2545,17 @@
             const tieneValidacion = registro.fechaValidacion && registro.fechaValidacion.trim() !== '';
             const tieneValidador = registro.validador && registro.validador.trim() !== '';
             esRegistroValidado = tieneValidacion || registro.estadoValidacion === 'VALIDADA';
+
+            // LOG DE DEPURACIÓN
+            console.log('🔍 DIAGNÓSTICO DE VALIDACIÓN:', {
+                fechaValidacion: registro.fechaValidacion,
+                fechaValidacionType: typeof registro.fechaValidacion,
+                fechaValidacionTrim: registro.fechaValidacion ? String(registro.fechaValidacion).trim() : 'null',
+                validador: registro.validador,
+                estadoValidacion: registro.estadoValidacion,
+                tieneValidacion: tieneValidacion,
+                esRegistroValidado: esRegistroValidado
+            });
 
             documentoIdActual = registro.id;
 
@@ -2586,7 +2597,6 @@
             document.getElementById('firmada').checked = (registro.firmada || 'SI') === 'SI';
             document.getElementById('sellada').checked = (registro.sellada || 'SI') === 'SI';
             
-            // ✅ MOSTRAR FECHA BITÁCORA EN REGISTROS VALIDADOS
             if (registro.fechaBitacora) {
                 const fechaFormateada = formatearFechaInput(registro.fechaBitacora);
                 document.getElementById('fechaBitacora').value = fechaFormateada;
@@ -2612,16 +2622,63 @@
                 document.getElementById('btnAgregar').disabled = true;
                 document.getElementById('btnHabilitarTiendas').disabled = true;
                 
+                // Ocultar botones de edición (lápiz) porque no se puede editar
+                document.getElementById('editRutaBtn').style.display = 'none';
+                document.getElementById('editUnidadBtn').style.display = 'none';
+                document.getElementById('editComentariosBtn').style.display = 'none';
+                
                 const fechaValidacion = registro.fechaValidacion || registro.marcaTemporal || '';
                 const validador = registro.validador || 'usuario desconocido';
                 mostrarBannerValidacion(fechaValidacion, validador);
                 
                 showToast('🔒 Registro validado - Solo lectura', 'info');
             } else {
+                // ✅ REGISTRO PENDIENTE - HABILITAR EDICIÓN
+                console.log('📝 Registro PENDIENTE - Habilitando edición...');
+                
                 document.getElementById('btnHeaderGuardar').disabled = false;
                 document.getElementById('btnAgregar').disabled = false;
                 document.getElementById('btnHabilitarTiendas').disabled = false;
                 mostrarBannerPendiente();
+                
+// 🔓 SOLO HABILITAR LÁPIZ - LOS CAMPOS PERMANECEN BLOQUEADOS
+// RUTA - El campo queda readonly, solo se habilita el lápiz
+document.getElementById('editRutaBtn').style.display = 'inline-flex';
+document.getElementById('editRutaBtn').disabled = false;
+
+// UNIDAD - El campo queda readonly, solo se habilita el lápiz
+document.getElementById('editUnidadBtn').style.display = 'inline-flex';
+document.getElementById('editUnidadBtn').disabled = false;
+
+// COMENTARIOS - El campo queda readonly, solo se habilita el lápiz
+document.getElementById('editComentariosBtn').style.display = 'inline-flex';
+document.getElementById('editComentariosBtn').disabled = false;
+                
+                // TRANSPORTE
+                document.getElementById('transporte').readOnly = false;
+                document.getElementById('transporte').disabled = false;
+                
+                // VIAJE
+                document.getElementById('viaje').readOnly = false;
+                document.getElementById('viaje').disabled = false;
+                
+                // FECHA BITÁCORA
+                document.getElementById('fechaBitacora').readOnly = false;
+                document.getElementById('fechaBitacora').disabled = false;
+                
+                // OPERADOR
+                document.getElementById('operador').readOnly = false;
+                document.getElementById('operador').disabled = false;
+                
+                // CHECKBOXES
+                document.getElementById('firmada').disabled = false;
+                document.getElementById('sellada').disabled = false;
+                
+                // BITÁCORA - habilitar para poder buscar otro registro si se desea
+                document.getElementById('bitacora').readOnly = false;
+                document.getElementById('bitacora').disabled = false;
+                
+                showToast('📝 Registro pendiente - Puedes editar', 'info');
             }
 
             document.getElementById('bitacora').disabled = false;
@@ -3110,7 +3167,7 @@
                     marcaTemporal: `${formatearFecha(fecha)} ${formatearHora(fecha)}`,
                     fecha: formatearFecha(fecha),
                     turno: turno,
-                    validador: usuarioActual.nombre, // ✅ Enviar validador
+                    validador: usuarioActual.nombre,
                     datosGenerales: {
                         noEmpleado: document.getElementById('noEmpleado').value.trim().toUpperCase(),
                         ruta: document.getElementById('ruta').value.trim().toUpperCase(),

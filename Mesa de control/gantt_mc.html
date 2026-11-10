@@ -22,7 +22,6 @@
       --glass-blur: blur(12px);
       --font-main: 'Segoe UI', 'Inter', system-ui, sans-serif;
       
-      /* Colores de la tabla según imagen */
       --table-header-bg: #1e3a5f;
       --table-row-even: #f4f6f9;
       --table-row-odd: #ffffff;
@@ -42,18 +41,30 @@
     }
     .header {
       display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
       padding: 14px 24px; background: var(--panel-bg);
       backdrop-filter: var(--glass-blur);
       border: 1px solid var(--border-glow); border-radius: 16px;
       margin-bottom: 20px;
       box-shadow: 0 0 30px rgba(0,180,255,0.06), inset 0 1px 0 rgba(255,255,255,0.05);
       animation: slideDown 0.5s ease;
+      width: 100%;
     }
     @keyframes slideDown { from { opacity:0; transform: translateY(-12px); } to { opacity:1; transform: translateY(0); } }
-    .header-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+    .header-left { display: flex; align-items: center; gap: 18px; min-width: 0; flex: 1 1 auto; flex-wrap: wrap; }
     .header-left img { height: 36px; filter: drop-shadow(0 0 6px rgba(0,180,255,0.3)); flex-shrink: 0; }
-    .header-title { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.5px; background: linear-gradient(135deg, #fff, #00b4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .header-right { display: flex; gap: 10px; flex-shrink: 0; }
+    .header-title { 
+      font-size: 1.3rem; font-weight: 700; letter-spacing: 0.5px; 
+      background: linear-gradient(135deg, #fff, #00b4ff); 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+      white-space: normal; 
+      overflow: visible; 
+      text-overflow: unset;
+      flex: 1 1 auto;
+      min-width: 0;
+      line-height: 1.3;
+    }
+    .header-right { display: flex; gap: 10px; flex-shrink: 0; flex-wrap: wrap; }
     .btn { padding: 9px 18px; border-radius: 10px; border: 1px solid transparent; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-main); white-space: nowrap; }
     .btn-primary { background: linear-gradient(135deg, #00b4ff, #0077ff); color: #0b0f19; box-shadow: 0 0 20px rgba(0,180,255,0.25); }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,180,255,0.45); }
@@ -66,7 +77,8 @@
     .table-container {
       background: #fff;
       border-radius: 12px;
-      overflow: hidden;
+      overflow-x: auto;
+      overflow-y: visible;
       box-shadow: 0 10px 30px rgba(0,0,0,0.3);
       animation: fadeIn 0.6s ease 0.1s both;
       width: 100%;
@@ -77,19 +89,20 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      table-layout: fixed;
+      table-layout: auto;
+      min-width: 900px;
     }
-    col.c-num   { width: 4%; }
-    col.c-desc  { width: 20%; }
-    col.c-area  { width: 15%; }
-    col.c-cont  { width: 35%; }
-    col.c-fs    { width: 8%; }
-    col.c-fe    { width: 8%; }
-    col.c-est   { width: 10%; }
+    col.c-num   { width: 4%; min-width: 40px; }
+    col.c-desc  { width: 14%; min-width: 120px; }
+    col.c-area  { width: 13%; min-width: 110px; }
+    col.c-cont  { width: 38%; min-width: 280px; }
+    col.c-fs    { width: 10%; min-width: 90px; }
+    col.c-fe    { width: 10%; min-width: 90px; }
+    col.c-est   { width: 8%; min-width: 80px; }
 
     thead th {
       text-align: left;
-      padding: 14px 12px;
+      padding: 14px 10px;
       font-size: 0.7rem;
       text-transform: uppercase;
       letter-spacing: 0.8px;
@@ -102,7 +115,7 @@
     }
     thead th:last-child { border-right: none; }
     tbody td {
-      padding: 12px;
+      padding: 10px;
       font-size: 0.8rem;
       border-bottom: 1px solid var(--table-border);
       vertical-align: top;
@@ -119,8 +132,8 @@
     .cell-num  { color: #666; font-weight: 700; text-align: center; }
     .cell-desc { font-weight: 600; color: #1a2a4a; }
     .cell-area { font-weight: 500; color: #1e3a5f; }
-    .cell-cont { color: #444; font-size: 0.78rem; }
-    .cell-date { font-size: 0.78rem; white-space: nowrap; color: #555; text-align: center; }
+    .cell-cont { color: #444; font-size: 0.78rem; text-align: justify; }
+    .cell-date { font-size: 0.8rem; white-space: nowrap; color: #555; text-align: center; }
 
     .com-entry {
       padding: 4px 0;
@@ -140,8 +153,10 @@
     }
     .com-text { 
       color: #333; 
-      white-space: pre-wrap;      /* 👈 respeta los Enter y espacios */
+      white-space: pre-wrap;
       word-break: break-word;
+      text-align: justify;
+      display: inline;
     }
     .com-empty { color: #999; font-style: italic; }
 
@@ -160,13 +175,13 @@
     }
     .com-more:hover { background: #cce0ff; box-shadow: 0 0 10px rgba(0,86,179,0.2); }
 
-    /* Badges de Importancia */
-    .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; }
-    .badge-baja { background: #d1fae5; color: #065f46; }
-    .badge-media { background: #fef3c7; color: #92400e; }
-    .badge-alta { background: #fee2e2; color: #991b1b; }
+    /* 👈 BADGES DE IMPORTANCIA: 4 niveles */
+    .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; }
+    .badge-baja { background: #d1fae5; color: #065f46; }        /* verde */
+    .badge-media { background: #fef3c7; color: #92400e; }       /* amarillo */
+    .badge-alta { background: #fed7aa; color: #9a3412; }        /* naranja */
+    .badge-prioritaria { background: #fee2e2; color: #991b1b; } /* rojo */
 
-    /* Modal */
     dialog { border: 1px solid var(--border-glow); border-radius: 16px; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); color: var(--text-main); padding: 0; width: 90%; max-width: 640px; box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,180,255,0.1); margin: auto; }
     dialog::backdrop { background: rgba(0,0,0,0.7); }
     .modal-header { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
@@ -190,7 +205,7 @@
       max-height: 200px; 
       overflow-y: auto; 
       font-family: 'Consolas', 'Monaco', monospace;
-      white-space: pre-wrap;      /* 👈 respeta los Enter en el historial */
+      white-space: pre-wrap;
       word-break: break-word;
     }
     .history-box .hb-date { color: var(--accent); font-weight: 700; }
@@ -202,14 +217,20 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     @media (max-width: 900px) {
-      .table-container { overflow-x: auto; }
-      table { min-width: 1100px; }
-      .header { flex-direction: column; gap: 14px; padding: 14px 16px; }
+      .header { flex-direction: column; align-items: stretch; }
+      .header-left { justify-content: flex-start; }
+      .header-right { justify-content: flex-end; }
+      .header-title { font-size: 1.1rem; text-align: left; }
       body { padding: 12px; }
     }
     @media (max-width: 768px) {
       .form-row { grid-template-columns: 1fr; }
-      .header-title { font-size: 1.1rem; }
+      .header-title { font-size: 1rem; }
+      .btn { padding: 8px 14px; font-size: 0.78rem; }
+    }
+    @media (max-width: 480px) {
+      .header-right { flex-direction: column; width: 100%; }
+      .header-right .btn { width: 100%; justify-content: center; }
     }
   </style>
 </head>
@@ -326,6 +347,25 @@
     return entries;
   }
 
+  // 👈 NORMALIZAR IMPORTANCIA (4 niveles + compatibilidad con antiguos)
+  function normalizarImportancia(estado) {
+    if (!estado) return 'Baja';
+    const e = estado.toString().trim();
+    if (e === 'Prioritaria' || e === 'Alta Prioritaria') return 'Prioritaria';
+    if (e === 'Alta') return 'Alta';
+    if (e === 'Media' || e === 'En Progreso') return 'Media';
+    if (e === 'Baja' || e === 'Completado') return 'Baja';
+    if (e === 'Pendiente') return 'Alta'; // mapeo legacy
+    return 'Baja';
+  }
+
+  function badgeClassFor(importancia) {
+    if (importancia === 'Prioritaria') return 'badge-prioritaria';
+    if (importancia === 'Alta') return 'badge-alta';
+    if (importancia === 'Media') return 'badge-media';
+    return 'badge-baja';
+  }
+
   function renderHistorialCeldaRow(rowIndex, historial) {
     const entries = parseHistorial(historial);
     if (!entries.length) return '<span class="com-empty">Sin comentarios</span>';
@@ -354,15 +394,11 @@
 
     let html = '';
     allTasks.forEach(function(t, idx) {
-      let badgeClass = 'badge-baja';
-      let badgeText = t.estado || 'Baja';
-      if (badgeText === 'Alta Prioritaria' || badgeText === 'Alta') { badgeClass = 'badge-alta'; badgeText = 'Alta Prioritaria'; }
-      else if (badgeText === 'Media') { badgeClass = 'badge-media'; badgeText = 'Media'; }
-      else { badgeClass = 'badge-baja'; badgeText = 'Baja'; }
+      const imp = normalizarImportancia(t.estado);
+      const badgeClass = badgeClassFor(imp);
 
       const historialFuente = t.historial || (t.comentarios ? '[Sin fecha] ' + t.comentarios : '');
 
-      // Combinar Área y Contacto en una celda
       const areaContacto = escapeHtml(t.area) + (t.contacto ? '<br><span style="font-size:0.75rem; color:#666;">' + escapeHtml(t.contacto) + '</span>' : '');
 
       html += '<tr onclick="openEditModal(' + t.rowIndex + ')">' +
@@ -372,7 +408,7 @@
         '<td class="cell-cont">' + renderHistorialCeldaRow(t.rowIndex, historialFuente) + '</td>' +
         '<td class="cell-date">' + (t.fechaSolicitud || '—') + '</td>' +
         '<td class="cell-date">' + (t.fechaEstimada || '—') + '</td>' +
-        '<td style="text-align:center;"><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
+        '<td style="text-align:center;"><span class="badge ' + badgeClass + '">' + imp + '</span></td>' +
       '</tr>';
     });
     tbody.innerHTML = html;
@@ -383,6 +419,18 @@
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // 👈 SELECTOR DE IMPORTANCIA CON 4 OPCIONES
+  function buildImportanciaSelect(selected) {
+    const opciones = ['Baja', 'Media', 'Alta', 'Prioritaria'];
+    return '<div class="form-group"><label>Importancia</label>' +
+      '<select id="f-estado">' +
+        opciones.map(function(op) {
+          return '<option value="' + op + '" ' + (selected === op ? 'selected' : '') + '>' + op + '</option>';
+        }).join('') +
+      '</select>' +
+    '</div>';
   }
 
   function openAddModal() {
@@ -402,13 +450,7 @@
         '<div class="form-group"><label>Fecha Solicitud</label><input id="f-fsolicitud" type="date" value="' + today + '"></div>' +
         '<div class="form-group"><label>Fecha Est. Término</label><input id="f-festimada" type="date" value="' + today + '"></div>' +
       '</div>' +
-      '<div class="form-group"><label>Importancia</label>' +
-        '<select id="f-estado">' +
-          '<option value="Baja">Baja</option>' +
-          '<option value="Media">Media</option>' +
-          '<option value="Alta Prioritaria">Alta Prioritaria</option>' +
-        '</select>' +
-      '</div>' +
+      buildImportanciaSelect('Baja') +
       '<div class="form-group"><label>Comentario inicial (opcional)</label><textarea id="f-comentario" rows="3" placeholder="Observaciones iniciales..."></textarea></div>';
     document.getElementById('taskModal').showModal();
   }
@@ -431,14 +473,7 @@
       historyHtml = '<div class="form-group"><label>Historial</label><div class="history-box" style="color:var(--text-muted);">Sin comentarios previos.</div></div>';
     }
 
-    // Determinar valor seleccionado de importancia
-    let selectedEstado = t.estado || 'Baja';
-    if (selectedEstado === 'Pendiente' || selectedEstado === 'En Progreso' || selectedEstado === 'Completado') {
-      // Mapeo de estados antiguos a nuevos para compatibilidad
-      if (selectedEstado === 'Completado') selectedEstado = 'Baja';
-      else if (selectedEstado === 'En Progreso') selectedEstado = 'Media';
-      else selectedEstado = 'Alta Prioritaria';
-    }
+    const impSeleccionada = normalizarImportancia(t.estado);
 
     document.getElementById('modalBody').innerHTML =
       '<div class="form-row">' +
@@ -453,13 +488,7 @@
         '<div class="form-group"><label>Fecha Solicitud</label><input id="f-fsolicitud" type="date" value="' + t.fechaSolicitud + '"></div>' +
         '<div class="form-group"><label>Fecha Est. Término</label><input id="f-festimada" type="date" value="' + t.fechaEstimada + '"></div>' +
       '</div>' +
-      '<div class="form-group"><label>Importancia</label>' +
-        '<select id="f-estado">' +
-          '<option value="Baja" ' + (selectedEstado==='Baja'?'selected':'') + '>Baja</option>' +
-          '<option value="Media" ' + (selectedEstado==='Media'?'selected':'') + '>Media</option>' +
-          '<option value="Alta Prioritaria" ' + (selectedEstado==='Alta Prioritaria'?'selected':'') + '>Alta Prioritaria</option>' +
-        '</select>' +
-      '</div>' +
+      buildImportanciaSelect(impSeleccionada) +
       historyHtml +
       '<div class="form-group"><label>Nuevo Comentario / Avance (se agregará al historial)</label><textarea id="f-comentario" rows="3" placeholder="Escribe el avance de hoy..."></textarea></div>';
     document.getElementById('taskModal').showModal();
@@ -508,8 +537,11 @@
     setTimeout(function() { t.className = 'toast'; }, 3200);
   }
 
-  // ==========================================
-  // FUNCIÓN PARA GENERAR POWERPOINT (COPIA DE LA TABLA)
+    // ==========================================
+  // FUNCIÓN PARA GENERAR POWERPOINT
+  // Hoja: 25.4 cm x 14.288 cm (10" x 5.625")
+  // Encabezado arriba + tabla de 25.4 x 12.27 cm (10" x 4.83") justo debajo
+  // Si una fila no cabe en el alto de la tabla, pasa completa a la siguiente hoja
   // ==========================================
   function generatePPT() {
     if (!allTasks.length) {
@@ -519,51 +551,61 @@
 
     try {
       let pptx = new PptxGenJS();
-      pptx.layout = 'LAYOUT_16x9'; // Formato panorámico
 
-      // --- Diapositiva de Título ---
+      // 👈 HOJA: 25.4 cm x 14.288 cm = 10" x 5.625" (16:9)
+      pptx.defineLayout({ name: 'CUSTOM_16x9', width: 10, height: 5.625 });
+      pptx.layout = 'CUSTOM_16x9';
+
+      // --- Diapositiva de Título (portada) ---
       let slideTitle = pptx.addSlide();
       slideTitle.background = { color: '0A1128' };
       slideTitle.addText('Mesa de Control: Seguimiento de avances y pendientes', {
-        x: 0.5, y: 1.8, w: '90%', h: 1.5,
-        fontSize: 34, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Segoe UI'
+        x: 0.3, y: 1.8, w: 9.4, h: 1.2,
+        fontSize: 26, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Segoe UI'
       });
       slideTitle.addText('Generado el ' + new Date().toLocaleDateString('es-ES'), {
-        x: 0.5, y: 3.6, w: '90%', h: 0.5,
-        fontSize: 16, color: '94A3B8', align: 'center', fontFace: 'Segoe UI'
+        x: 0.3, y: 3.2, w: 9.4, h: 0.4,
+        fontSize: 13, color: '94A3B8', align: 'center', fontFace: 'Segoe UI'
       });
 
-      // --- Configuración de la tabla ---
-      // Definimos las columnas con su ancho (en pulgadas) para 16:9 (13.33" x 7.5")
-      // Margen izquierdo 0.3", ancho total 12.73"
-      const colWidths = [0.5, 2.0, 1.8, 4.5, 1.1, 1.1, 1.2]; // Suma = 12.2" (dejamos margen)
+      // ============================================================
+      // 👈 DIMENSIONES EXACTAS
+      // ============================================================
+      const SLIDE_H = 5.625;                 // 14.288 cm
+      const ALTO_ENCABEZADO = 0.55;          // barra azul superior
+      const TABLE_W = 10;                    // 25.4 cm
+      const TABLE_H = 4.83;                  // 12.27 cm (alto de la tabla)
+      const TABLE_X = 0;
+      const TABLE_Y = ALTO_ENCABEZADO;       // 👈 justo debajo del encabezado
+      const ALTO_PAGINACION = 0.20;
+
+      // Verificación: encabezado + tabla + paginación deben caber en la hoja
+      // 0.55 + 4.83 + 0.20 = 5.58" <= 5.625" ✅
+
+      // Anchos de columna: suman exactamente 10" (25.4 cm)
+      const colWidths = [0.30, 1.15, 1.05, 4.85, 1.00, 1.00, 0.65]; // = 10.00"
       const headerLabels = ['#', 'DESCRIPCIÓN', 'ÁREA / CONTACTO', 'COMENTARIO / AVANCE', 'F. SOLICITUD', 'F. EST. TÉRMINO', 'IMPORTANCIA'];
-      
-      // Colores
+
       const headerBg = '1E3A5F';
       const headerColor = 'FFFFFF';
       const rowEvenBg = 'F4F6F9';
       const rowOddBg = 'FFFFFF';
       const textColor = '333333';
-      
-      // Función auxiliar para obtener color de importancia (fondo y texto)
+
+      const ALTO_ENCABEZADO_TABLA = 0.30;
+
+      // Colores de importancia (4 niveles)
       function getImportanciaColors(estado) {
-        const e = (estado || '').toUpperCase();
-        if (e === 'ALTA PRIORITARIA' || e === 'ALTA') {
-          return { bg: 'FEE2E2', color: '991B1B' };
-        } else if (e === 'MEDIA') {
-          return { bg: 'FEF3C7', color: '92400E' };
-        } else {
-          return { bg: 'D1FAE5', color: '065F46' };
-        }
+        const imp = normalizarImportancia(estado);
+        if (imp === 'Prioritaria') return { bg: 'FEE2E2', color: '991B1B' };
+        if (imp === 'Alta')        return { bg: 'FED7AA', color: '9A3412' };
+        if (imp === 'Media')       return { bg: 'FEF3C7', color: '92400E' };
+        return { bg: 'D1FAE5', color: '065F46' };
       }
 
-      // Función auxiliar para obtener el texto completo de los comentarios
       function getComentariosCompletos(t) {
         let historial = t.historial || '';
-        if (!historial && t.comentarios) {
-          historial = '[Sin fecha] ' + t.comentarios;
-        }
+        if (!historial && t.comentarios) historial = '[Sin fecha] ' + t.comentarios;
         const entries = parseHistorial(historial);
         if (!entries.length) return 'Sin comentarios';
         return entries.map(function(e) {
@@ -571,13 +613,43 @@
         }).join('\n');
       }
 
-      // --- Dividir las tareas en grupos que quepan en cada diapositiva ---
-      // Estimamos dinámicamente cuántas filas caben según el alto del texto de comentarios.
-      // Para simplificar y garantizar legibilidad, usamos un máximo de filas por slide
-      // calculado por la cantidad de líneas de comentarios.
-      const maxAltoComentariosPorSlide = 4.6; // pulgadas disponibles para las filas (aprox)
-      const altoFilaBase = 0.55; // alto mínimo de una fila
-      const altoPorLineaComentario = 0.22; // alto aproximado por línea de texto
+      // 👈 Estimación del alto real de cada fila (en pulgadas)
+      const anchoComentarios = 4.85;
+      const fontSizeComentarios = 8.5;
+      const charsPorLinea = Math.floor(anchoComentarios * 16); // ≈ 77 chars
+      const altoPorLinea = 0.125;
+      const paddingFila = 0.14;
+      const altoMinimoFila = 0.35;
+
+      function estimarAltoFila(t, comentarios) {
+        // Líneas de comentarios
+        let lineasComentario = 0;
+        comentarios.split('\n').forEach(function(l) {
+          lineasComentario += Math.max(1, Math.ceil(l.length / charsPorLinea));
+        });
+
+        // Líneas de descripción
+        const charsPorLineaDesc = Math.floor(1.15 * 16);
+        let lineasDesc = 0;
+        (t.descripcion || '').split('\n').forEach(function(l) {
+          lineasDesc += Math.max(1, Math.ceil(l.length / charsPorLineaDesc));
+        });
+
+        // Líneas de área/contacto
+        const charsPorLineaArea = Math.floor(1.05 * 16);
+        const areaContacto = (t.area || '') + (t.contacto ? '\n' + t.contacto : '');
+        let lineasArea = 0;
+        areaContacto.split('\n').forEach(function(l) {
+          lineasArea += Math.max(1, Math.ceil(l.length / charsPorLineaArea));
+        });
+
+        const maxLineas = Math.max(lineasComentario, lineasDesc, lineasArea);
+        return Math.max(altoMinimoFila, paddingFila + maxLineas * altoPorLinea);
+      }
+
+      // --- Agrupar filas respetando el alto EXACTO de la tabla (4.83") ---
+      // Alto disponible para filas de datos = 4.83" - 0.30" (encabezado de tabla) = 4.53"
+      const altoDisponibleFilas = TABLE_H - ALTO_ENCABEZADO_TABLA;
 
       let grupos = [];
       let grupoActual = [];
@@ -585,10 +657,10 @@
 
       allTasks.forEach(function(t) {
         const comentarios = getComentariosCompletos(t);
-        const lineas = comentarios.split('\n').length;
-        const altoFila = Math.max(altoFilaBase, 0.35 + lineas * altoPorLineaComentario);
-        
-        if (grupoActual.length > 0 && (altoAcumulado + altoFila) > maxAltoComentariosPorSlide) {
+        const altoFila = estimarAltoFila(t, comentarios);
+
+        // 👈 Si la fila NO cabe en lo que queda de la tabla, abrimos nueva hoja
+        if (grupoActual.length > 0 && (altoAcumulado + altoFila) > altoDisponibleFilas) {
           grupos.push(grupoActual);
           grupoActual = [];
           altoAcumulado = 0;
@@ -603,21 +675,20 @@
         let slide = pptx.addSlide();
         slide.background = { color: 'FFFFFF' };
 
-        // Barra superior azul oscuro con el título de la tabla
+        // 👈 ENCABEZADO en TODAS las hojas de tabla
         slide.addShape(pptx.ShapeType.rect, {
-          x: 0, y: 0, w: '100%', h: 0.75,
+          x: 0, y: 0, w: '100%', h: ALTO_ENCABEZADO,
           fill: { color: '0A1128' }
         });
         slide.addText('Mesa de Control: Seguimiento de avances y pendientes', {
-          x: 0.4, y: 0.1, w: '92%', h: 0.55,
-          fontSize: 20, bold: true, color: 'FFFFFF', fontFace: 'Segoe UI',
+          x: 0.25, y: 0.08, w: 9.5, h: 0.4,
+          fontSize: 14, bold: true, color: 'FFFFFF', fontFace: 'Segoe UI',
           valign: 'middle'
         });
 
-        // Construir las filas de la tabla
         let filas = [];
 
-        // Fila de encabezado
+        // Fila de encabezado de la tabla
         let headerRow = headerLabels.map(function(label) {
           return {
             text: label,
@@ -625,9 +696,9 @@
               fill: { color: headerBg },
               color: headerColor,
               bold: true,
-              fontSize: 9,
+              fontSize: 8,
               fontFace: 'Segoe UI',
-              align: 'left',
+              align: 'center',
               valign: 'middle'
             }
           };
@@ -639,54 +710,56 @@
           const t = item.task;
           const bgColor = (rIdx % 2 === 0) ? rowEvenBg : rowOddBg;
           const areaContacto = (t.area || '') + (t.contacto ? '\n' + t.contacto : '');
-          
-          // Obtener colores de importancia
+
+          const impText = normalizarImportancia(t.estado);
           const impColors = getImportanciaColors(t.estado);
-          let impText = t.estado || 'Baja';
-          if (impText === 'Alta') impText = 'Alta Prioritaria';
-          
-          // Fila de datos
+
+          const cellOpts = {
+            fill: { color: bgColor },
+            color: textColor,
+            fontFace: 'Segoe UI',
+            valign: 'top',
+            align: 'justify',
+            lineSpacingMultiple: 1.15,
+            margin: 3
+          };
+
           let dataRow = [
-            { text: String(t.numeroFila || ''), options: { fill: { color: bgColor }, color: textColor, fontSize: 9, fontFace: 'Segoe UI', align: 'center', valign: 'top' } },
-            { text: t.descripcion || '', options: { fill: { color: bgColor }, color: textColor, fontSize: 9, fontFace: 'Segoe UI', bold: true, align: 'left', valign: 'top' } },
-            { text: areaContacto, options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'left', valign: 'top' } },
-            { text: item.comentarios, options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'left', valign: 'top' } },
-            { text: t.fechaSolicitud || '—', options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'center', valign: 'top' } },
-            { text: t.fechaEstimada || '—', options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'center', valign: 'top' } },
-            { text: impText, options: { fill: { color: impColors.bg }, color: impColors.color, fontSize: 8, fontFace: 'Segoe UI', bold: true, align: 'center', valign: 'middle' } }
+            { text: String(t.numeroFila || ''), options: Object.assign({}, cellOpts, { fontSize: 8.5, align: 'center' }) },
+            { text: t.descripcion || '', options: Object.assign({}, cellOpts, { fontSize: 8, bold: true }) },
+            { text: areaContacto, options: Object.assign({}, cellOpts, { fontSize: 7.5 }) },
+            { text: item.comentarios, options: Object.assign({}, cellOpts, { fontSize: fontSizeComentarios }) },
+            { text: t.fechaSolicitud || '—', options: Object.assign({}, cellOpts, { fontSize: 7.5, align: 'center' }) },
+            { text: t.fechaEstimada || '—', options: Object.assign({}, cellOpts, { fontSize: 7.5, align: 'center' }) },
+            { text: impText, options: { fill: { color: impColors.bg }, color: impColors.color, fontSize: 7.5, fontFace: 'Segoe UI', bold: true, align: 'center', valign: 'middle', margin: 2 } }
           ];
           filas.push(dataRow);
         });
 
-        // Calcular alturas de fila para la tabla
-        // La primera fila (encabezado) tiene alto fijo, las demás según su contenido
-        let rowHeights = [0.35]; // encabezado
-        grupo.forEach(function(item) {
-          rowHeights.push(item.altoFila);
-        });
+        // Solo altura del encabezado de tabla, las filas se auto-ajustan
+        let rowHeights = [ALTO_ENCABEZADO_TABLA];
 
-        // Agregar la tabla al slide
+        // 👈 TABLA EXACTA: x=0, y=0.55", w=10" (25.4 cm), alto=4.83" (12.27 cm)
         slide.addTable(filas, {
-          x: 0.3,
-          y: 1.0,
-          w: 12.73,
+          x: TABLE_X,
+          y: TABLE_Y,
+          w: TABLE_W,
           colW: colWidths,
           rowH: rowHeights,
           border: { type: 'solid', color: 'D1D9E6', pt: 0.5 },
           fontFace: 'Segoe UI',
-          fontSize: 9,
+          fontSize: 8.5,
           valign: 'top',
-          margin: 4
+          margin: 3
         });
 
-        // Numeración de página (opcional)
+        // Paginación justo debajo de la tabla (y = 0.55 + 4.83 + 0.02 = 5.40")
         slide.addText('Página ' + (gIdx + 1) + ' de ' + grupos.length, {
-          x: 11.5, y: 7.1, w: 1.5, h: 0.3,
-          fontSize: 8, color: '999999', align: 'right', fontFace: 'Segoe UI'
+          x: 8.3, y: TABLE_Y + TABLE_H + 0.02, w: 1.5, h: ALTO_PAGINACION,
+          fontSize: 7, color: '999999', align: 'right', fontFace: 'Segoe UI'
         });
       });
 
-      // Guardar archivo
       pptx.writeFile({ fileName: 'Mesa_de_Control_' + new Date().toISOString().split('T')[0] + '.pptx' });
       showToast('Presentación generada correctamente');
     } catch (err) {
@@ -694,6 +767,7 @@
       console.error(err);
     }
   }
+
 
 </script>
 </body>

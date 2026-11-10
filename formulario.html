@@ -628,6 +628,11 @@
             border-top: 3px solid var(--gris);
         }
 
+        /* Barra de acciones de la pestaña Tiendas: botón a la izquierda */
+        .action-bar.action-bar-left {
+            justify-content: flex-start;
+        }
+
         .action-bar .btn {
             font-size: 1.2rem;
             padding: 10px 18px;
@@ -1348,7 +1353,7 @@
             </div>
 
             <!-- Botones de acción (Tab 2) -->
-            <div class="action-bar">
+            <div class="action-bar action-bar-left">
                 <button class="btn btn-primary" id="btnAgregar" onclick="agregarFilas(5)" disabled>➕ +5</button>
             </div>
 

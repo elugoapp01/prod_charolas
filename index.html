@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Principal - Retorno de Charolas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        :root {
+            --azul: #0A2342; --azul-fuerte: #1A5F9E; --verde: #27AE60; --verde-claro: #2ECC71;
+            --rojo: #E74C3C; --amarillo: #F1C40F; --naranja: #F39C12; --blanco: #FFFFFF;
+            --gris-claro: #F0F2F5; --gris: #D5D8DC; --panel-width: 60px; --panel-width-open: 230px; --transition-speed: 0.4s;
+        }
+        html, body { height: 100%; background: var(--gris-claro); overflow: hidden; }
+        body { padding: 0; display: flex; }
+
+        /* PANEL LATERAL */
+        .side-panel {
+            position: fixed; left: 0; top: 0; height: 100vh; width: var(--panel-width);
+            background: var(--azul); box-shadow: 4px 0 20px rgba(0,0,0,0.2); z-index: 1000;
+            transition: width var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden; display: flex; flex-direction: column; padding: 12px 0; border-right: 4px solid var(--amarillo);
+        }
+        .side-panel:hover { width: var(--panel-width-open); }
+        .side-panel .panel-logo { display: flex; align-items: center; justify-content: center; padding: 4px 10px 12px 10px; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 10px; min-height: 50px; }
+        .side-panel .panel-logo .logo-img { width: 36px; height: 36px; object-fit: contain; flex-shrink: 0; border-radius: 8px; }
+        .panel-menu { flex: 1; display: flex; flex-direction: column; gap: 2px; padding: 0 8px; overflow: hidden; }
+        .panel-item {
+            display: flex; align-items: center; gap: 14px; padding: 8px 12px; border-radius: 10px;
+            color: rgba(255,255,255,0.7); text-decoration: none; cursor: pointer; transition: all 0.3s ease;
+            white-space: nowrap; position: relative; min-height: 40px; border: none; background: transparent;
+            width: 100%; font-size: 0.9rem; font-weight: 600;
+        }
+        .panel-item:hover { background: rgba(255,255,255,0.12); color: white; transform: translateX(4px); }
+        .panel-item:active { transform: scale(0.95); }
+        .panel-item.active { background: rgba(241, 196, 15, 0.15); color: var(--amarillo); border-left: 4px solid var(--amarillo); }
+        .panel-item .item-icon { font-size: 1.25rem; flex-shrink: 0; width: 28px; text-align: center; }
+        .panel-item .item-text { opacity: 0; transition: opacity var(--transition-speed) ease; color: white; font-weight: 600; letter-spacing: 0.2px; font-size: 0.8rem; line-height: 1.15; white-space: normal; text-align: left; }
+        .side-panel:hover .panel-item .item-text { opacity: 1; }
+        .panel-item .item-badge { background: var(--rojo); color: white; font-size: 0.6rem; border-radius: 50%; padding: 2px 6px; font-weight: 800; margin-left: auto; opacity: 0; transition: opacity var(--transition-speed) ease; }
+        .side-panel:hover .panel-item .item-badge { opacity: 1; }
+        .panel-divider { height: 2px; background: rgba(255,255,255,0.15); margin: 4px 12px; border-radius: 2px; }
+        .side-panel:not(:hover) .panel-item .item-text { display: none; }
+        .side-panel:not(:hover) .panel-item .item-badge { display: none; }
+        .side-panel:not(:hover) .panel-item { justify-content: center; padding: 8px 6px; }
+
+        /* CONTENIDO PRINCIPAL */
+        .main-content { margin-left: var(--panel-width); flex: 1; transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1); height: 100vh; display: flex; flex-direction: column; background: var(--gris-claro); position: relative; }
+        .side-panel:hover ~ .main-content { margin-left: var(--panel-width-open); }
+        .content-iframe { width: 100%; height: 100%; border: none; display: block; background: var(--gris-claro); }
+        .loading-overlay { position: absolute; inset: 0; background: var(--gris-claro); display: flex; justify-content: center; align-items: center; z-index: 10; transition: opacity 0.3s ease; }
+        .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+        .loader-content { background: white; padding: 36px 44px; border-radius: 28px; text-align: center; border: 6px solid var(--amarillo); box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+        .loader-spinner { width: 60px; height: 60px; border: 7px solid var(--gris); border-top-color: var(--azul-fuerte); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
+        .loader-content p { font-size: 1.1rem; font-weight: 700; color: var(--azul); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 820px) { .side-panel { width: 50px; } .side-panel:hover { width: 210px; } .main-content { margin-left: 50px; } }
+        @media (max-width: 640px) { .side-panel { width: 45px; } .side-panel:hover { width: 190px; } .main-content { margin-left: 45px; } .panel-item .item-icon { font-size: 1.1rem; width: 24px; } .panel-item { padding: 6px 6px; min-height: 36px; } .panel-item .item-text { font-size: 0.72rem; } }
+        @media (max-width: 400px) { .side-panel { width: 40px; } .side-panel:hover { width: 170px; } .main-content { margin-left: 40px; } .panel-item .item-icon { font-size: 0.95rem; width: 20px; } .panel-item { padding: 5px 4px; min-height: 32px; } .panel-item .item-text { font-size: 0.68rem; } }
+
+        /* MODAL LAVADO */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 10000; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 6px solid var(--azul-fuerte); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 3px solid var(--gris-claro); padding-bottom: 10px; }
+        .modal-header h2 { color: var(--azul); font-size: 1.3rem; }
+        .modal-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: #A0AEC0; transition: 0.2s; }
+        .modal-close:hover { color: var(--rojo); transform: rotate(90deg); }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { font-size: 0.75rem; font-weight: 800; color: var(--azul); text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .form-group input { width: 100%; padding: 12px 16px; border: 3px solid var(--gris); border-radius: 10px; font-size: 1rem; font-weight: 600; transition: 0.3s; }
+        .form-group input:focus { outline: none; border-color: var(--azul-fuerte); box-shadow: 0 0 0 3px rgba(26,95,158,0.12); }
+        
+        .total-display { background: var(--azul); color: white; padding: 12px 15px; border-radius: 12px; text-align: center; margin-top: 20px; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        .total-display span { font-size: 1.8rem; font-weight: 900; }
+        .total-display small { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; opacity: 0.8; }
+
+        .error-msg { color: var(--rojo); font-size: 0.8rem; font-weight: 700; margin-top: 10px; display: none; text-align: center; background: #FDEDEC; padding: 8px; border-radius: 8px; border: 2px solid var(--rojo); }
+        .error-msg.show { display: block; animation: shake 0.5s ease; }
+
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+        .btn { padding: 10px 18px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .btn:hover { transform: scale(1.05); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-success { background: var(--verde); color: white; }
+        .btn-danger { background: var(--rojo); color: white; }
+        
+        .loader-overlay-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(2px); display: none; justify-content: center; align-items: center; z-index: 100001; }
+        .loader-overlay-modal.active { display: flex; }
+        .loader-spinner-modal { width: 50px; height: 50px; border: 6px solid #D5D8DC; border-top-color: #1A5F9E; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    </style>
+</head>
+<body>
+
+<!-- PANEL LATERAL -->
+<nav class="side-panel">
+    <div class="panel-logo">
+        <!-- Se agregó /logos/ para que encuentre la imagen -->
+        <img src="logos/logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+    </div>
+    <div class="panel-menu">
+        <button class="panel-item active" data-page="formulario.html" title="Bitácora">
+            <span class="item-icon">📝</span><span class="item-text">Bitácora</span>
+        </button>
+        <button class="panel-item" data-page="repositorio.html" title="Repositorio">
+            <span class="item-icon">📊</span><span class="item-text">Repositorio</span>
+        </button>
+        <button class="panel-item" data-page="ventanilla.html" title="Ventanilla">
+            <span class="item-icon">🪟</span><span class="item-text">Ventanilla</span>
+        </button>
+        <button class="panel-item" data-page="inventario.html" title="Inventario">
+            <span class="item-icon">📦</span><span class="item-text">Inventario</span>
+        </button>
+        <button class="panel-item" data-page="dashboard_errores.html" title="Errores">
+            <span class="item-icon">🚨</span><span class="item-text">Errores</span><span class="item-badge">!</span>
+        </button>
+        <div class="panel-divider"></div>
+        <button class="panel-item" data-page="Rol_turnos.html" title="Rol de Turnos">
+            <span class="item-icon">📋</span><span class="item-text">Rol de Turnos</span>
+        </button>
+        <div class="panel-divider"></div>
+        
+        <!-- Botón Lavado (Ahora abre modal) -->
+        <button class="panel-item" id="btnLavado" title="Registro Lavado">
+            <span class="item-icon">🧼</span><span class="item-text">Registro Lavado</span>
+        </button>
+        
+        <!-- Botón Ch. Lila (Nueva URL) -->
+        <button class="panel-item" data-url="https://elugoapp01.github.io/charola_lila/dashboard.html" title="Registro Ch. Lila">
+            <span class="item-icon">🟣</span><span class="item-text">Registro Ch. Lila</span>
+        </button>
+        
+        <div class="panel-divider"></div>
+        <button class="panel-item" data-page="PML.html" title="Registro de Limpieza">
+            <span class="item-icon">🧹</span><span class="item-text">Registro de Limpieza</span>
+        </button>
+    </div>
+</nav>
+
+<!-- CONTENIDO PRINCIPAL -->
+<div class="main-content">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <p>⏳ CARGANDO...</p>
+        </div>
+    </div>
+    <iframe id="contentFrame" class="content-iframe" src="formulario.html" title="Contenido" allow="clipboard-write"></iframe>
+</div>
+
+<!-- MODAL LAVADO -->
+<div class="modal-overlay" id="modalLavado">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>🧼 Registro de Lavado</h2>
+            <button class="modal-close" onclick="cerrarModal('modalLavado')">&times;</button>
+        </div>
+        
+        <div class="form-group">
+            <label>Tarimas colocadas en el turno</label>
+            <input type="number" id="lavadoColocadas" min="0" placeholder="0" oninput="calcularConsumidas()">
+        </div>
+        
+        <div class="form-group">
+            <label>Tarimas que quedan en área de lavado</label>
+            <input type="number" id="lavadoQuedan" min="0" placeholder="0" oninput="calcularConsumidas()">
+        </div>
+
+        <div class="total-display">
+            <small>Tarimas Consumidas:</small>
+            <span id="lavadoConsumidas">0</span>
+        </div>
+
+        <div class="error-msg" id="lavadoError">
+            ⚠️ Las tarimas que quedan no pueden ser mayores a las colocadas.
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-danger" onclick="cerrarModal('modalLavado')">✖ Cancelar</button>
+            <button class="btn btn-success" id="btnGuardarLavado" onclick="guardarLavado()">💾 Guardar</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOADER MODAL -->
+<div class="loader-overlay-modal" id="loaderModal">
+    <div class="loader-spinner-modal"></div>
+</div>
+
+<script>
+    // ============================================================
+    // CONFIGURACIÓN (URL DE APPS SCRIPT DE LAVADO)
+    // ============================================================
+    const APPS_SCRIPT_LAVADO = 'https://script.google.com/macros/s/AKfycbwcluWJgTsfpT2QbBzom5seFVIU9XWBe7PK9SkFQPn4xK9NFshOlGjcs5qbQTzGJgyF/exec';
+
+    const iframe = document.getElementById('contentFrame');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const panelItems = document.querySelectorAll('.panel-item');
+
+    iframe.addEventListener('load', function() { loadingOverlay.classList.add('hidden'); });
+
+    function cargarPagina(url) {
+        loadingOverlay.classList.remove('hidden');
+        iframe.src = url;
+    }
+
+    // Manejar clics del panel
+    panelItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+            // Si es el botón de Lavado, abrimos el modal
+            if (this.id === 'btnLavado') {
+                abrirModal('modalLavado');
+                return;
+            }
+
+            // Quitar active de todos
+            panelItems.forEach(function(i) { i.classList.remove('active'); });
+            this.classList.add('active');
+
+            // Cargar página o URL
+            if (this.dataset.page) {
+                cargarPagina(this.dataset.page);
+            }
+            else if (this.dataset.url) {
+                cargarPagina(this.dataset.url);
+            }
+        });
+    });
+
+    // ============================================================
+    // LÓGICA DEL MODAL DE LAVADO
+    // ============================================================
+    function abrirModal(id) {
+        document.getElementById(id).classList.add('active');
+        document.getElementById('lavadoColocadas').value = '';
+        document.getElementById('lavadoQuedan').value = '';
+        document.getElementById('lavadoConsumidas').textContent = '0';
+        document.getElementById('lavadoError').classList.remove('show');
+        document.getElementById('btnGuardarLavado').disabled = false;
+        setTimeout(() => document.getElementById('lavadoColocadas').focus(), 100);
+    }
+
+    function cerrarModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    function calcularConsumidas() {
+        const colocadas = parseInt(document.getElementById('lavadoColocadas').value) || 0;
+        const quedan = parseInt(document.getElementById('lavadoQuedan').value) || 0;
+        const error = document.getElementById('lavadoError');
+        const btnGuardar = document.getElementById('btnGuardarLavado');
+
+        if (quedan > colocadas) {
+            error.classList.add('show');
+            btnGuardar.disabled = true;
+            document.getElementById('lavadoConsumidas').textContent = '0';
+        } else {
+            error.classList.remove('show');
+            btnGuardar.disabled = false;
+            const consumidas = colocadas - quedan;
+            document.getElementById('lavadoConsumidas').textContent = consumidas;
+        }
+    }
+
+    // Obtener turno en CDMX
+    function obtenerTurno() {
+        const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
+        const hora = now.getHours() + (now.getMinutes() / 60);
+        if (hora >= 6 && hora < 14) return 'PRIMERO';
+        if (hora >= 14 && hora < 21.5) return 'SEGUNDO';
+        return 'TERCERO';
+    }
+
+    async function guardarLavado() {
+        const colocadas = parseInt(document.getElementById('lavadoColocadas').value) || 0;
+        const quedan = parseInt(document.getElementById('lavadoQuedan').value) || 0;
+        
+        if (quedan > colocadas) return; // Por seguridad
+
+        document.getElementById('loaderModal').classList.add('active');
+        document.getElementById('btnGuardarLavado').disabled = true;
+
+        const payload = {
+            action: 'guardarLavado',
+            turno: obtenerTurno(),
+            colocadas: colocadas,
+            quedan: quedan,
+            consumidas: colocadas - quedan
+        };
+
+        const formData = new FormData();
+        for (let key in payload) formData.append(key, payload[key]);
+
+        try {
+            await fetch(APPS_SCRIPT_LAVADO, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            });
+            alert('✅ Registro de lavado guardado correctamente.');
+            cerrarModal('modalLavado');
+        } catch (e) {
+            console.error(e);
+            alert('❌ Error al guardar el registro.');
+        } finally {
+            document.getElementById('loaderModal').classList.remove('active');
+            document.getElementById('btnGuardarLavado').disabled = false;
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+        loadingOverlay.classList.remove('hidden');
+    });
+</script>
+</body>
+</html>

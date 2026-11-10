@@ -13,19 +13,42 @@
             --rojo: #E74C3C; --amarillo: #F1C40F; --naranja: #F39C12; --blanco: #FFFFFF;
             --gris-claro: #F0F2F5; --gris: #D5D8DC; --morado: #8E44AD;
         }
-        body { background: var(--gris-claro); min-height: 100vh; padding: 20px; }
 
-        .header { background: var(--blanco); border-radius: 20px; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border-bottom: 4px solid var(--amarillo); margin-bottom: 20px; }
-        .header-left { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-        .header h1 { font-size: 1.4rem; color: var(--azul); }
+        /* BODY: layout vertical flexible para que todo quepa en pantalla */
+        body {
+            background: var(--gris-claro);
+            height: 100vh;
+            height: 100dvh;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--blanco);
+            border-radius: 14px;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border-bottom: 3px solid var(--amarillo);
+            flex-shrink: 0;
+        }
+        .header-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+        .header h1 { font-size: 1.05rem; color: var(--azul); }
         .header h1 span { color: var(--azul-fuerte); font-weight: 300; }
         
-        .filtro-semana { display: flex; align-items: center; gap: 8px; background: var(--gris-claro); padding: 6px 12px; border-radius: 12px; border: 2px solid var(--gris); }
-        .filtro-semana label { font-size: 0.75rem; font-weight: 700; color: var(--azul); }
-        .filtro-semana select { padding: 6px; border-radius: 8px; border: 1px solid var(--gris); font-weight: 600; font-size: 0.85rem; outline: none; cursor: pointer; background: white; color: var(--azul-fuerte); }
+        .filtro-semana { display: flex; align-items: center; gap: 6px; background: var(--gris-claro); padding: 4px 10px; border-radius: 10px; border: 2px solid var(--gris); }
+        .filtro-semana label { font-size: 0.68rem; font-weight: 700; color: var(--azul); }
+        .filtro-semana select { padding: 3px 5px; border-radius: 6px; border: 1px solid var(--gris); font-weight: 600; font-size: 0.75rem; outline: none; cursor: pointer; background: white; color: var(--azul-fuerte); }
 
-        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-        .btn { padding: 10px 18px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .action-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn { padding: 6px 11px; font-size: 0.72rem; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
         .btn:hover { transform: scale(1.05); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-primary { background: var(--azul); color: white; }
@@ -35,39 +58,180 @@
         .btn-morado { background: var(--morado); color: white; }
         .btn-bloqueado { background: #ccc !important; color: #666 !important; cursor: not-allowed !important; transform: none !important; }
 
-        /* GRID DE TARJETAS (4 EN FILA) */
-        .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px; }
+        /* GRID DE TARJETAS (4 EN FILA) con altura controlada */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            align-items: stretch;
+            flex: 0 0 auto;
+            height: 38vh;
+            min-height: 170px;
+            max-height: 300px;
+        }
         
-        .card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 3px solid var(--gris); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 220px; position: relative; }
-        .card-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; position: absolute; top: 15px; left: 0; padding: 0 15px; }
-        .card-header h2 { font-size: 0.8rem; color: var(--azul); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
-        .card-header span { font-size: 0.6rem; background: var(--gris-claro); padding: 4px 8px; border-radius: 20px; font-weight: 700; color: var(--azul-fuerte); }
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 10px 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 3px solid var(--gris);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .card-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: absolute;
+            top: 10px;
+            left: 0;
+            padding: 0 12px;
+        }
+        .card-header h2 { font-size: 0.68rem; color: var(--azul); font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
+        .card-header span { font-size: 0.55rem; background: var(--gris-claro); padding: 3px 6px; border-radius: 20px; font-weight: 700; color: var(--azul-fuerte); }
         
-        .kpi-number { font-size: 2.5rem; font-weight: 900; color: var(--azul); margin-top: 15px; }
-        .kpi-sub { font-size: 0.7rem; color: #888; text-align: center; font-weight: 600; margin-bottom: 10px; }
+        .kpi-number { font-size: clamp(1.4rem, 3vh, 2.4rem); font-weight: 900; color: var(--azul); margin-top: 8px; }
+        .kpi-sub { font-size: 0.62rem; color: #888; text-align: center; font-weight: 600; margin-bottom: 6px; }
         
-        .btn-detalle { background: var(--gris-claro); color: var(--azul); border: 2px solid var(--gris); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: auto; }
+        .btn-detalle {
+            background: var(--gris-claro);
+            color: var(--azul);
+            border: 2px solid var(--gris);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: auto;
+        }
         .btn-detalle:hover { background: var(--azul); color: white; border-color: var(--azul); }
 
-        /* LISTA DE COLORES ESTÉTICA (TLAHUAC Y ALMACENES) */
-        .color-list-container { width: 100%; margin-top: 10px; }
-        .color-header-row { display: grid; grid-template-columns: 1fr 50px 1fr; gap: 5px; font-size: 0.6rem; color: #888; font-weight: 800; text-transform: uppercase; margin-bottom: 6px; text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 4px; }
+        /* COLUMNAS APILADAS */
+        .stack-col { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+        .card-compact { flex: 1; min-height: 0; padding: 8px 12px; justify-content: flex-start; }
+        .card-compact .kpi-number { font-size: clamp(1.1rem, 2.2vh, 1.5rem); margin-top: 14px; }
+        .card-compact .kpi-sub { margin-bottom: 2px; font-size: 0.55rem; }
+        .card-compact .card-header { top: 6px; padding: 0 10px; }
+        .card-compact .card-header h2 { font-size: 0.6rem; }
+        .card-compact .card-header span { font-size: 0.5rem; padding: 2px 5px; }
+        .card-compact .btn-detalle { padding: 2px 8px; font-size: 0.55rem; margin-top: 3px; }
+
+        /* LISTA DE COLORES */
+        .color-list-container { width: 100%; margin-top: 6px; }
+        .color-header-row {
+            display: grid;
+            grid-template-columns: 1fr 42px 1fr;
+            gap: 4px;
+            font-size: 0.55rem;
+            color: #888;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            text-align: center;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 3px;
+        }
         .color-header-row > div:first-child { text-align: left; padding-left: 4px; }
         
         .color-list { width: 100%; list-style: none; }
-        .color-list li { display: grid; grid-template-columns: 1fr 50px 1fr; align-items: center; padding: 4px 0; border-bottom: 1px solid #f0f0f0; font-size: 0.8rem; font-weight: 600; }
+        .color-list li {
+            display: grid;
+            grid-template-columns: 1fr 42px 1fr;
+            align-items: center;
+            padding: 2px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
         .color-list li:last-child { border-bottom: none; }
-        .color-name { display: flex; align-items: center; gap: 6px; color: #444; }
-        .tarimas-badge { background: #e2e8f0; color: #475569; font-size: 0.65rem; padding: 2px 6px; border-radius: 12px; font-weight: 800; text-align: center; justify-self: center; }
+        .color-name { display: flex; align-items: center; gap: 5px; color: #444; }
+        .tarimas-badge { background: #e2e8f0; color: #475569; font-size: 0.6rem; padding: 1px 5px; border-radius: 12px; font-weight: 800; text-align: center; justify-self: center; }
         .charolas-total { text-align: right; color: var(--azul); font-weight: 800; }
 
-        .color-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+        .color-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
         .dot-azul { background: #3498DB; } .dot-verde { background: #2ECC71; }
         .dot-rojo { background: #E74C3C; } .dot-amarillo { background: #F1C40F; }
 
-        .chart-container { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 3px solid var(--gris); margin-bottom: 20px; }
-        .chart-container canvas { max-height: 350px; width: 100% !important; }
+        /* TARJETA INVENTARIO ALMACÉN CHAROLAS */
+        .card-inv-almacen { padding: 10px 12px 8px; justify-content: flex-start; gap: 5px; }
+        .card-inv-almacen .card-header { position: relative; top: 0; left: 0; padding: 0 0 5px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 2px; }
+        .card-inv-almacen .card-header h2 { font-size: 0.65rem; line-height: 1.1; }
 
+        .inv-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 2px dashed var(--verde);
+            background: #F0FDF4;
+        }
+        .inv-row .lbl { font-size: 0.6rem; font-weight: 800; color: var(--verde); text-transform: uppercase; letter-spacing: 0.4px; }
+        .inv-row .val { display: flex; gap: 6px; align-items: baseline; }
+        .inv-row .num { font-size: 0.78rem; font-weight: 900; color: var(--azul); }
+        .inv-row .unit { font-size: 0.5rem; font-weight: 600; color: #666; }
+
+        .inv-row.entradas { border-color: var(--azul-fuerte); background: #EFF6FF; }
+        .inv-row.entradas .lbl { color: var(--azul-fuerte); }
+
+        .inv-total {
+            width: 100%;
+            margin-top: 2px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #0A2342 0%, #1A5F9E 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            box-shadow: 0 4px 14px rgba(10,35,66,0.25);
+        }
+        .inv-total .lbl { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; }
+        .inv-total .num { font-size: clamp(1.2rem, 2.5vh, 1.6rem); font-weight: 900; line-height: 1; }
+        .inv-total .unit { font-size: 0.5rem; font-weight: 600; opacity: 0.8; }
+
+        /* GRÁFICA: ocupa el espacio restante */
+        .chart-container {
+            background: white;
+            border-radius: 14px;
+            padding: 8px 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 3px solid var(--gris);
+            flex: 1 1 auto;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chart-container .card-header {
+            position: relative;
+            top: 0;
+            left: 0;
+            padding: 0;
+            margin-bottom: 4px;
+            flex-shrink: 0;
+        }
+        .chart-container .card-header h2 { font-size: 0.7rem; }
+        .chart-container canvas {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* MODALES */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 6px solid var(--azul-fuerte); }
@@ -108,8 +272,25 @@
         .loader-content p { font-size: 1.1rem; font-weight: 700; color: #0A2342; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        @media (max-width: 1200px) { .grid-container { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; } }
+        /* RESPONSIVE */
+        @media (max-width: 1200px) {
+            .grid-container { grid-template-columns: repeat(2, 1fr); height: 50vh; }
+        }
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; height: auto; }
+            body { height: auto; overflow: auto; }
+        }
+        @media (max-height: 700px) {
+            .grid-container { height: 34vh; min-height: 150px; }
+            .kpi-number { font-size: clamp(1.2rem, 2.6vh, 1.8rem); }
+            .chart-container { min-height: 90px; }
+        }
+        @media (max-height: 550px) {
+            .grid-container { height: 30vh; min-height: 130px; }
+            .header { padding: 6px 12px; }
+            .header h1 { font-size: 0.95rem; }
+            .btn { padding: 4px 9px; font-size: 0.68rem; }
+        }
     </style>
 </head>
 <body>
@@ -141,31 +322,58 @@
 </div>
 
 <div class="grid-container" id="tarjetasGrid">
-    <!-- 1. Almacén Charolas -->
-    <div class="card">
-        <div class="card-header"><h2>📦 Almacén Charolas</h2><span id="fechaUltimo">--/--/----</span></div>
-        <div class="kpi-number" id="totalUltimo">0</div>
-        <div class="kpi-sub">Total Charolas</div>
-        <button class="btn-detalle" onclick="verDetalle('ultimo')">🔍 Ver Detalle</button>
+    <!-- COLUMNA 1: Almacén Charolas + Manufactura apiladas -->
+    <div class="stack-col">
+        <div class="card card-compact">
+            <div class="card-header"><h2 id="tituloInv">Inventario Lunes --/--/----</h2></div>
+            <div class="kpi-number" id="totalUltimo">0</div>
+            <div class="kpi-sub">Total Charolas</div>
+            <button class="btn-detalle" onclick="verDetalle('ultimo')">🔍 Ver Detalle</button>
+        </div>
+        <div class="card card-compact">
+            <div class="card-header"><h2 id="tituloManu">Manufactura Lunes --/--/----</h2></div>
+            <div class="kpi-number" id="totalManu">0</div>
+            <div class="kpi-sub">Total Charolas</div>
+            <button class="btn-detalle" onclick="verDetalle('manufactura')">🔍 Ver Detalle</button>
+        </div>
     </div>
-    
-    <!-- 2. Manufactura -->
-    <div class="card">
-        <div class="card-header"><h2>🏭 Manufactura</h2><span id="fechaManu">--/--/----</span></div>
-        <div class="kpi-number" id="totalManu">0</div>
-        <div class="kpi-sub">Total Charolas</div>
-        <button class="btn-detalle" onclick="verDetalle('manufactura')">🔍 Ver Detalle</button>
+
+    <!-- COLUMNA 2: Inventario Almacén Charolas -->
+    <div class="stack-col">
+        <div class="card card-inv-almacen" id="cardConsumidas" style="border-color: var(--verde); flex: 1;">
+            <div class="card-header">
+                <h2>📦 Inventario Almacén Charolas</h2>
+                <span id="fechaConsumidas">--/--/----</span>
+            </div>
+            <div class="inv-row salidas">
+                <span class="lbl">Salidas</span>
+                <div class="val">
+                    <span class="num" id="salidasTarimas">0</span>
+                    <span class="unit">tarimas</span>
+                    <span class="num" id="salidasCharolas">0</span>
+                    <span class="unit">charolas</span>
+                </div>
+            </div>
+            <div class="inv-row entradas">
+                <span class="lbl">Entradas</span>
+                <div class="val">
+                    <span class="num" id="entradasCharolas">0</span>
+                    <span class="unit">charolas</span>
+                </div>
+            </div>
+            <div class="inv-total">
+                <span class="lbl">Inventario</span>
+                <span class="num" id="inventarioCharolas">0</span>
+                <span class="unit">charolas</span>
+            </div>
+        </div>
     </div>
-    
-    <!-- 3. Tlahuac -->
+
+    <!-- COLUMNA 3: Tlahuac -->
     <div class="card">
         <div class="card-header"><h2>📍 Tlahuac</h2><span>General</span></div>
         <div class="color-list-container">
-            <div class="color-header-row">
-                <div>Color</div>
-                <div>Tar.</div>
-                <div>Charolas</div>
-            </div>
+            <div class="color-header-row"><div>Color</div><div>Tar.</div><div>Charolas</div></div>
             <ul class="color-list">
                 <li><span class="color-name"><span class="color-dot dot-azul"></span> Azul</span> <span class="tarimas-badge" id="tlahuacAzulTar">0</span> <span class="charolas-total" id="tlahuacAzul">0</span></li>
                 <li><span class="color-name"><span class="color-dot dot-verde"></span> Verde</span> <span class="tarimas-badge" id="tlahuacVerdeTar">0</span> <span class="charolas-total" id="tlahuacVerde">0</span></li>
@@ -174,16 +382,12 @@
             </ul>
         </div>
     </div>
-    
-    <!-- 4. Almacenes -->
+
+    <!-- COLUMNA 4: Almacenes -->
     <div class="card">
         <div class="card-header"><h2>📦 Almacenes</h2><span>General</span></div>
         <div class="color-list-container">
-            <div class="color-header-row">
-                <div>Color</div>
-                <div>Tar.</div>
-                <div>Charolas</div>
-            </div>
+            <div class="color-header-row"><div>Color</div><div>Tar.</div><div>Charolas</div></div>
             <ul class="color-list">
                 <li><span class="color-name"><span class="color-dot dot-azul"></span> Azul</span> <span class="tarimas-badge" id="almacenAzulTar">0</span> <span class="charolas-total" id="almacenAzul">0</span></li>
                 <li><span class="color-name"><span class="color-dot dot-verde"></span> Verde</span> <span class="tarimas-badge" id="almacenVerdeTar">0</span> <span class="charolas-total" id="almacenVerde">0</span></li>
@@ -195,7 +399,7 @@
 </div>
 
 <div class="chart-container">
-    <div class="card-header" style="position:relative; padding:0; margin-bottom:10px;"><h2>📊 Sumatoria Total por Semana (Últimos 10 registros)</h2></div>
+    <div class="card-header"><h2>📊 Sumatoria Total por Semana (Últimos 10 registros)</h2></div>
     <canvas id="chartGap"></canvas>
 </div>
 
@@ -231,9 +435,7 @@
             <small>Charolas</small>
         </div>
         <table class="table-modal" id="tablaModalInventario">
-            <thead>
-                <tr><th>Zona</th><th>Tarimas</th><th>Torres / Tarima</th><th>Charolas / Torre</th><th>Total</th><th>❌</th></tr>
-            </thead>
+            <thead><tr><th>Zona</th><th>Tarimas</th><th>Torres / Tarima</th><th>Charolas / Torre</th><th>Total</th><th>❌</th></tr></thead>
             <tbody></tbody>
         </table>
         <button class="btn-add-row" onclick="agregarFilaInventario()">➕ Agregar Fila</button>
@@ -286,14 +488,8 @@
             <h2>📍 Registrar Tlahuac</h2>
             <button class="modal-close" onclick="cerrarModal('modalTlahuac')">&times;</button>
         </div>
-        <div class="form-group">
-            <label>Número de Unidad</label>
-            <input type="text" id="tlahuacUnidad" placeholder="Ej: UNIDAD-01">
-        </div>
-        <div class="form-group">
-            <label>Charolas por Tarima</label>
-            <input type="number" id="tlahuacCharolasTarima" value="0">
-        </div>
+        <div class="form-group"><label>Número de Unidad</label><input type="text" id="tlahuacUnidad" placeholder="Ej: UNIDAD-01"></div>
+        <div class="form-group"><label>Charolas por Tarima</label><input type="number" id="tlahuacCharolasTarima" value="0"></div>
         <div class="form-row">
             <div class="form-group"><label>Tarimas Azul</label><input type="number" id="tlahuacAzulInput" value="0"></div>
             <div class="form-group"><label>Tarimas Verde</label><input type="number" id="tlahuacVerdeInput" value="0"></div>
@@ -316,14 +512,8 @@
             <h2>🏭 Registrar Almacén</h2>
             <button class="modal-close" onclick="cerrarModal('modalAlmacenes')">&times;</button>
         </div>
-        <div class="form-group">
-            <label>Nombre del Almacén</label>
-            <input type="text" id="almacenNombre" placeholder="Ej: ALMACEN CENTRAL">
-        </div>
-        <div class="form-group">
-            <label>Charolas por Tarima</label>
-            <input type="number" id="almacenCharolasTarima" value="0">
-        </div>
+        <div class="form-group"><label>Nombre del Almacén</label><input type="text" id="almacenNombre" placeholder="Ej: ALMACEN CENTRAL"></div>
+        <div class="form-group"><label>Charolas por Tarima</label><input type="number" id="almacenCharolasTarima" value="0"></div>
         <div class="form-row">
             <div class="form-group"><label>Tarimas Azul</label><input type="number" id="almacenAzulInput" value="0"></div>
             <div class="form-group"><label>Tarimas Verde</label><input type="number" id="almacenVerdeInput" value="0"></div>
@@ -342,14 +532,17 @@
 
 <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbztVUQv79T7V_97-A8v8T2DSCd8EwjbbV2oir2zmZMEJBBA8bOvlS8FBVgDwIEhDm5M/exec';
+    const API_URL_LAVADO = 'https://script.google.com/macros/s/AKfycbwcluWJgTsfpT2QbBzom5seFVIU9XWBe7PK9SkFQPn4xK9NFshOlGjcs5qbQTzGJgyF/exec';
+    const API_URL_ENTRADAS = 'https://script.google.com/macros/s/AKfycbzmW61PTvNdvokvpWjNI3BJicyjBSPmky_o_N1SlU8Op1PtrkLXEWDSeO7VJDq7hAs/exec';
+    const CHAROLAS_POR_TARIMA = 120;
+
     let chartGapInstance = null;
-    
     let datosDetalleUltimo = [];
     let datosDetalleManu = [];
     let totalDetalleUltimo = 0;
     let totalDetalleManu = 0;
 
-    let datosGlobales = { inventario: [], tlahuac: [], almacenes: [], manufactura: [] };
+    let datosGlobales = { inventario: [], tlahuac: [], almacenes: [], manufactura: [], lavado: [], entradas: [] };
 
     function showLoader() { document.getElementById('globalLoader').classList.add('active'); }
     function hideLoader() { document.getElementById('globalLoader').classList.remove('active'); }
@@ -365,6 +558,30 @@
         });
     }
 
+    async function apiGetLavado() {
+        return new Promise((resolve) => {
+            const callback = 'cbL_' + Date.now();
+            window[callback] = (res) => { delete window[callback]; resolve(res); };
+            const script = document.createElement('script');
+            script.src = `${API_URL_LAVADO}?action=getLavado&callback=${callback}&_t=${Date.now()}`;
+            document.body.appendChild(script);
+            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false }); } }, 10000);
+        });
+    }
+
+    async function apiGetEntradas() {
+        try {
+            const url = `${API_URL_ENTRADAS}?accion=getRegistros&_t=${Date.now()}`;
+            const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
+            const json = await resp.json();
+            console.log('Entradas raw:', json);
+            return json;
+        } catch (e) {
+            console.error('Error fetch Entradas:', e);
+            return { success: false, data: [] };
+        }
+    }
+
     async function apiPost(data) {
         const formData = new FormData();
         for (let key in data) formData.append(key, data[key]);
@@ -372,14 +589,11 @@
         return { success: true };
     }
 
-    // ============================================
-    // LÓGICA DE FECHAS Y SEMANAS
-    // ============================================
     function obtenerLunesDeFecha(fechaStr) {
         try {
             if (!fechaStr) return null;
             let fechaLimpia = String(fechaStr).trim();
-            if (fechaLimpia.includes('GMT') || fechaLimpia.includes('Jan') || fechaLimpia.includes('Feb')) {
+            if (fechaLimpia.includes('GMT')) {
                 const d = new Date(fechaLimpia);
                 if (!isNaN(d.getTime())) {
                     fechaLimpia = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}`;
@@ -387,20 +601,16 @@
             }
             const soloFecha = fechaLimpia.split(' ')[0];
             const partes = soloFecha.split('/');
-            if (partes.length !== 3) return null; 
-
+            if (partes.length !== 3) return null;
             const diaNum = parseInt(partes[0]);
             const mesNum = parseInt(partes[1]) - 1;
             const anioNum = parseInt(partes[2]);
             if (isNaN(diaNum) || isNaN(mesNum) || isNaN(anioNum)) return null;
-
             const d = new Date(anioNum, mesNum, diaNum);
             const diaSemana = d.getDay();
-            const diff = d.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1); 
+            const diff = d.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
             return new Date(d.setDate(diff));
-        } catch (e) {
-            return null;
-        }
+        } catch (e) { return null; }
     }
 
     function obtenerKeySemana(fechaStr) {
@@ -417,9 +627,122 @@
         return `${lunes.getDate().toString().padStart(2,'0')}/${(lunes.getMonth()+1).toString().padStart(2,'0')}/${lunes.getFullYear()}`;
     }
 
-    // ============================================
-    // MODALES
-    // ============================================
+    function calcularSalidasSemana() {
+        const ahora = new Date();
+        const diaSemana = ahora.getDay();
+        const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+        const lunesBase = new Date(ahora.getFullYear(), ahora.getMonth(), diff, 0, 0, 0, 0);
+        let inicioRango = new Date(lunesBase);
+        inicioRango.setHours(6, 0, 0, 0);
+        if (ahora < inicioRango) inicioRango.setDate(inicioRango.getDate() - 7);
+        const finRango = new Date(inicioRango);
+        finRango.setDate(finRango.getDate() + 7);
+        finRango.setMilliseconds(-1);
+
+        let totalTarimas = 0;
+
+        function parsearFecha(valor) {
+            if (!valor) return null;
+            const s = String(valor).trim().replace(/['"\s]/g, '');
+            const p = s.split('/');
+            if (p.length !== 3) return null;
+            const dia = parseInt(p[0], 10);
+            const mes = parseInt(p[1], 10) - 1;
+            const anio = parseInt(p[2], 10);
+            if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+            return { dia, mes, anio };
+        }
+
+        function parsearHora(valor) {
+            if (valor === null || valor === undefined || valor === '') return { hh: 0, mm: 0 };
+            if (typeof valor === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) {
+                const m = valor.match(/T(\d{2}):(\d{2})/);
+                if (m) {
+                    let hh = parseInt(m[1], 10) - 6;
+                    let mm = parseInt(m[2], 10);
+                    if (hh < 0) hh += 24;
+                    return { hh, mm };
+                }
+            }
+            if (valor instanceof Date && !isNaN(valor.getTime())) {
+                let hh = valor.getUTCHours() - 6;
+                if (hh < 0) hh += 24;
+                return { hh, mm: valor.getUTCMinutes() };
+            }
+            if (typeof valor === 'number' && valor >= 0 && valor < 1) {
+                const totalMin = Math.round(valor * 24 * 60);
+                return { hh: Math.floor(totalMin / 60) % 24, mm: totalMin % 60 };
+            }
+            let s = String(valor).trim().toLowerCase().replace(/['"]/g, '').replace(/\.\s*/g, '').replace(/\s+/g, '');
+            let esPM = s.includes('pm');
+            let esAM = s.includes('am');
+            s = s.replace('pm', '').replace('am', '');
+            const parts = s.split(':');
+            let hh = parseInt(parts[0], 10) || 0;
+            let mm = parseInt(parts[1], 10) || 0;
+            if (esPM && hh < 12) hh += 12;
+            if (esAM && hh === 12) hh = 0;
+            return { hh, mm };
+        }
+
+        (datosGlobales.lavado || []).forEach(row => {
+            const f = parsearFecha(row['Fecha']);
+            if (!f) return;
+            const { hh, mm } = parsearHora(row['Hora']);
+            const d = new Date(f.anio, f.mes, f.dia, hh, mm, 0, 0);
+            if (isNaN(d.getTime())) return;
+            const consumidas = Number(row['Consumidas']) || 0;
+            if (d >= inicioRango && d <= finRango && d <= ahora) {
+                totalTarimas += consumidas;
+            }
+        });
+
+        return totalTarimas;
+    }
+
+    function calcularEntradasSemana() {
+        const ahora = new Date();
+        const diaSemana = ahora.getDay();
+        const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+        const lunes = new Date(ahora.getFullYear(), ahora.getMonth(), diff, 0, 0, 0, 0);
+        const domingo = new Date(lunes);
+        domingo.setDate(lunes.getDate() + 6);
+        domingo.setHours(23, 59, 59, 999);
+
+        let totalCharolas = 0;
+        const debug = [];
+
+        (datosGlobales.entradas || []).forEach(row => {
+            const fechaStr = String(row.fecha || '').replace(/['"\s]/g, '');
+            const p = fechaStr.split('/');
+            if (p.length !== 3) return;
+            const dia = parseInt(p[0], 10);
+            const mes = parseInt(p[1], 10) - 1;
+            const anio = parseInt(p[2], 10);
+            if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return;
+            const d = new Date(anio, mes, dia);
+            if (isNaN(d.getTime())) return;
+            if (d < lunes || d > domingo) return;
+
+            if (Array.isArray(row.registros)) {
+                row.registros.forEach(r => {
+                    const tipo = String(r.tipo || '').toUpperCase().trim();
+                    if (tipo === 'DOMINOS') {
+                        const cant = parseFloat(r.cantidadFisica) || 0;
+                        totalCharolas += cant;
+                        debug.push(`${fechaStr} ${row.turno || ''} | ${r.tienda} | +${cant}`);
+                    }
+                });
+            }
+        });
+
+        console.log('Rango entradas:', lunes.toLocaleDateString(), '→', domingo.toLocaleDateString());
+        console.log('Detalle Entradas:', debug);
+        console.log('Total Entradas:', totalCharolas);
+
+        return totalCharolas;
+    }
+
     function abrirModal(id) {
         if (id === 'modalInventario') {
             if (document.getElementById('btnInvGeneral').classList.contains('btn-bloqueado')) {
@@ -444,9 +767,6 @@
         o.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('active'); });
     });
 
-    // ============================================
-    // TABLA DINÁMICA INVENTARIO
-    // ============================================
     function agregarFilaInventario() {
         const tbody = document.getElementById('tablaModalInventario').querySelector('tbody');
         const tr = document.createElement('tr');
@@ -491,9 +811,6 @@
         document.getElementById('granTotal').textContent = granTotal;
     }
 
-    // ============================================
-    // MANUFACTURA
-    // ============================================
     function sumarManufactura() {
         let total = 0;
         document.querySelectorAll('.inp-manu').forEach(inp => {
@@ -502,16 +819,12 @@
         document.getElementById('totalManuForm').textContent = total;
     }
 
-    // ============================================
-    // GUARDAR DATOS
-    // ============================================
     async function guardarInventario() {
         showLoader(); document.getElementById('btnGuardarInv').disabled = true;
         try {
             const filas = document.querySelectorAll('#tablaModalInventario tbody tr');
             let guardados = 0;
             const idLote = Date.now().toString();
-
             for (let tr of filas) {
                 const zona = tr.querySelector('.inp-zona').value;
                 const tarimas = tr.querySelector('.inp-tarimas').value;
@@ -556,8 +869,8 @@
     }
 
     async function guardarTlahuac(factor) {
-        showLoader(); 
-        document.getElementById('btnSalidaTl').disabled = true; 
+        showLoader();
+        document.getElementById('btnSalidaTl').disabled = true;
         document.getElementById('btnEntradaTl').disabled = true;
         try {
             const data = {
@@ -574,15 +887,15 @@
             await apiPost(data);
             alert(factor > 0 ? '✅ Entrada registrada.' : '✅ Salida registrada.');
             cerrarModal('modalTlahuac'); await cargarDatos();
-        } finally { 
-            hideLoader(); 
-            document.getElementById('btnSalidaTl').disabled = false; 
+        } finally {
+            hideLoader();
+            document.getElementById('btnSalidaTl').disabled = false;
             document.getElementById('btnEntradaTl').disabled = false;
         }
     }
 
     async function guardarAlmacen(factor) {
-        showLoader(); 
+        showLoader();
         document.getElementById('btnSalidaAl').disabled = true;
         document.getElementById('btnEntradaAl').disabled = true;
         try {
@@ -600,57 +913,67 @@
             await apiPost(data);
             alert(factor > 0 ? '✅ Entrada registrada.' : '✅ Salida registrada.');
             cerrarModal('modalAlmacenes'); await cargarDatos();
-        } finally { 
-            hideLoader(); 
+        } finally {
+            hideLoader();
             document.getElementById('btnSalidaAl').disabled = false;
             document.getElementById('btnEntradaAl').disabled = false;
         }
     }
 
-    // ============================================
-    // CARGAR DATOS Y RENDERIZAR
-    // ============================================
     async function cargarDatos() {
         showLoader(); document.getElementById('btnRefresh').disabled = true;
         try {
-            const res = await apiGet('getAllData');
-            if (!res.success) throw new Error('Error al consultar');
-            
-            datosGlobales = res;
+            const [resGeneral, resLavado, resEntradas] = await Promise.all([
+                apiGet('getAllData'),
+                apiGetLavado(),
+                apiGetEntradas()
+            ]);
+
+            if (resGeneral && resGeneral.success) {
+                datosGlobales.inventario = resGeneral.inventario || [];
+                datosGlobales.tlahuac = resGeneral.tlahuac || [];
+                datosGlobales.almacenes = resGeneral.almacenes || [];
+                datosGlobales.manufactura = resGeneral.manufactura || [];
+            }
+            if (resLavado && resLavado.success && Array.isArray(resLavado.data)) {
+                datosGlobales.lavado = resLavado.data;
+            } else {
+                datosGlobales.lavado = [];
+            }
+            if (resEntradas && resEntradas.success && Array.isArray(resEntradas.data)) {
+                datosGlobales.entradas = resEntradas.data;
+            } else {
+                datosGlobales.entradas = [];
+            }
+
             procesarDatosYFiltros();
-            
         } catch (e) {
-            console.error(e); alert('Error al cargar datos: ' + e.message);
+            console.error(e);
+            alert('Error al cargar datos: ' + e.message);
         } finally {
             hideLoader(); document.getElementById('btnRefresh').disabled = false;
         }
     }
 
     function procesarDatosYFiltros() {
-        // 1. Extraer todas las semanas únicas (basado en Inventario y Manufactura)
         const semanasSet = new Set();
-        datosGlobales.inventario.forEach(row => {
+        (datosGlobales.inventario || []).forEach(row => {
             if (row['Fecha']) semanasSet.add(obtenerKeySemana(row['Fecha']));
         });
         if (semanasSet.size === 0) {
-            datosGlobales.manufactura.forEach(row => {
+            (datosGlobales.manufactura || []).forEach(row => {
                 if (row['Fecha']) semanasSet.add(obtenerKeySemana(row['Fecha']));
             });
         }
-
-        // 2. Ordenar semanas de más reciente a más antigua
         const semanasArr = Array.from(semanasSet).sort((a, b) => {
             if (a === 'Sin Semana') return 1;
             if (b === 'Sin Semana') return -1;
             const pA = a.split('/'); const pB = b.split('/');
             return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
         });
-
-        // 3. Llenar el select
         const selectSemana = document.getElementById('filtroSemana');
         const valorActual = selectSemana.value;
         selectSemana.innerHTML = '<option value="all">Todos los registros</option>';
-        
         semanasArr.forEach(s => {
             if (s === 'Sin Semana') return;
             const opt = document.createElement('option');
@@ -658,11 +981,9 @@
             opt.textContent = `Semana del ${s}`;
             selectSemana.appendChild(opt);
         });
-        
         if (Array.from(selectSemana.options).some(o => o.value === valorActual)) {
             selectSemana.value = valorActual;
         }
-
         aplicarFiltroSemana();
     }
 
@@ -670,69 +991,61 @@
         const semanaSel = document.getElementById('filtroSemana').value;
         const semanaActual = obtenerSemanaActual();
 
-        // ---- Candados de Semana ----
-        const invSemana = datosGlobales.inventario.some(r => obtenerKeySemana(r['Fecha']) === semanaActual);
-        const manuSemana = datosGlobales.manufactura.some(r => obtenerKeySemana(r['Fecha']) === semanaActual);
+        const invSemana = (datosGlobales.inventario || []).some(r => obtenerKeySemana(r['Fecha']) === semanaActual);
+        const manuSemana = (datosGlobales.manufactura || []).some(r => obtenerKeySemana(r['Fecha']) === semanaActual);
 
         const btnInv = document.getElementById('btnInvGeneral');
         const btnManu = document.getElementById('btnManufactura');
 
-        if (invSemana) { btnInv.classList.add('btn-bloqueado'); btnInv.innerHTML = '🔒 Inv. Registrado'; } 
+        if (invSemana) { btnInv.classList.add('btn-bloqueado'); btnInv.innerHTML = '🔒 Inv. Registrado'; }
         else { btnInv.classList.remove('btn-bloqueado'); btnInv.innerHTML = '➕ Inv. General'; }
 
-        if (manuSemana) { btnManu.classList.add('btn-bloqueado'); btnManu.innerHTML = '🔒 Manu. Registrada'; } 
+        if (manuSemana) { btnManu.classList.add('btn-bloqueado'); btnManu.innerHTML = '🔒 Manu. Registrada'; }
         else { btnManu.classList.remove('btn-bloqueado'); btnManu.innerHTML = '🏭 Manufactura'; }
 
-        // ---- Lógica de Tarjetas ----
         let invDeLaSemana = [];
         let manuDeLaSemana = [];
-
         if (semanaSel === 'all') {
-            const lastInv = datosGlobales.inventario[datosGlobales.inventario.length - 1];
-            const lastManu = datosGlobales.manufactura[datosGlobales.manufactura.length - 1];
+            const lastInv = (datosGlobales.inventario || [])[datosGlobales.inventario.length - 1];
+            const lastManu = (datosGlobales.manufactura || [])[datosGlobales.manufactura.length - 1];
             if (lastInv) invDeLaSemana = datosGlobales.inventario.filter(r => obtenerKeySemana(r['Fecha']) === obtenerKeySemana(lastInv['Fecha']));
             if (lastManu) manuDeLaSemana = datosGlobales.manufactura.filter(r => obtenerKeySemana(r['Fecha']) === obtenerKeySemana(lastManu['Fecha']));
         } else {
-            invDeLaSemana = datosGlobales.inventario.filter(r => obtenerKeySemana(r['Fecha']) === semanaSel);
-            manuDeLaSemana = datosGlobales.manufactura.filter(r => obtenerKeySemana(r['Fecha']) === semanaSel);
+            invDeLaSemana = (datosGlobales.inventario || []).filter(r => obtenerKeySemana(r['Fecha']) === semanaSel);
+            manuDeLaSemana = (datosGlobales.manufactura || []).filter(r => obtenerKeySemana(r['Fecha']) === semanaSel);
         }
 
-        // Totales Almacén Charolas (Inv) y Manu
         let totalInv = 0;
         invDeLaSemana.forEach(r => totalInv += parseInt(r['Total']) || 0);
         document.getElementById('totalUltimo').textContent = totalInv;
-        document.getElementById('fechaUltimo').textContent = invDeLaSemana.length > 0 ? invDeLaSemana[0]['Fecha'] : '--/--/----';
+        const fechaInvTxt = invDeLaSemana.length > 0 ? invDeLaSemana[0]['Fecha'] : '--/--/----';
+        document.getElementById('tituloInv').textContent = `Inventario Lunes ${fechaInvTxt}`;
         datosDetalleUltimo = invDeLaSemana;
         totalDetalleUltimo = totalInv;
 
         let totalManu = 0;
-        if(manuDeLaSemana.length > 0) totalManu = parseInt(manuDeLaSemana[0]['Total']) || 0;
+        if (manuDeLaSemana.length > 0) totalManu = parseInt(manuDeLaSemana[0]['Total']) || 0;
         document.getElementById('totalManu').textContent = totalManu;
-        document.getElementById('fechaManu').textContent = manuDeLaSemana.length > 0 ? manuDeLaSemana[0]['Fecha'] : '--/--/----';
+        const fechaManuTxt = manuDeLaSemana.length > 0 ? manuDeLaSemana[0]['Fecha'] : '--/--/----';
+        document.getElementById('tituloManu').textContent = `Manufactura Lunes ${fechaManuTxt}`;
         datosDetalleManu = manuDeLaSemana;
         totalDetalleManu = totalManu;
 
-        // ---- ACUMULADO GENERAL TLAHUAC Y ALMACENES ----
-        // Sumamos los valores (que ya incluyen positivos y negativos) y sacamos el total de tarimas y charolas
         let tAzulTar=0, tVerdeTar=0, tRojoTar=0, tAmarilloTar=0;
         let tAzulChar=0, tVerdeChar=0, tRojoChar=0, tAmarilloChar=0;
-        
-        datosGlobales.tlahuac.forEach(t => {
+        (datosGlobales.tlahuac || []).forEach(t => {
             const cT = parseInt(t['Charolas/Tarima']) || 0;
             const a = parseInt(t['Azul'])||0;
             const v = parseInt(t['Verde'])||0;
             const r = parseInt(t['Rojo'])||0;
             const am = parseInt(t['Amarillo'])||0;
-            
             tAzulTar += a; tVerdeTar += v; tRojoTar += r; tAmarilloTar += am;
             tAzulChar += a * cT; tVerdeChar += v * cT; tRojoChar += r * cT; tAmarilloChar += am * cT;
         });
-        
         document.getElementById('tlahuacAzulTar').textContent = tAzulTar;
         document.getElementById('tlahuacVerdeTar').textContent = tVerdeTar;
         document.getElementById('tlahuacRojoTar').textContent = tRojoTar;
         document.getElementById('tlahuacAmarilloTar').textContent = tAmarilloTar;
-        
         document.getElementById('tlahuacAzul').textContent = tAzulChar;
         document.getElementById('tlahuacVerde').textContent = tVerdeChar;
         document.getElementById('tlahuacRojo').textContent = tRojoChar;
@@ -740,38 +1053,45 @@
 
         let aAzulTar=0, aVerdeTar=0, aRojoTar=0, aAmarilloTar=0;
         let aAzulChar=0, aVerdeChar=0, aRojoChar=0, aAmarilloChar=0;
-        
-        datosGlobales.almacenes.forEach(a => {
+        (datosGlobales.almacenes || []).forEach(a => {
             const cT = parseInt(a['Charolas/Tarima']) || 0;
             const az = parseInt(a['Azul'])||0;
             const v = parseInt(a['Verde'])||0;
             const r = parseInt(a['Rojo'])||0;
             const am = parseInt(a['Amarillo'])||0;
-            
             aAzulTar += az; aVerdeTar += v; aRojoTar += r; aAmarilloTar += am;
             aAzulChar += az * cT; aVerdeChar += v * cT; aRojoChar += r * cT; aAmarilloChar += am * cT;
         });
-        
         document.getElementById('almacenAzulTar').textContent = aAzulTar;
         document.getElementById('almacenVerdeTar').textContent = aVerdeTar;
         document.getElementById('almacenRojoTar').textContent = aRojoTar;
         document.getElementById('almacenAmarilloTar').textContent = aAmarilloTar;
-        
         document.getElementById('almacenAzul').textContent = aAzulChar;
         document.getElementById('almacenVerde').textContent = aVerdeChar;
         document.getElementById('almacenRojo').textContent = aRojoChar;
         document.getElementById('almacenAmarillo').textContent = aAmarilloChar;
 
-        // ---- Gráfica de Barras (SIEMPRE MUESTRA LOS ÚLTIMOS 10) ----
+        const tarimasSalidas = calcularSalidasSemana();
+        const charolasSalidas = tarimasSalidas * CHAROLAS_POR_TARIMA;
+        const entradasCharolas = calcularEntradasSemana();
+        const inventarioFinal = totalInv + entradasCharolas - charolasSalidas;
+
+        document.getElementById('salidasTarimas').textContent = tarimasSalidas.toLocaleString('es-MX');
+        document.getElementById('salidasCharolas').textContent = charolasSalidas.toLocaleString('es-MX');
+        document.getElementById('entradasCharolas').textContent = entradasCharolas.toLocaleString('es-MX');
+        document.getElementById('inventarioCharolas').textContent = inventarioFinal.toLocaleString('es-MX');
+
+        const hoy = new Date();
+        document.getElementById('fechaConsumidas').textContent =
+            `${hoy.getDate().toString().padStart(2,'0')}/${(hoy.getMonth()+1).toString().padStart(2,'0')}/${hoy.getFullYear()}`;
+
         const todasSemanasSet = new Set();
-        datosGlobales.inventario.forEach(r => { if(r['Fecha']) todasSemanasSet.add(obtenerKeySemana(r['Fecha'])); });
-        if (todasSemanasSet.size === 0) datosGlobales.manufactura.forEach(r => { if(r['Fecha']) todasSemanasSet.add(obtenerKeySemana(r['Fecha'])); });
-        
+        (datosGlobales.inventario || []).forEach(r => { if(r['Fecha']) todasSemanasSet.add(obtenerKeySemana(r['Fecha'])); });
+        if (todasSemanasSet.size === 0) (datosGlobales.manufactura || []).forEach(r => { if(r['Fecha']) todasSemanasSet.add(obtenerKeySemana(r['Fecha'])); });
         const todasSemanasArr = Array.from(todasSemanasSet).filter(s => s !== 'Sin Semana').sort((a, b) => {
             const pA = a.split('/'); const pB = b.split('/');
             return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
         });
-
         const semanasGrafica = todasSemanasArr.slice(0, 10).reverse();
         renderizarGraficaBarras(semanasGrafica);
     }
@@ -780,8 +1100,8 @@
         showLoader();
         setTimeout(() => {
             let datos = [], total = 0, fecha = '', titulo = '';
-            if (tipo === 'ultimo') { datos = datosDetalleUltimo; total = totalDetalleUltimo; fecha = document.getElementById('fechaUltimo').textContent; titulo = 'Almacén Charolas'; } 
-            else if (tipo === 'manufactura') { datos = datosDetalleManu; total = totalDetalleManu; fecha = document.getElementById('fechaManu').textContent; titulo = 'Manufactura'; }
+            if (tipo === 'ultimo') { datos = datosDetalleUltimo; total = totalDetalleUltimo; fecha = document.getElementById('tituloInv').textContent; titulo = 'Almacén Charolas'; }
+            else if (tipo === 'manufactura') { datos = datosDetalleManu; total = totalDetalleManu; fecha = document.getElementById('tituloManu').textContent; titulo = 'Manufactura'; }
 
             document.getElementById('detalleTitulo').textContent = `Detalle ${titulo} (${fecha})`;
             document.getElementById('detalleTotal').textContent = total;
@@ -805,33 +1125,24 @@
         }, 300);
     }
 
-    // ============================================
-    // GRÁFICA DE BARRAS (SUMATORIA HISTÓRICA)
-    // ============================================
     function renderizarGraficaBarras(semanas) {
         const ctx = document.getElementById('chartGap').getContext('2d');
         if (chartGapInstance) chartGapInstance.destroy();
-
         const labels = [];
         const values = [];
-
         semanas.forEach(sem => {
             const lunes = obtenerLunesDeFecha(sem + ' 00:00');
             if (!lunes) return;
-
-            const domingo = new Date(lunes); 
-            domingo.setDate(lunes.getDate() + 6); 
+            const domingo = new Date(lunes);
+            domingo.setDate(lunes.getDate() + 6);
             domingo.setHours(23,59,59);
 
             let totalSemana = 0;
+            (datosGlobales.inventario || []).filter(x => obtenerKeySemana(x['Fecha']) === sem).forEach(r => totalSemana += parseInt(r['Total']) || 0);
+            (datosGlobales.manufactura || []).filter(x => obtenerKeySemana(x['Fecha']) === sem).forEach(r => totalSemana += parseInt(r['Total']) || 0);
 
-            // 1. Inventario y Manufactura (Solo de la semana seleccionada)
-            datosGlobales.inventario.filter(x => obtenerKeySemana(x['Fecha']) === sem).forEach(r => totalSemana += parseInt(r['Total']) || 0);
-            datosGlobales.manufactura.filter(x => obtenerKeySemana(x['Fecha']) === sem).forEach(r => totalSemana += parseInt(r['Total']) || 0);
-            
-            // 2. Acumulado de Tláhuac y Almacenes HASTA el domingo de esa semana
             let tAcum = 0;
-            datosGlobales.tlahuac.forEach(x => {
+            (datosGlobales.tlahuac || []).forEach(x => {
                 if(!x['Fecha']) return;
                 const fechaLimpia = x['Fecha'].split(' ')[0];
                 const p = fechaLimpia.split('/');
@@ -846,7 +1157,7 @@
             totalSemana += tAcum;
 
             let aAcum = 0;
-            datosGlobales.almacenes.forEach(x => {
+            (datosGlobales.almacenes || []).forEach(x => {
                 if(!x['Fecha']) return;
                 const fechaLimpia = x['Fecha'].split(' ')[0];
                 const p = fechaLimpia.split('/');
@@ -863,18 +1174,11 @@
             labels.push(`Semana ${sem}`);
             values.push(totalSemana);
         });
-
         chartGapInstance = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [{
-                    label: 'Sumatoria Total',
-                    data: values,
-                    backgroundColor: '#1A5F9E',
-                    borderRadius: 6,
-                    barPercentage: 0.6
-                }]
+                datasets: [{ label: 'Sumatoria Total', data: values, backgroundColor: '#1A5F9E', borderRadius: 6, barPercentage: 0.6 }]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,

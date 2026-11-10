@@ -33,8 +33,6 @@
             --gris-oscuro: #6c757d;
             --dominos: #00A5B0;
             --starbucks: #006241;
-            --panel-width: 60px;
-            --panel-width-open: 220px;
             --transition-speed: 0.4s;
         }
 
@@ -50,21 +48,14 @@
             display: flex;
         }
 
-
         /* ============================================
-           CONTENIDO PRINCIPAL CON MARGEN IZQUIERDO
+           CONTENIDO PRINCIPAL
            ============================================ */
         .main-content {
-            margin-left: var(--panel-width);
             flex: 1;
-            transition: margin-left var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-        }
-
-        .side-panel:hover ~ .main-content {
-            margin-left: var(--panel-width-open);
         }
 
         /* ============================================
@@ -273,6 +264,7 @@
             border-radius: 0 0 20px 20px;
             box-shadow: 0 8px 40px rgba(0,0,0,0.1);
             flex: 1;
+            width: 100%;
         }
 
         .tab-content {
@@ -1062,16 +1054,6 @@
             .header-left { justify-content: center; }
             .header-center h1 { font-size: 1.1rem; }
             .header-right { justify-content: center; flex-wrap: wrap; }
-            
-            .side-panel {
-                width: 50px;
-            }
-            .side-panel:hover {
-                width: 200px;
-            }
-            .main-content {
-                margin-left: 50px;
-            }
         }
 
         @media (max-width: 768px) {
@@ -1142,23 +1124,6 @@
                 -webkit-text-security: none !important;
                 text-security: none !important;
             }
-            .side-panel {
-                width: 45px;
-            }
-            .side-panel:hover {
-                width: 180px;
-            }
-            .main-content {
-                margin-left: 45px;
-            }
-            .panel-item .item-icon {
-                font-size: 1.2rem;
-                width: 26px;
-            }
-            .panel-item {
-                padding: 10px 8px;
-                min-height: 42px;
-            }
             .btn-guardar-flotante {
                 padding: 10px 14px;
                 font-size: 0.8rem;
@@ -1191,23 +1156,6 @@
                 padding: 6px 8px 6px 28px;
                 -webkit-text-security: none !important;
                 text-security: none !important;
-            }
-            .side-panel {
-                width: 40px;
-            }
-            .side-panel:hover {
-                width: 160px;
-            }
-            .main-content {
-                margin-left: 40px;
-            }
-            .panel-item .item-icon {
-                font-size: 1rem;
-                width: 22px;
-            }
-            .panel-item {
-                padding: 8px 6px;
-                min-height: 36px;
             }
             .btn-guardar-flotante {
                 padding: 8px 12px;
@@ -1242,69 +1190,6 @@
     </style>
 </head>
 <body>
-
-<!-- ============================================ -->
-<!-- PANEL LATERAL DESPLEGABLE -->
-<!-- ============================================ -->
-<nav class="side-panel">
-    <div class="panel-logo">
-        <img src="logo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
-    </div>
-
-    <div class="panel-menu">
-        <!-- Botón: Bitácora (actual) -->
-        <button class="panel-item" onclick="window.location.reload()" title="Bitácora">
-            <span class="item-icon">📝</span>
-            <span class="item-text">Bitácora</span>
-        </button>
-
-        <!-- Botón: Rol de turnos -->
-        <button class="panel-item" onclick="window.open('Rol_turnos.html','_blank')" title="Rol de Turnos">
-            <span class="item-icon">📋</span>
-            <span class="item-text">Rol de Turnos</span>
-        </button>
-
-        <!-- Botón: Dashboard de Errores -->
-        <button class="panel-item" onclick="window.open('dashboard_errores.html','_blank')" title="Dashboard Errores">
-            <span class="item-icon">🚨</span>
-            <span class="item-text">Errores</span>
-            <span class="item-badge">!</span>
-        </button>
-
-        <!-- Botón: Lavado -->
-        <button class="panel-item" onclick="window.open('https://forms.gle/XczFU6pxLC4yhNTv7','_blank')" title="Lavado">
-            <span class="item-icon">🧼</span>
-            <span class="item-text">Lavado</span>
-        </button>
-
-        <!-- Botón: Chlila -->
-        <button class="panel-item" onclick="window.open('https://elugoapp01.github.io/charola_lila/dashboard.html','_blank')" title="Chlila">
-            <span class="item-icon">🟣</span>
-            <span class="item-text">Chlila</span>
-        </button>
-
-        <div class="panel-divider"></div>
-
-        <!-- Botón: Plan Maestro de Limpieza (PML) -->
-        <button class="panel-item" onclick="window.open('PML.html','_blank')" title="Plan Maestro Limpieza">
-            <span class="item-icon">🧹</span>
-            <span class="item-text">PML</span>
-        </button>
-
-        <!-- Botón: Repositorio -->
-        <button class="panel-item" onclick="window.open('repositorio.html','_blank')" title="Repositorio">
-            <span class="item-icon">📊</span>
-            <span class="item-text">Repositorio</span>
-        </button>
-    </div>
-
-    <div class="panel-footer">
-        <button class="panel-item" onclick="window.open('https://forms.gle/XczFU6pxLC4yhNTv7','_blank')" title="Ayuda" style="color: rgba(255,255,255,0.5);">
-            <span class="item-icon">❓</span>
-            <span class="item-text">Ayuda</span>
-        </button>
-    </div>
-</nav>
 
 <!-- ============================================ -->
 <!-- CONTENIDO PRINCIPAL -->

@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Fila de Unidades</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+    :root {
+        --azul: #0A2342;
+        --azul-fuerte: #1A5F9E;
+        --verde: #27AE60;
+        --verde-claro: #2ECC71;
+        --rojo: #E74C3C;
+        --amarillo: #F1C40F;
+        --naranja: #F39C12;
+        --gris-claro: #F0F2F5;
+        --gris: #D5D8DC;
+        --blanco: #FFFFFF;
+    }
+
+    html, body {
+        min-height: 100vh;
+        background: var(--gris-claro);
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        padding: 10px 14px;
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    .header-fila {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        gap: 10px;
+    }
+    .header-fila .logo-wrap { margin: 0; flex-shrink: 0; }
+    .header-fila .logo-wrap img { max-width: 110px; max-height: 60px; object-fit: contain; display: block; }
+
+    .conexion {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .conexion.online { background: #E8F8F0; color: var(--verde); }
+    .conexion.offline { background: #FDEDEC; color: var(--rojo); }
+
+    .btn-icono {
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--azul-fuerte), var(--azul));
+        color: white;
+        border: none;
+        border-radius: 50%;
+        font-size: 1.8rem;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(10,35,66,0.35);
+        transition: all 0.2s ease;
+        padding-bottom: 4px;
+        flex-shrink: 0;
+    }
+    .btn-icono:active { transform: scale(0.92); }
+
+    h1 { text-align: center; color: var(--azul); font-size: 1.35rem; margin-bottom: 10px; letter-spacing: 0.5px; }
+
+    .pantalla { display: none; }
+    .pantalla.activa { display: block; animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card-form {
+        background: var(--blanco);
+        border-radius: 20px;
+        padding: 18px 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+        border-top: 6px solid var(--azul);
+    }
+
+    .campo { margin-bottom: 12px; }
+    .campo label {
+        display: block; font-size: 0.72rem; font-weight: 800; color: var(--azul);
+        text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px;
+    }
+    .campo label .req { color: var(--rojo); }
+
+    .campo input, .campo select {
+        width: 100%; padding: 12px 14px; border: 3px solid var(--gris); border-radius: 12px;
+        font-size: 1rem; font-weight: 700; color: var(--azul); background: white;
+        height: 50px; transition: all 0.2s ease; outline: none;
+    }
+    .campo input:focus, .campo select:focus {
+        border-color: var(--azul-fuerte); box-shadow: 0 0 0 3px rgba(26,95,158,0.15);
+    }
+    .campo input::placeholder { color: #bbb; font-weight: 500; }
+    .campo input.error { border-color: var(--rojo); background: #FDEDEC; }
+    .campo .error-msg { display: none; color: var(--rojo); font-size: 0.72rem; font-weight: 700; margin-top: 3px; }
+    .campo .error-msg.show { display: block; }
+    .oculto { display: none !important; }
+
+    .btn-formarse {
+        width: 100%; padding: 16px;
+        background: linear-gradient(135deg, var(--verde), var(--verde-claro));
+        color: white; border: none; border-radius: 14px;
+        font-size: 1.1rem; font-weight: 900; letter-spacing: 1px; cursor: pointer;
+        box-shadow: 0 6px 20px rgba(39,174,96,0.35); transition: all 0.2s ease; margin-top: 4px;
+    }
+    .btn-formarse:active:not(:disabled) { transform: scale(0.97); }
+    .btn-formarse:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .msg-global {
+        display: none; padding: 10px 14px; border-radius: 12px;
+        font-weight: 700; font-size: 0.85rem; margin-bottom: 10px; text-align: center;
+    }
+    .msg-global.show { display: block; animation: shake 0.4s ease; }
+    .msg-global.error { background: #FDEDEC; color: var(--rojo); border: 2px solid var(--rojo); }
+    .msg-global.success { background: #E8F8F0; color: var(--verde); border: 2px solid var(--verde); }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+    .lista-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 0 2px; }
+    .lista-header h2 { color: var(--azul); font-size: 1rem; letter-spacing: 0.5px; }
+    .contador { background: var(--azul); color: white; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 800; }
+
+    .tarjetas { display: flex; flex-direction: column; gap: 8px; }
+
+    .tarjeta {
+        background: var(--blanco); border-radius: 12px; padding: 10px 14px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.06); border-left: 7px solid var(--azul-fuerte);
+        display: flex; align-items: center; gap: 12px;
+        animation: cardIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes cardIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .tarjeta.estado-en_fila { border-left-color: var(--azul-fuerte); }
+    .tarjeta.estado-descargando { border-left-color: var(--amarillo); background: #FFFDF0; }
+    .tarjeta.trailer.estado-en_fila { border-left-color: var(--naranja); }
+
+    .tarjeta .pos { font-size: 1.3rem; font-weight: 900; color: var(--azul); min-width: 34px; text-align: center; }
+    .tarjeta .info { flex: 1; min-width: 0; }
+
+    .tarjeta .unidad-numero {
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: var(--azul);
+        letter-spacing: 1.5px;
+        line-height: 1.1;
+        text-transform: uppercase;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .tarjeta.estado-descargando .unidad-numero { color: var(--naranja); }
+
+    .tarjeta .unidad-meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 3px;
+        flex-wrap: wrap;
+    }
+    .tarjeta .unidad-meta .tipo {
+        display: inline-block;
+        background: var(--gris-claro);
+        padding: 1px 6px;
+        border-radius: 5px;
+        color: var(--azul);
+        font-weight: 800;
+        font-size: 0.6rem;
+        letter-spacing: 0.5px;
+    }
+    .tarjeta.trailer .unidad-meta .tipo { background: #FEF5E7; color: var(--naranja); }
+
+    .tarjeta .unidad-meta .operador-chico {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #888;
+        text-transform: uppercase;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tarjeta .badge-estado {
+        display: inline-block; padding: 2px 7px; border-radius: 5px;
+        font-size: 0.6rem; font-weight: 900; letter-spacing: 0.5px;
+        margin-top: 4px;
+    }
+    .tarjeta.estado-en_fila .badge-estado { background: #E8F0F9; color: var(--azul-fuerte); }
+    .tarjeta.estado-descargando .badge-estado { background: #FEF5E7; color: var(--naranja); }
+
+    .tarjeta .hora { font-size: 0.95rem; font-weight: 900; color: var(--verde); min-width: 48px; text-align: right; letter-spacing: 0.5px; }
+    .tarjeta.estado-descargando .hora { color: var(--naranja); }
+
+    .vacio { text-align: center; padding: 30px 16px; color: #999; font-weight: 600; font-size: 0.9rem; background: var(--blanco); border-radius: 12px; }
+
+    .btn-volver {
+        width: 100%; padding: 14px; background: var(--azul); color: white;
+        border: none; border-radius: 14px; font-size: 0.95rem; font-weight: 800;
+        margin-top: 12px; cursor: pointer; box-shadow: 0 4px 14px rgba(10,35,66,0.25);
+    }
+    .btn-volver:active { transform: scale(0.97); }
+
+    .loader-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+        display: none; justify-content: center; align-items: center; z-index: 9999;
+    }
+    .loader-overlay.active { display: flex; }
+    .loader-box { background: white; padding: 30px 40px; border-radius: 20px; text-align: center; border: 6px solid var(--amarillo); }
+    .spinner { width: 50px; height: 50px; border: 6px solid var(--gris); border-top-color: var(--azul-fuerte); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+    .loader-box p { font-weight: 800; color: var(--azul); font-size: 0.95rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .toast {
+        position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(120px);
+        padding: 12px 22px; border-radius: 12px; color: white; font-weight: 800; font-size: 0.9rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 10000; opacity: 0;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        max-width: 90%; text-align: center;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast.success { background: var(--verde); }
+    .toast.error { background: var(--rojo); }
+    .toast.info { background: var(--azul-fuerte); }
+</style>
+</head>
+<body>
+
+<!-- PANTALLA 1: LISTA (PRINCIPAL) -->
+<div class="pantalla activa" id="pantallaLista">
+
+    <div class="header-fila">
+        <div class="conexion" id="conexion">● CONECTANDO...</div>
+        <div class="logo-wrap">
+            <img src="logos/logo.png" alt="Logo" onerror="this.style.display='none'">
+        </div>
+        <button class="btn-icono" onclick="abrirFormulario()" title="Formarse">＋</button>
+    </div>
+
+    <h1>UNIDADES EN FILA</h1>
+
+    <div class="lista-header">
+        <h2>📋 Orden de llegada</h2>
+        <span class="contador" id="contador">0</span>
+    </div>
+
+    <div class="tarjetas" id="tarjetas">
+        <div class="vacio" id="vacio">No hay unidades en fila todavía</div>
+    </div>
+
+</div>
+
+<!-- PANTALLA 2: FORMULARIO -->
+<div class="pantalla" id="pantallaFormulario">
+    <div class="logo-wrap" style="text-align:center; margin-bottom:8px;">
+        <img src="logos/logo.png" alt="Logo" onerror="this.style.display='none'" style="max-width:110px; max-height:60px; object-fit:contain;">
+    </div>
+    <h1>REGISTRO DE UNIDAD</h1>
+
+    <div class="card-form">
+        <div class="msg-global" id="msgGlobal"></div>
+
+        <div class="campo">
+            <label>👤 Operador <span class="req">*</span></label>
+            <input type="text" id="operador" placeholder="NOMBRE DEL OPERADOR" maxlength="60" autocomplete="off" style="text-transform:uppercase;">
+            <div class="error-msg" id="errOperador">Escribe el nombre del operador</div>
+        </div>
+
+        <div class="campo">
+            <label>🚚 Tipo de unidad <span class="req">*</span></label>
+            <select id="tipoUnidad">
+                <option value="">— SELECCIONA —</option>
+                <option value="CAMIONETA">CAMIONETA</option>
+                <option value="RABON">RABÓN</option>
+                <option value="THORTON">THORTON</option>
+                <option value="TRAILER">TRAILER</option>
+            </select>
+            <div class="error-msg" id="errTipoUnidad">Selecciona el tipo de unidad</div>
+        </div>
+
+        <div class="campo" id="campoNumeroUnidad">
+            <label>🔢 Número de unidad <span class="req">*</span></label>
+            <input type="text" id="numeroUnidad" placeholder="EJ. TY-037, FFR" maxlength="10" autocomplete="off" style="text-transform:uppercase;">
+            <div class="error-msg" id="errNumeroUnidad">Escribe el número de unidad</div>
+        </div>
+
+        <div class="campo oculto" id="campoNumeroCaja">
+            <label>📦 Número de caja <span class="req">*</span></label>
+            <input type="text" id="numeroCaja" placeholder="AA-123" maxlength="6" autocomplete="off" style="text-transform:uppercase; letter-spacing:2px;">
+            <div class="error-msg" id="errNumeroCaja">Formato: 2 letras + guion + números (AA-123)</div>
+        </div>
+
+        <button class="btn-formarse" id="btnFormarse" onclick="enviarFormulario()">
+            ✅ FORMARSE
+        </button>
+
+        <button class="btn-volver" onclick="volverLista()">
+            ← VOLVER A LA FILA
+        </button>
+    </div>
+</div>
+
+<!-- LOADER -->
+<div class="loader-overlay" id="loader">
+    <div class="loader-box">
+        <div class="spinner"></div>
+        <p>ENVIANDO...</p>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// FIREBASE
+// ============================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyA3QaLxSeyzlxKtO5P3yd7KTqWb-Lv4ha0",
+    authDomain: "fila-charolas.firebaseapp.com",
+    projectId: "fila-charolas",
+    storageBucket: "fila-charolas.firebasestorage.app",
+    messagingSenderId: "547145547165",
+    appId: "1:547145547165:web:cfa5a232934c229d3c0374"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const COL_FILA = 'fila_unidades';
+
+// ============================================================
+// UTILIDADES
+// ============================================================
+function showToast(msg, tipo) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast ' + (tipo || 'info');
+    setTimeout(() => t.classList.add('show'), 30);
+    clearTimeout(t._to);
+    t._to = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function showLoader(texto) {
+    document.querySelector('#loader p').textContent = texto || 'ENVIANDO...';
+    document.getElementById('loader').classList.add('active');
+}
+function hideLoader() {
+    document.getElementById('loader').classList.remove('active');
+}
+
+function mostrarErrorGlobal(msg) {
+    const el = document.getElementById('msgGlobal');
+    el.textContent = msg;
+    el.className = 'msg-global error show';
+    setTimeout(() => el.classList.remove('show'), 5000);
+}
+
+function formatearHora24(fecha) {
+    if (!fecha) return '--:--';
+    const d = fecha instanceof Date ? fecha : (fecha.toDate ? fecha.toDate() : new Date(fecha));
+    return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+
+// ============================================================
+// NAVEGACIÓN
+// ============================================================
+function abrirFormulario() {
+    document.getElementById('pantallaLista').classList.remove('activa');
+    document.getElementById('pantallaFormulario').classList.add('activa');
+    setTimeout(() => document.getElementById('operador').focus(), 250);
+}
+
+function volverLista() {
+    document.getElementById('pantallaFormulario').classList.remove('activa');
+    document.getElementById('pantallaLista').classList.add('activa');
+}
+
+// ============================================================
+// SELECT TIPO UNIDAD
+// ============================================================
+document.getElementById('tipoUnidad').addEventListener('change', function() {
+    const esTrailer = this.value === 'TRAILER';
+    document.getElementById('campoNumeroUnidad').classList.toggle('oculto', esTrailer);
+    document.getElementById('campoNumeroCaja').classList.toggle('oculto', !esTrailer);
+    document.getElementById('errTipoUnidad').classList.remove('show');
+    this.classList.remove('error');
+    if (esTrailer) {
+        setTimeout(() => document.getElementById('numeroCaja').focus(), 100);
+    }
+});
+
+// ============================================================
+// FORMATO AUTOMÁTICO AA-123
+// ============================================================
+document.getElementById('numeroCaja').addEventListener('input', function() {
+    let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    let letras = v.substring(0, 2).replace(/[^A-Z]/g, '');
+    let resto = v.substring(2).replace(/[^0-9]/g, '');
+
+    if (letras.length === 2) {
+        v = letras + '-' + resto.substring(0, 3);
+    } else {
+        v = letras + resto.substring(0, 3);
+    }
+    this.value = v;
+});
+
+// ============================================================
+// UPPERCASE + LIMPIAR ERRORES
+// ============================================================
+document.getElementById('operador').addEventListener('input', function() {
+    this.value = this.value.toUpperCase();
+    document.getElementById('errOperador').classList.remove('show');
+    this.classList.remove('error');
+});
+document.getElementById('numeroUnidad').addEventListener('input', function() {
+    let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    let letras = v.substring(0, 2).replace(/[^A-Z]/g, '');
+    let resto = v.substring(2).replace(/[^0-9]/g, '');
+
+    if (letras.length === 2) {
+        this.value = letras + '-' + resto.substring(0, 3);
+    } else {
+        this.value = letras + resto.substring(0, 3);
+    }
+});
+
+// ============================================================
+// VALIDAR Y ENVIAR FORMULARIO
+// ============================================================
+async function enviarFormulario() {
+    const operadorEl = document.getElementById('operador');
+    const tipoEl = document.getElementById('tipoUnidad');
+    const numUniEl = document.getElementById('numeroUnidad');
+    const numCajaEl = document.getElementById('numeroCaja');
+
+    const operador = operadorEl.value.trim();
+    const tipoUnidad = tipoEl.value;
+    const esTrailer = tipoUnidad === 'TRAILER';
+
+    let valido = true;
+
+    if (!operador) {
+        operadorEl.classList.add('error');
+        document.getElementById('errOperador').classList.add('show');
+        valido = false;
+    }
+    if (!tipoUnidad) {
+        tipoEl.classList.add('error');
+        document.getElementById('errTipoUnidad').classList.add('show');
+        valido = false;
+    }
+    if (tipoUnidad && !esTrailer) {
+        if (!numUniEl.value.trim()) {
+            numUniEl.classList.add('error');
+            document.getElementById('errNumeroUnidad').classList.add('show');
+            valido = false;
+        }
+    }
+    if (esTrailer) {
+        const patron = /^[A-Z]{2}-\d{1,3}$/;
+        if (!patron.test(numCajaEl.value.trim())) {
+            numCajaEl.classList.add('error');
+            document.getElementById('errNumeroCaja').classList.add('show');
+            valido = false;
+        }
+    }
+
+    if (!valido) {
+        showToast('⚠️ Revisa los campos', 'error');
+        return;
+    }
+
+    const numeroFinal = esTrailer ? numCajaEl.value.trim() : numUniEl.value.trim();
+
+    document.getElementById('btnFormarse').disabled = true;
+    showLoader('VERIFICANDO UNIDAD...');
+
+    try {
+        // Validar que no exista ya una unidad activa con ese número
+        const existe = await db.collection(COL_FILA)
+            .where('numeroUnidad', '==', numeroFinal)
+            .where('estado', 'in', ['en_fila', 'descargando'])
+            .limit(1)
+            .get();
+
+        if (!existe.empty) {
+            hideLoader();
+            document.getElementById('btnFormarse').disabled = false;
+            showToast('⚠️ Esta unidad ya está en la fila', 'error');
+            numUniEl.classList.add('error');
+            numCajaEl.classList.add('error');
+            return;
+        }
+
+        showLoader('REGISTRANDO EN FILA...');
+
+        await db.collection(COL_FILA).add({
+            operador: operador,
+            tipoUnidad: tipoUnidad,
+            esTrailer: esTrailer,
+            numeroUnidad: numeroFinal,
+            horaArribo: firebase.firestore.FieldValue.serverTimestamp(),
+            estado: 'en_fila',
+            numeroEmpleado: null,
+            nombreEmpleado: null,
+            timestampToma: null,
+            timestampCaptura: null,
+            timestampFin: null
+        });
+
+        hideLoader();
+        showToast('✅ Registrado en fila', 'success');
+
+        operadorEl.value = '';
+        tipoEl.value = '';
+        numUniEl.value = '';
+        numCajaEl.value = '';
+        document.getElementById('campoNumeroUnidad').classList.remove('oculto');
+        document.getElementById('campoNumeroCaja').classList.add('oculto');
+
+        setTimeout(() => {
+            document.getElementById('btnFormarse').disabled = false;
+            volverLista();
+        }, 400);
+
+    } catch (err) {
+        hideLoader();
+        document.getElementById('btnFormarse').disabled = false;
+        console.error('Error al enviar:', err);
+        mostrarErrorGlobal('❌ Error al conectar con Firebase: ' + err.message);
+        showToast('❌ Error al registrar', 'error');
+    }
+}
+
+// ============================================================
+// LISTA EN TIEMPO REAL
+// ============================================================
+const tarjetasEl = document.getElementById('tarjetas');
+const contadorEl = document.getElementById('contador');
+
+db.collection(COL_FILA)
+  .where('estado', 'in', ['en_fila', 'descargando'])
+  .orderBy('horaArribo', 'asc')
+  .onSnapshot(snapshot => {
+      document.getElementById('conexion').className = 'conexion online';
+      document.getElementById('conexion').textContent = '● EN LÍNEA';
+
+      const docs = [];
+      snapshot.forEach(doc => docs.push({ id: doc.id, data: doc.data() }));
+
+      contadorEl.textContent = docs.length;
+
+      if (docs.length === 0) {
+          tarjetasEl.innerHTML = '<div class="vacio" id="vacio">No hay unidades en fila todavía</div>';
+          return;
+      }
+
+      tarjetasEl.innerHTML = '';
+      docs.forEach((item, idx) => {
+          const d = item.data;
+          const esTrailer = d.esTrailer || d.tipoUnidad === 'TRAILER';
+          const estado = d.estado || 'en_fila';
+          const esDescargando = estado === 'descargando';
+
+          const tarjeta = document.createElement('div');
+          tarjeta.className = 'tarjeta estado-' + estado + (esTrailer ? ' trailer' : '');
+
+          const badge = esDescargando
+              ? '<div class="badge-estado">🟡 DESCARGANDO</div>'
+              : '<div class="badge-estado">🟢 EN FILA</div>';
+
+          tarjeta.innerHTML = `
+              <div class="pos">#${idx + 1}</div>
+              <div class="info">
+                  <div class="unidad-numero">${escapeHtml(d.numeroUnidad || '—')}</div>
+                  <div class="unidad-meta">
+                      <span class="tipo">${escapeHtml(d.tipoUnidad || '—')}</span>
+                      <span class="operador-chico">${escapeHtml(d.operador || '')}</span>
+                  </div>
+                  ${badge}
+              </div>
+              <div class="hora">${formatearHora24(d.horaArribo)}</div>
+          `;
+          tarjetasEl.appendChild(tarjeta);
+      });
+  }, err => {
+      document.getElementById('conexion').className = 'conexion offline';
+      document.getElementById('conexion').textContent = '● SIN CONEXIÓN';
+      console.error('Error en snapshot:', err);
+      mostrarErrorGlobal('❌ Error de conexión con Firebase. Verifica tus reglas de Firestore.');
+  });
+
+// ============================================================
+// UTILIDADES HTML
+// ============================================================
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>

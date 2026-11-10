@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procesador de Liberaciones - Dashboard</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS para exportar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- JSZip para leer ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a237e;
+            --secondary-color: #0d47a1;
+            --accent-color: #42a5f5;
+            --success-color: #2e7d32;
+            --bg-gradient: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header-corporate {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 30px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(26, 35, 126, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-corporate h1 {
+            font-weight: 300;
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .header-corporate h1 i {
+            margin-right: 15px;
+            color: var(--accent-color);
+        }
+
+        .header-corporate .badge-corporate {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        @media (max-width: 992px) {
+            .two-columns {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .drop-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drop-zone {
+            background: #f8f9ff;
+            border: 2px dashed #c5cae9;
+            border-radius: 12px;
+            padding: 30px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--accent-color);
+            background: #f0f3ff;
+        }
+
+        .drop-zone.dragover {
+            border-color: var(--accent-color);
+            background: #e3e8ff;
+            transform: scale(1.01);
+        }
+
+        .drop-zone i {
+            font-size: 2.5rem;
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        .drop-zone h5 {
+            color: var(--primary-color);
+            font-weight: 400;
+            font-size: 1rem;
+            margin: 0;
+        }
+
+        .drop-zone p {
+            color: #6c757d;
+            font-size: 0.8rem;
+            margin: 5px 0 0 0;
+        }
+
+        .drop-zone .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .drop-zone .max-files {
+            background: rgba(26, 35, 126, 0.08);
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            color: var(--primary-color);
+            margin-top: 8px;
+        }
+
+        .file-list {
+            margin-top: 15px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .file-list .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 12px;
+            background: #f5f7ff;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .file-list .file-item .file-name {
+            flex: 1;
+            color: var(--primary-color);
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-list .file-item .file-type-badge {
+            font-size: 0.65rem;
+            padding: 2px 10px;
+            border-radius: 50px;
+            margin-right: 8px;
+            font-weight: 600;
+            background: #e8eaf6;
+            color: var(--primary-color);
+        }
+
+        .file-list .file-item .file-type-badge.excel {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+
+        .file-list .file-item .file-type-badge.zip {
+            background: #bbdefb;
+            color: #0d47a1;
+        }
+
+        .file-list .file-item .file-type-badge.rar {
+            background: #ffccbc;
+            color: #bf360c;
+        }
+
+        .file-list .file-item .file-remove {
+            color: #dc3545;
+            cursor: pointer;
+            padding: 0 5px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .file-list .file-item .file-remove:hover {
+            transform: scale(1.2);
+        }
+
+        .file-list-empty {
+            color: #6c757d;
+            font-size: 0.85rem;
+            text-align: center;
+            padding: 15px 0;
+            font-style: italic;
+        }
+
+        .btn-process {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .btn-process:hover:not(:disabled) {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(26, 35, 126, 0.3);
+        }
+
+        .btn-process:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-process i {
+            margin-right: 10px;
+        }
+
+        .summary-section {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .summary-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e8eaf6;
+        }
+
+        .summary-title i {
+            margin-right: 10px;
+            color: var(--accent-color);
+        }
+
+        .summary-empty {
+            color: #6c757d;
+            text-align: center;
+            padding: 30px 0;
+            font-style: italic;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .summary-empty i {
+            font-size: 2.5rem;
+            opacity: 0.3;
+            margin-bottom: 10px;
+        }
+
+        .summary-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f5f7ff;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            transition: all 0.2s;
+        }
+
+        .summary-item:hover {
+            background: #e3e8ff;
+            transform: translateX(5px);
+        }
+
+        .summary-item .freq-name {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .summary-item .freq-lines {
+            background: var(--primary-color);
+            color: white;
+            padding: 3px 14px;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .summary-total {
+            margin-top: 15px;
+            padding-top: 12px;
+            border-top: 2px solid #e8eaf6;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .table-container .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .table-container .table-header h5 {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .btn-export {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-export:hover {
+            background: #1b5e20;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        }
+
+        .btn-export:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ========== TABLA PROFESIONAL ========== */
+        .table-corporate {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .table-corporate thead {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+        }
+
+        .table-corporate thead th {
+            padding: 14px 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            border-bottom: 3px solid rgba(255,255,255,0.15);
+        }
+
+        .table-corporate thead th:not(:last-child) {
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .table-corporate tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-corporate tbody tr:nth-child(even) {
+            background: #f8f9ff;
+        }
+
+        .table-corporate tbody tr:nth-child(odd) {
+            background: #ffffff;
+        }
+
+        .table-corporate tbody tr:hover {
+            background: #e3e8ff;
+            transform: scale(1.002);
+            box-shadow: 0 2px 8px rgba(26, 35, 126, 0.08);
+        }
+
+        .table-corporate tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #eef0f7;
+            vertical-align: middle;
+            color: #2c3e50;
+            font-size: 0.88rem;
+        }
+
+        .table-corporate tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-corporate tbody td:not(:last-child) {
+            border-right: 1px solid #f0f2f8;
+        }
+
+        /* Badge de frecuencia más elegante */
+        .badge-frequency {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+            padding: 5px 14px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(26, 35, 126, 0.25);
+            transition: all 0.3s ease;
+        }
+
+        .badge-frequency:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 35, 126, 0.35);
+        }
+
+        /* Estilo para celdas de fecha */
+        .cell-date {
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: #0d47a1;
+            font-weight: 500;
+        }
+
+        /* Estilo para celdas de cantidad */
+        .cell-amount {
+            font-weight: 600;
+            color: var(--primary-color);
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 15px;
+        }
+
+        .sheet-info {
+            background: #e3f2fd;
+            border-left: 4px solid #1a237e;
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: #0d47a1;
+            display: none;
+        }
+
+        .sheet-info i {
+            margin-right: 8px;
+        }
+
+        .columns-found {
+            background: #e8f5e9;
+            border-left: 4px solid var(--success-color);
+            padding: 8px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 0.8rem;
+            color: #1b5e20;
+            display: none;
+        }
+
+        .columns-found i {
+            margin-right: 8px;
+        }
+
+        .processing-status {
+            background: white;
+            border-radius: 12px;
+            padding: 15px 20px;
+            margin-top: 15px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .processing-status.active {
+            display: block;
+        }
+
+        .processing-status .status-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .processing-status .status-title i {
+            margin-right: 8px;
+            color: var(--accent-color);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+        }
+
+        .status-item .status-icon {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-item .status-icon.pending {
+            color: #6c757d;
+        }
+
+        .status-item .status-icon.processing {
+            color: var(--accent-color);
+            animation: spin 1s linear infinite;
+        }
+
+        .status-item .status-icon.success {
+            color: var(--success-color);
+        }
+
+        .status-item .status-icon.error {
+            color: #dc3545;
+        }
+
+        .status-item .status-text {
+            flex: 1;
+            color: #333;
+        }
+
+        .status-item .status-text .filename {
+            font-weight: 500;
+        }
+
+        .status-item .status-text .detail {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-left: 8px;
+        }
+
+        .status-item .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 12px;
+            border-radius: 50px;
+            font-weight: 600;
+        }
+
+        .status-item .status-badge.pending {
+            background: #e8eaf6;
+            color: #6c757d;
+        }
+
+        .status-item .status-badge.processing {
+            background: #bbdefb;
+            color: #0d47a1;
+        }
+
+        .status-item .status-badge.success {
+            background: #c8e6c9;
+            color: #1b5e20;
+        }
+
+        .status-item .status-badge.error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+
+        .status-item .status-progress {
+            width: 80px;
+            height: 4px;
+            background: #e8eaf6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-left: 10px;
+        }
+
+        .status-item .status-progress .progress-bar {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .processing-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: white;
+        }
+
+        .processing-overlay.active {
+            display: flex;
+        }
+
+        .spinner-custom {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .header-corporate {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+                padding: 15px;
+            }
+            .header-corporate h1 {
+                font-size: 1.3rem;
+            }
+            .table-container .table-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+            .btn-export {
+                width: 100%;
+                text-align: center;
+            }
+            .drop-zone {
+                min-height: 140px;
+                padding: 20px;
+            }
+            .status-item {
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+            .status-item .status-progress {
+                width: 60px;
+            }
+            .table-corporate thead th,
+            .table-corporate tbody td {
+                padding: 8px 10px;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .table-corporate {
+                font-size: 0.7rem;
+            }
+            .table-corporate thead th,
+            .table-corporate tbody td {
+                padding: 5px 6px;
+            }
+            .summary-item {
+                padding: 8px 12px;
+            }
+            .summary-item .freq-name {
+                font-size: 0.95rem;
+            }
+            .badge-frequency {
+                font-size: 0.6rem;
+                padding: 3px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="processing-overlay" id="processingOverlay">
+    <div class="spinner-custom"></div>
+    <h4 style="font-weight:300;">Procesando archivos...</h4>
+    <p style="opacity:0.7;">Extrayendo y filtrando información de la hoja OTM</p>
+</div>
+
+<div class="main-container">
+
+    <div class="header-corporate">
+        <h1><i class="fas fa-boxes"></i> Liberaciones <span style="font-weight:200;">| Dashboard</span></h1>
+        <div class="badge-corporate">
+            <i class="fas fa-database me-2"></i> Procesador de Órdenes
+        </div>
+    </div>
+
+    <div class="two-columns">
+        
+        <div class="drop-section">
+            <div class="drop-zone" id="dropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h5>Arrastra tus archivos aquí</h5>
+                <p>ZIP, RAR o Excel <strong>(.xlsx, .xls)</strong></p>
+                <span class="max-files"><i class="fas fa-info-circle"></i> Máximo 10 archivos</span>
+                <input type="file" class="file-input" id="fileInput" accept=".zip,.rar,.xlsx,.xls" multiple>
+            </div>
+
+            <div class="file-list" id="fileList">
+                <div class="file-list-empty" id="emptyFileList">
+                    <i class="fas fa-folder-open" style="display:block; font-size:1.2rem; margin-bottom:5px; opacity:0.5;"></i>
+                    No hay archivos cargados
+                </div>
+            </div>
+
+            <button class="btn-process" id="processBtn" disabled>
+                <i class="fas fa-play"></i> Procesar Archivos
+            </button>
+
+            <div class="processing-status" id="processingStatus">
+                <div class="status-title">
+                    <i class="fas fa-tasks"></i> Progreso de procesamiento
+                </div>
+                <div id="statusList"></div>
+            </div>
+        </div>
+
+        <div class="summary-section">
+            <div class="summary-title">
+                <i class="fas fa-chart-bar"></i> Resumen de Frecuencias
+            </div>
+            <div class="summary-list" id="summaryList">
+                <div class="summary-empty" id="emptySummary">
+                    <i class="fas fa-inbox"></i>
+                    <p>Procesa archivos para ver el resumen</p>
+                </div>
+            </div>
+            <div class="summary-total" id="summaryTotal" style="display:none;">
+                <span>Total líneas</span>
+                <span id="totalLinesSummary">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <div class="table-header">
+            <h5><i class="fas fa-table me-2" style="color:var(--secondary-color);"></i> Reporte de Masa Fresca</h5>
+            <button class="btn-export" id="exportBtn" disabled>
+                <i class="fas fa-file-excel me-2"></i> Exportar a Excel
+            </button>
+        </div>
+
+        <div id="tableWrapper">
+            <div class="empty-state" id="emptyTable">
+                <i class="fas fa-inbox"></i>
+                <p>Procesa archivos para generar el reporte</p>
+            </div>
+            <div style="display:none;" id="tableContent">
+                <div class="sheet-info" id="sheetInfo">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Usando hoja: <strong id="sheetNameDisplay">OTM</strong></span>
+                </div>
+                <div class="columns-found" id="columnsFound">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Columnas encontradas: <strong id="columnsList"></strong></span>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="table-corporate" id="resultTable">
+                        <thead>
+                            <tr>
+                                <th>Frecuencia</th>
+                                <th>Cantidad</th>
+                                <th>Nombre Artículo</th>
+                                <th>Nombre ubicación destino</th>
+                                <th>Ruta</th>
+                                <th>CC</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3 text-muted" style="font-size:0.85rem;">
+                    <i class="fas fa-check-circle" style="color:var(--success-color);"></i> 
+                    Mostrando <span id="rowCount">0</span> filas que contienen "masa fresca"
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    (function() {
+        'use strict';
+
+        // Elementos DOM
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const processBtn = document.getElementById('processBtn');
+        const summaryList = document.getElementById('summaryList');
+        const summaryTotal = document.getElementById('summaryTotal');
+        const totalLinesSummary = document.getElementById('totalLinesSummary');
+        const tableBody = document.getElementById('tableBody');
+        const exportBtn = document.getElementById('exportBtn');
+        const rowCountSpan = document.getElementById('rowCount');
+        const emptyTable = document.getElementById('emptyTable');
+        const tableContent = document.getElementById('tableContent');
+        const overlay = document.getElementById('processingOverlay');
+        const sheetInfo = document.getElementById('sheetInfo');
+        const sheetNameDisplay = document.getElementById('sheetNameDisplay');
+        const columnsFound = document.getElementById('columnsFound');
+        const columnsList = document.getElementById('columnsList');
+        const processingStatus = document.getElementById('processingStatus');
+        const statusList = document.getElementById('statusList');
+
+        // Almacenamiento de datos
+        let selectedFiles = [];
+        let allRows = [];
+        let frequencyMap = new Map();
+        let usedSheetName = '';
+        let isProcessing = false;
+
+        // --- FUNCIONES AUXILIARES ---
+
+        function extractFrequency(filename) {
+            const patterns = [
+                /liberacion(?:es)?\s*(\d{2,4})\s*['´]?s?/i,
+                /ruta(?:s)?\s*(\d{2,4})\s*['´]?s?/i,
+                /(\d{2,4})\s*['´]?s?/i
+            ];
+            
+            for (const pattern of patterns) {
+                const match = filename.match(pattern);
+                if (match) {
+                    const num = match[1];
+                    const hasS = filename.substring(match.index).match(/^(\d{2,4})\s*['´]?s/i);
+                    if (hasS) {
+                        return num + 'S';
+                    }
+                    return num + 'S';
+                }
+            }
+            return null;
+        }
+
+        function extractCC(text) {
+            if (!text) return '';
+            const str = String(text).trim();
+            const match = str.match(/^\s*(\d{5})/);
+            return match ? match[1] : '';
+        }
+
+        function getFileType(filename) {
+            const ext = filename.toLowerCase();
+            if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) return 'excel';
+            if (ext.endsWith('.zip')) return 'zip';
+            if (ext.endsWith('.rar')) return 'rar';
+            return 'other';
+        }
+
+        function getFileExtension(filename) {
+            return filename.split('.').pop().toLowerCase();
+        }
+
+        function findOTMSheet(sheetNames) {
+            for (const name of sheetNames) {
+                const cleanName = name.trim();
+                if (cleanName.toUpperCase() === 'OTM') {
+                    return cleanName;
+                }
+            }
+            for (const name of sheetNames) {
+                const cleanName = name.trim().toUpperCase();
+                if (cleanName === 'OTM' || cleanName.match(/^\s*OTM\s*$/)) {
+                    return name.trim();
+                }
+            }
+            return null;
+        }
+
+        function findHeaderRowByKeyword(worksheet) {
+            const range = XLSX.utils.decode_range(worksheet['!ref']);
+            const maxRows = range.e.r + 1;
+            const maxCols = range.e.c + 1;
+            
+            const searchRows = Math.min(50, maxRows);
+            
+            for (let rowIdx = 0; rowIdx < searchRows; rowIdx++) {
+                for (let colIdx = 0; colIdx < maxCols; colIdx++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
+                    const cell = worksheet[cellAddress];
+                    if (cell && cell.v) {
+                        const value = String(cell.v).trim();
+                        if (value.toLowerCase() === 'nombre artículo' || 
+                            value.toLowerCase() === 'nombre articulo') {
+                            console.log(`✅ Encontrado "${value}" en fila ${rowIdx + 1}, columna ${colIdx + 1}`);
+                            return rowIdx;
+                        }
+                    }
+                }
+            }
+            
+            for (let rowIdx = 0; rowIdx < searchRows; rowIdx++) {
+                for (let colIdx = 0; colIdx < maxCols; colIdx++) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: rowIdx, c: colIdx });
+                    const cell = worksheet[cellAddress];
+                    if (cell && cell.v) {
+                        const value = String(cell.v).trim();
+                        const lowerValue = value.toLowerCase();
+                        if (lowerValue === 'artículo' || 
+                            lowerValue === 'articulo' ||
+                            lowerValue.startsWith('artículo') ||
+                            lowerValue.startsWith('articulo')) {
+                            console.log(`⚠️ Encontrado "${value}" en fila ${rowIdx + 1} (posible encabezado)`);
+                            return rowIdx;
+                        }
+                    }
+                }
+            }
+            
+            console.warn('⚠️ No se encontró "Nombre Artículo", usando fila 1 como encabezados');
+            return 0;
+        }
+
+        function findColumnsByNames(headers) {
+            const cleanHeaders = headers.map(h => String(h).trim());
+            
+            const columnDefinitions = {
+                paquetes: ['Recuento total de paquetes', 'Paquetes', 'Total paquetes', 'Cantidad paquetes'],
+                articulo: ['Nombre Artículo', 'Articulo', 'Artículo', 'Nombre articulo', 'Nombre del artículo'],
+                ubicacion: ['Nombre ubicación destino', 'Ubicación destino', 'Destino', 'Nombre destino', 'Ubicacion destino'],
+                ruta: ['Ruta', 'Ruta destino'],
+                fecha_recoleccion: ['Fecha de Primera Recolección', 'Primera Recolección', 'Fecha recolección', 'Fecha Recolección']
+            };
+            
+            const foundColumns = {};
+            const foundNames = [];
+            
+            for (const [key, possibleNames] of Object.entries(columnDefinitions)) {
+                let found = false;
+                for (const name of possibleNames) {
+                    const idx = cleanHeaders.findIndex(h => 
+                        h.toLowerCase() === name.toLowerCase()
+                    );
+                    if (idx !== -1) {
+                        foundColumns[key] = idx;
+                        foundNames.push(name);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    for (const name of possibleNames) {
+                        const idx = cleanHeaders.findIndex(h => 
+                            h.toLowerCase().includes(name.toLowerCase())
+                        );
+                        if (idx !== -1) {
+                            foundColumns[key] = idx;
+                            foundNames.push(name + ' (contiene)');
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    foundColumns[key] = -1;
+                }
+            }
+            
+            return { foundColumns, foundNames };
+        }
+
+        function updateStatus(fileName, status, message) {
+            const statusIcons = {
+                pending: '⏳',
+                processing: '🔄',
+                success: '✅',
+                error: '❌'
+            };
+            
+            const statusClasses = {
+                pending: 'pending',
+                processing: 'processing',
+                success: 'success',
+                error: 'error'
+            };
+            
+            const statusLabels = {
+                pending: 'Pendiente',
+                processing: 'Procesando...',
+                success: 'Completado',
+                error: 'Error'
+            };
+            
+            let item = statusList.querySelector(`[data-file="${CSS.escape(fileName)}"]`);
+            
+            if (!item) {
+                item = document.createElement('div');
+                item.className = 'status-item';
+                item.dataset.file = fileName;
+                statusList.appendChild(item);
+            }
+            
+            item.innerHTML = `
+                <span class="status-icon ${statusClasses[status]}">${statusIcons[status]}</span>
+                <span class="status-text">
+                    <span class="filename">${fileName}</span>
+                    <span class="detail">${message || statusLabels[status]}</span>
+                </span>
+                <span class="status-badge ${statusClasses[status]}">${statusLabels[status]}</span>
+                ${status === 'processing' ? `
+                    <div class="status-progress">
+                        <div class="progress-bar" style="width: 0%;"></div>
+                    </div>
+                ` : ''}
+            `;
+            
+            if (status === 'processing') {
+                const progressBar = item.querySelector('.progress-bar');
+                if (progressBar) {
+                    let progress = 0;
+                    const interval = setInterval(() => {
+                        progress += Math.random() * 15;
+                        if (progress > 90) {
+                            clearInterval(interval);
+                            progress = 90;
+                        }
+                        progressBar.style.width = progress + '%';
+                    }, 300);
+                    item.dataset.progressInterval = interval;
+                }
+            } else if (status === 'success' || status === 'error') {
+                const interval = item.dataset.progressInterval;
+                if (interval) {
+                    clearInterval(interval);
+                    delete item.dataset.progressInterval;
+                }
+                const progressBar = item.querySelector('.progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = status === 'success' ? '100%' : '0%';
+                    progressBar.style.background = status === 'success' ? 'var(--success-color)' : '#dc3545';
+                }
+            }
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            
+            if (selectedFiles.length === 0) {
+                fileList.innerHTML = `
+                    <div class="file-list-empty">
+                        <i class="fas fa-folder-open" style="display:block; font-size:1.2rem; margin-bottom:5px; opacity:0.5;"></i>
+                        No hay archivos cargados
+                    </div>
+                `;
+                processBtn.disabled = true;
+                return;
+            }
+
+            selectedFiles.forEach((file, index) => {
+                const fileType = getFileType(file.name);
+                const typeLabels = {
+                    'excel': '📊 Excel',
+                    'zip': '📦 ZIP',
+                    'rar': '🗜️ RAR',
+                    'other': '📄 Archivo'
+                };
+                
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-name" title="${file.name}">
+                        <span class="file-type-badge ${fileType}">${typeLabels[fileType] || 'Archivo'}</span>
+                        ${file.name}
+                    </span>
+                    <span class="file-remove" data-index="${index}" title="Quitar archivo">
+                        <i class="fas fa-times-circle"></i>
+                    </span>
+                `;
+                fileList.appendChild(item);
+            });
+
+            document.querySelectorAll('.file-remove').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const index = parseInt(this.dataset.index);
+                    selectedFiles.splice(index, 1);
+                    updateFileList();
+                    fileInput.value = '';
+                });
+            });
+
+            processBtn.disabled = false;
+        }
+
+        function updateSummary() {
+            summaryList.innerHTML = '';
+            
+            if (frequencyMap.size === 0) {
+                summaryList.innerHTML = `
+                    <div class="summary-empty">
+                        <i class="fas fa-inbox"></i>
+                        <p>Procesa archivos para ver el resumen</p>
+                    </div>
+                `;
+                summaryTotal.style.display = 'none';
+                return;
+            }
+
+            const sorted = Array.from(frequencyMap.entries())
+                .sort((a, b) => {
+                    const numA = parseInt(a[0]);
+                    const numB = parseInt(b[0]);
+                    return numA - numB;
+                });
+
+            let total = 0;
+            sorted.forEach(([freq, count]) => {
+                total += count;
+                const item = document.createElement('div');
+                item.className = 'summary-item';
+                item.innerHTML = `
+                    <span class="freq-name">${freq}</span>
+                    <span class="freq-lines">${count} ${count === 1 ? 'línea' : 'líneas'}</span>
+                `;
+                summaryList.appendChild(item);
+            });
+
+            summaryTotal.style.display = 'flex';
+            totalLinesSummary.textContent = total;
+        }
+
+        function renderTable() {
+            tableBody.innerHTML = '';
+            
+            if (allRows.length === 0) {
+                emptyTable.style.display = 'block';
+                tableContent.style.display = 'none';
+                exportBtn.disabled = true;
+                sheetInfo.style.display = 'none';
+                columnsFound.style.display = 'none';
+                return;
+            }
+
+            emptyTable.style.display = 'none';
+            tableContent.style.display = 'block';
+            exportBtn.disabled = false;
+            
+            if (usedSheetName) {
+                sheetNameDisplay.textContent = usedSheetName;
+                sheetInfo.style.display = 'block';
+            }
+
+            allRows.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="badge-frequency">${row.frecuencia || 'N/A'}</span></td>
+                    <td class="cell-amount">${row.paquetes || ''}</td>
+                    <td>${row.articulo || ''}</td>
+                    <td>${row.ubicacion_destino || ''}</td>
+                    <td>${row.ruta || ''}</td>
+                    <td>${row.cc || ''}</td>
+                    <td class="cell-date">${row.fecha_recoleccion || ''}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            rowCountSpan.textContent = allRows.length;
+        }
+
+        // --- FUNCIONES DE PROCESAMIENTO ---
+
+        function processExcelFile(data, filename) {
+            try {
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                const sheetName = findOTMSheet(workbook.SheetNames);
+                
+                if (!sheetName) {
+                    updateStatus(filename, 'error', 'No se encontró hoja "OTM"');
+                    return;
+                }
+
+                usedSheetName = sheetName;
+                const worksheet = workbook.Sheets[sheetName];
+                
+                const headerRow = findHeaderRowByKeyword(worksheet);
+                
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                    header: 1,
+                    defval: ''
+                });
+                
+                if (jsonData.length === 0) {
+                    updateStatus(filename, 'error', 'La hoja está vacía');
+                    return;
+                }
+                
+                const headers = jsonData[headerRow] || [];
+                
+                const firstHeader = String(headers[0] || '').trim().toLowerCase();
+                const isDataRow = firstHeader.includes('alsea') || 
+                                 firstHeader.includes('mexico') ||
+                                 firstHeader.includes('kg') ||
+                                 firstHeader.includes('lomo') ||
+                                 firstHeader.includes('cerdo');
+                
+                if (isDataRow && headerRow < 10) {
+                    console.warn(`⚠️ ${filename}: Fila ${headerRow + 1} parece ser datos, buscando encabezados reales...`);
+                    for (let rowIdx = 0; rowIdx < headerRow; rowIdx++) {
+                        const testHeaders = jsonData[rowIdx] || [];
+                        const testText = testHeaders.join(' ').toLowerCase();
+                        if (testText.includes('id') || testText.includes('nombre') || 
+                            testText.includes('paquetes') || testText.includes('ruta')) {
+                            console.log(`✅ ${filename}: Usando fila ${rowIdx + 1} como encabezados`);
+                            const newHeaders = jsonData[rowIdx] || [];
+                            const { foundColumns, foundNames } = findColumnsByNames(newHeaders);
+                            processDataWithHeaders(jsonData, rowIdx, newHeaders, foundColumns, filename);
+                            return;
+                        }
+                    }
+                }
+                
+                const { foundColumns, foundNames } = findColumnsByNames(headers);
+                processDataWithHeaders(jsonData, headerRow, headers, foundColumns, filename);
+
+            } catch (error) {
+                console.error(`❌ Error procesando ${filename}:`, error);
+                updateStatus(filename, 'error', error.message);
+            }
+        }
+
+        function processDataWithHeaders(jsonData, headerRow, headers, foundColumns, filename) {
+            const idxPaquetes = foundColumns.paquetes;
+            const idxArticulo = foundColumns.articulo;
+            const idxUbicacion = foundColumns.ubicacion;
+            const idxRuta = foundColumns.ruta;
+            const idxFechaRecoleccion = foundColumns.fecha_recoleccion;
+            
+            const foundNames = Object.keys(foundColumns).filter(k => foundColumns[k] !== -1)
+                .map(k => {
+                    const names = {
+                        paquetes: 'Paquetes',
+                        articulo: 'Nombre Artículo',
+                        ubicacion: 'Ubicación destino',
+                        ruta: 'Ruta',
+                        fecha_recoleccion: 'Fecha de Primera Recolección'
+                    };
+                    return names[k];
+                });
+            
+            if (foundNames.length > 0) {
+                console.log(`📋 ${filename}: Columnas encontradas: ${foundNames.join(', ')}`);
+                columnsList.textContent = foundNames.join(', ');
+                columnsFound.style.display = 'block';
+            }
+            
+            if (idxArticulo === -1) {
+                console.warn(`❌ ${filename}: No se encontró columna "Nombre Artículo"`);
+                console.warn(`   Encabezados: ${headers.slice(0, 8).join(', ')}...`);
+                updateStatus(filename, 'error', 'No se encontró "Nombre Artículo"');
+                return;
+            }
+            
+            const frecuencia = extractFrequency(filename);
+            if (!frecuencia) {
+                console.warn(`⚠️ ${filename}: No se pudo extraer frecuencia`);
+                updateStatus(filename, 'error', 'No se pudo extraer frecuencia');
+                return;
+            }
+            console.log(`📊 ${filename}: Frecuencia detectada: ${frecuencia}`);
+            
+            let countFrecuencia = 0;
+            
+            for (let i = headerRow + 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                if (!row || row.length === 0) continue;
+                
+                const articulo = String(row[idxArticulo] || '').trim();
+                
+                if (articulo.toLowerCase().startsWith('masa fresca')) {
+                    const ubicacionDestino = idxUbicacion !== -1 ? String(row[idxUbicacion] || '').trim() : '';
+                    const cc = extractCC(ubicacionDestino);
+                    const fechaRecoleccion = idxFechaRecoleccion !== -1 ? row[idxFechaRecoleccion] : '';
+                    
+                    const newRow = {
+                        frecuencia: frecuencia,
+                        paquetes: idxPaquetes !== -1 ? row[idxPaquetes] : '',
+                        articulo: articulo,
+                        ubicacion_destino: ubicacionDestino,
+                        ruta: idxRuta !== -1 ? row[idxRuta] : '',
+                        cc: cc,
+                        fecha_recoleccion: fechaRecoleccion
+                    };
+                    allRows.push(newRow);
+                    countFrecuencia++;
+                }
+            }
+            
+            if (countFrecuencia > 0) {
+                const currentCount = frequencyMap.get(frecuencia) || 0;
+                frequencyMap.set(frecuencia, currentCount + countFrecuencia);
+                console.log(`✅ ${filename}: ${countFrecuencia} líneas de "masa fresca" encontradas`);
+                updateStatus(filename, 'success', `${countFrecuencia} líneas encontradas`);
+            } else {
+                console.log(`ℹ️ ${filename}: No se encontraron líneas con "masa fresca"`);
+                updateStatus(filename, 'success', '0 líneas de "masa fresca"');
+            }
+        }
+
+        // Procesar archivo Excel suelto
+        async function processSingleExcelFile(file) {
+            try {
+                updateStatus(file.name, 'processing', 'Leyendo archivo...');
+                const data = await file.arrayBuffer();
+                updateStatus(file.name, 'processing', 'Procesando datos...');
+                processExcelFile(data, file.name);
+            } catch (error) {
+                console.error(`Error al leer Excel ${file.name}:`, error);
+                updateStatus(file.name, 'error', error.message);
+            }
+        }
+
+        // Procesar archivo ZIP
+        async function processZipFile(file) {
+            try {
+                updateStatus(file.name, 'processing', 'Extrayendo ZIP...');
+                const zip = await JSZip.loadAsync(file);
+                const excelFiles = Object.keys(zip.files).filter(name => 
+                    name.match(/\.(xlsx|xls)$/i) && !zip.files[name].dir
+                );
+
+                if (excelFiles.length === 0) {
+                    updateStatus(file.name, 'error', 'No se encontraron archivos Excel');
+                    return;
+                }
+
+                for (const excelName of excelFiles) {
+                    updateStatus(file.name, 'processing', `Procesando: ${excelName}`);
+                    const fileData = await zip.files[excelName].async('arraybuffer');
+                    processExcelFile(fileData, excelName);
+                }
+                updateStatus(file.name, 'success', 'ZIP procesado');
+            } catch (error) {
+                console.error(`Error al leer ZIP ${file.name}:`, error);
+                updateStatus(file.name, 'error', error.message);
+            }
+        }
+
+        // Procesar archivo RAR
+        async function processRarFile(file) {
+            updateStatus(file.name, 'error', 'Formato RAR no compatible');
+            console.warn('Los archivos RAR requieren una librería especial.');
+        }
+
+        // Procesar archivos al hacer clic en el botón
+        async function processFiles() {
+            if (selectedFiles.length === 0) {
+                alert('No hay archivos para procesar');
+                return;
+            }
+
+            if (selectedFiles.length > 10) {
+                alert('Máximo 10 archivos permitidos');
+                return;
+            }
+
+            if (isProcessing) {
+                alert('Ya hay un proceso en ejecución');
+                return;
+            }
+
+            isProcessing = true;
+            processBtn.disabled = true;
+            processingStatus.classList.add('active');
+            statusList.innerHTML = '';
+            
+            selectedFiles.forEach(file => {
+                updateStatus(file.name, 'pending', 'En cola...');
+            });
+
+            overlay.classList.add('active');
+
+            allRows = [];
+            frequencyMap = new Map();
+            usedSheetName = '';
+            columnsFound.style.display = 'none';
+
+            for (const file of selectedFiles) {
+                const ext = getFileExtension(file.name);
+                
+                try {
+                    if (ext === 'xlsx' || ext === 'xls') {
+                        await processSingleExcelFile(file);
+                    } else if (ext === 'zip') {
+                        await processZipFile(file);
+                    } else if (ext === 'rar') {
+                        await processRarFile(file);
+                    } else {
+                        updateStatus(file.name, 'error', 'Tipo no soportado');
+                    }
+                } catch (error) {
+                    updateStatus(file.name, 'error', error.message);
+                }
+            }
+
+            updateSummary();
+            renderTable();
+            
+            overlay.classList.remove('active');
+            isProcessing = false;
+            processBtn.disabled = false;
+        }
+
+        // --- EVENT LISTENERS ---
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            const files = Array.from(e.dataTransfer.files);
+            const validExtensions = ['zip', 'rar', 'xlsx', 'xls'];
+            const newFiles = files.filter(f => {
+                const ext = getFileExtension(f.name);
+                return validExtensions.includes(ext);
+            });
+
+            if (selectedFiles.length + newFiles.length > 10) {
+                alert('Máximo 10 archivos permitidos');
+                return;
+            }
+
+            selectedFiles = [...selectedFiles, ...newFiles];
+            updateFileList();
+            fileInput.value = '';
+        });
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            const validExtensions = ['zip', 'rar', 'xlsx', 'xls'];
+            const newFiles = files.filter(f => {
+                const ext = getFileExtension(f.name);
+                return validExtensions.includes(ext);
+            });
+
+            if (selectedFiles.length + newFiles.length > 10) {
+                alert('Máximo 10 archivos permitidos');
+                fileInput.value = '';
+                return;
+            }
+
+            selectedFiles = [...selectedFiles, ...newFiles];
+            updateFileList();
+            fileInput.value = '';
+        });
+
+        processBtn.addEventListener('click', processFiles);
+
+        // Exportar a Excel con encabezados actualizados
+        exportBtn.addEventListener('click', () => {
+            if (allRows.length === 0) {
+                alert('No hay datos para exportar');
+                return;
+            }
+
+            const exportData = allRows.map(row => ({
+                'Frecuencia': row.frecuencia || '',
+                'Cantidad': row.paquetes || '',
+                'Nombre Artículo': row.articulo || '',
+                'Nombre ubicación destino': row.ubicacion_destino || '',
+                'Ruta': row.ruta || '',
+                'CC': row.cc || '',
+                'Fecha': row.fecha_recoleccion || ''
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Masa Fresca');
+
+            const filename = `reporte_masa_fresca_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, filename);
+        });
+
+        // Inicialización
+        updateFileList();
+        updateSummary();
+        renderTable();
+    })();
+</script>
+
+</body>
+</html>

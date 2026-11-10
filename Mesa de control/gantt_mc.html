@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento Mesa de Control</title>
+  <!-- Librería para generar PowerPoint -->
+  <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.12.0/dist/pptxgen.bundle.js"></script>
+  <style>
+    :root {
+      --bg-dark: #0a1128;
+      --bg-gradient: linear-gradient(135deg, #0a1128 0%, #1a2a4a 100%);
+      --panel-bg: rgba(30, 41, 59, 0.85);
+      --border-glow: rgba(0, 180, 255, 0.3);
+      --accent: #00b4ff;
+      --accent-glow: rgba(0, 180, 255, 0.15);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --glass-blur: blur(12px);
+      --font-main: 'Segoe UI', 'Inter', system-ui, sans-serif;
+      
+      /* Colores de la tabla según imagen */
+      --table-header-bg: #1e3a5f;
+      --table-row-even: #f4f6f9;
+      --table-row-odd: #ffffff;
+      --table-text: #333333;
+      --table-border: #d1d9e6;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { width: 100%; overflow-x: hidden; }
+    body {
+      font-family: var(--font-main);
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 20px;
+      background-image: radial-gradient(circle at 20% 0%, rgba(0,180,255,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 100%, rgba(99,102,241,0.08) 0%, transparent 50%);
+    }
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 24px; background: var(--panel-bg);
+      backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-glow); border-radius: 16px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 30px rgba(0,180,255,0.06), inset 0 1px 0 rgba(255,255,255,0.05);
+      animation: slideDown 0.5s ease;
+    }
+    @keyframes slideDown { from { opacity:0; transform: translateY(-12px); } to { opacity:1; transform: translateY(0); } }
+    .header-left { display: flex; align-items: center; gap: 18px; min-width: 0; }
+    .header-left img { height: 36px; filter: drop-shadow(0 0 6px rgba(0,180,255,0.3)); flex-shrink: 0; }
+    .header-title { font-size: 1.3rem; font-weight: 700; letter-spacing: 0.5px; background: linear-gradient(135deg, #fff, #00b4ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .header-right { display: flex; gap: 10px; flex-shrink: 0; }
+    .btn { padding: 9px 18px; border-radius: 10px; border: 1px solid transparent; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-main); white-space: nowrap; }
+    .btn-primary { background: linear-gradient(135deg, #00b4ff, #0077ff); color: #0b0f19; box-shadow: 0 0 20px rgba(0,180,255,0.25); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(0,180,255,0.45); }
+    .btn-outline { background: transparent; border: 1px solid var(--border-glow); color: var(--accent); }
+    .btn-outline:hover { background: var(--accent-glow); }
+    .btn-sm { padding: 6px 12px; font-size: 0.76rem; }
+    .btn-ppt { background: linear-gradient(135deg, #d24726, #b83a1e); color: #fff; box-shadow: 0 0 15px rgba(210,71,38,0.3); }
+    .btn-ppt:hover { transform: translateY(-2px); box-shadow: 0 0 25px rgba(210,71,38,0.5); }
+
+    .table-container {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      animation: fadeIn 0.6s ease 0.1s both;
+      width: 100%;
+      border: 1px solid var(--table-border);
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    col.c-num   { width: 4%; }
+    col.c-desc  { width: 20%; }
+    col.c-area  { width: 15%; }
+    col.c-cont  { width: 35%; }
+    col.c-fs    { width: 8%; }
+    col.c-fe    { width: 8%; }
+    col.c-est   { width: 10%; }
+
+    thead th {
+      text-align: left;
+      padding: 14px 12px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #ffffff;
+      background: var(--table-header-bg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    thead th:last-child { border-right: none; }
+    tbody td {
+      padding: 12px;
+      font-size: 0.8rem;
+      border-bottom: 1px solid var(--table-border);
+      vertical-align: top;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.5;
+      color: var(--table-text);
+    }
+    tbody tr { transition: background 0.2s; cursor: pointer; }
+    tbody tr:nth-child(even) { background-color: var(--table-row-even); }
+    tbody tr:nth-child(odd) { background-color: var(--table-row-odd); }
+    tbody tr:hover { background-color: #e2e8f0; }
+
+    .cell-num  { color: #666; font-weight: 700; text-align: center; }
+    .cell-desc { font-weight: 600; color: #1a2a4a; }
+    .cell-area { font-weight: 500; color: #1e3a5f; }
+    .cell-cont { color: #444; font-size: 0.78rem; }
+    .cell-date { font-size: 0.78rem; white-space: nowrap; color: #555; text-align: center; }
+
+    .com-entry {
+      padding: 4px 0;
+      border-bottom: 1px dashed #e0e0e0;
+    }
+    .com-entry:last-child { border-bottom: none; }
+    .com-date {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #0056b3;
+      background: #e6f0ff;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+    .com-text { 
+      color: #333; 
+      white-space: pre-wrap;      /* 👈 respeta los Enter y espacios */
+      word-break: break-word;
+    }
+    .com-empty { color: #999; font-style: italic; }
+
+    .com-more {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #0056b3;
+      background: #e6f0ff;
+      border: 1px solid #b3d4ff;
+      border-radius: 6px;
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .com-more:hover { background: #cce0ff; box-shadow: 0 0 10px rgba(0,86,179,0.2); }
+
+    /* Badges de Importancia */
+    .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; display: inline-block; white-space: nowrap; text-align: center; }
+    .badge-baja { background: #d1fae5; color: #065f46; }
+    .badge-media { background: #fef3c7; color: #92400e; }
+    .badge-alta { background: #fee2e2; color: #991b1b; }
+
+    /* Modal */
+    dialog { border: 1px solid var(--border-glow); border-radius: 16px; background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px); color: var(--text-main); padding: 0; width: 90%; max-width: 640px; box-shadow: 0 25px 60px rgba(0,0,0,0.7), 0 0 40px rgba(0,180,255,0.1); margin: auto; }
+    dialog::backdrop { background: rgba(0,0,0,0.7); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h3 { font-size: 1.1rem; color: var(--accent); }
+    .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; max-height: 65vh; overflow-y: auto; }
+    .modal-footer { padding: 16px 24px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; justify-content: flex-end; gap: 12px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+    .form-group input, .form-group select, .form-group textarea { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px 12px; color: var(--text-main); font-family: var(--font-main); font-size: 0.9rem; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+    .form-group textarea { resize: vertical; min-height: 80px; white-space: pre-wrap; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .history-box { 
+      background: rgba(0,0,0,0.25); 
+      border: 1px solid rgba(255,255,255,0.06); 
+      border-radius: 10px; 
+      padding: 14px; 
+      font-size: 0.82rem; 
+      line-height: 1.6; 
+      color: var(--text-muted); 
+      max-height: 200px; 
+      overflow-y: auto; 
+      font-family: 'Consolas', 'Monaco', monospace;
+      white-space: pre-wrap;      /* 👈 respeta los Enter en el historial */
+      word-break: break-word;
+    }
+    .history-box .hb-date { color: var(--accent); font-weight: 700; }
+    .toast { position: fixed; bottom: 30px; right: 30px; background: rgba(16,185,129,0.9); color: #fff; padding: 14px 24px; border-radius: 12px; font-weight: 600; font-size: 0.9rem; box-shadow: 0 0 30px rgba(16,185,129,0.4); transform: translateY(80px); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9999; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { background: rgba(239,68,68,0.9); box-shadow: 0 0 30px rgba(239,68,68,0.4); }
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem; }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid rgba(0,180,255,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 10px; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 900px) {
+      .table-container { overflow-x: auto; }
+      table { min-width: 1100px; }
+      .header { flex-direction: column; gap: 14px; padding: 14px 16px; }
+      body { padding: 12px; }
+    }
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .header-title { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <img src="alsea.png" alt="Alsea" onerror="this.style.display='none'">
+    <img src="mc.png" alt="MC" onerror="this.style.display='none'">
+    <span class="header-title">Seguimiento Mesa de Control</span>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-outline btn-sm" onclick="loadData()">⟳ Actualizar</button>
+    <button class="btn btn-ppt btn-sm" onclick="generatePPT()">📊 Generar PPT</button>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Nueva Actividad</button>
+  </div>
+</div>
+
+<div class="table-container">
+  <table>
+    <colgroup>
+      <col class="c-num">
+      <col class="c-desc">
+      <col class="c-area">
+      <col class="c-cont">
+      <col class="c-fs">
+      <col class="c-fe">
+      <col class="c-est">
+    </colgroup>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Descripción</th>
+        <th>Área / Contacto</th>
+        <th>Comentario / Avance</th>
+        <th>F. Solicitud</th>
+        <th>F. Est. Término</th>
+        <th>Importancia</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      <tr><td colspan="7" class="loading"><span class="spinner"></span> Cargando datos...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<dialog id="taskModal">
+  <div class="modal-header">
+    <h3 id="modalTitle">Nueva Actividad</h3>
+    <button class="btn btn-sm" style="background:none;color:var(--text-muted);font-size:1.4rem;" onclick="document.getElementById('taskModal').close()">×</button>
+  </div>
+  <div class="modal-body" id="modalBody"></div>
+  <div class="modal-footer">
+    <button class="btn btn-outline" onclick="document.getElementById('taskModal').close()">Cancelar</button>
+    <button class="btn btn-primary" id="saveBtn" onclick="saveTask()">Guardar</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby6hVbB-rixo-mkuRFaOp_soxEdjb7EBdOErd5NEcvS7lhmqIOT3OpKcuqPcoV1Ek4gqQ/exec';
+  const MAX_VISIBLES = 2;
+
+  let allTasks = [];
+  let editingRowIndex = null;
+
+  async function callBackend(payload) {
+    const res = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      redirect: 'follow'
+    });
+    const text = await res.text();
+    let json;
+    try { json = JSON.parse(text); }
+    catch (e) { throw new Error('Respuesta no JSON: ' + text.substring(0, 200)); }
+    if (!json.ok) throw new Error(json.error || 'Error desconocido');
+    return json.data;
+  }
+
+  window.addEventListener('load', function() { loadData(); });
+
+  async function loadData() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '<tr><td colspan="7" class="loading"><span class="spinner"></span> Cargando datos...</td></tr>';
+    try {
+      allTasks = await callBackend({ action: 'getTasks' }) || [];
+      renderTable();
+    } catch (err) {
+      showToast('Error al cargar: ' + err.message, true);
+      tbody.innerHTML = '<tr><td colspan="7" class="loading" style="color:var(--danger)">Error de conexión</td></tr>';
+    }
+  }
+
+  function parseHistorial(historial) {
+    if (!historial) return [];
+    const lines = historial.split('\n');
+    const entries = [];
+    let current = null;
+    lines.forEach(function(line) {
+      const m = line.match(/^\[([^\]]+)\]\s*(.*)$/);
+      if (m) {
+        if (current) entries.push(current);
+        current = { fecha: m[1], texto: m[2] };
+      } else if (current) {
+        current.texto += '\n' + line;
+      } else if (line.trim() !== '') {
+        current = { fecha: '', texto: line };
+      }
+    });
+    if (current) entries.push(current);
+    return entries;
+  }
+
+  function renderHistorialCeldaRow(rowIndex, historial) {
+    const entries = parseHistorial(historial);
+    if (!entries.length) return '<span class="com-empty">Sin comentarios</span>';
+
+    const total = entries.length;
+    const visibles = entries.slice(-MAX_VISIBLES);
+    const ocultas = total - visibles.length;
+
+    let html = visibles.map(function(e) {
+      const fecha = e.fecha ? '<span class="com-date">' + escapeHtml(e.fecha) + '</span>' : '';
+      return '<div class="com-entry">' + fecha + '<span class="com-text">' + escapeHtml(e.texto) + '</span></div>';
+    }).join('');
+
+    if (ocultas > 0) {
+      html += '<span class="com-more" onclick="event.stopPropagation(); openEditModal(' + rowIndex + ')">+ ' + ocultas + ' más</span>';
+    }
+    return html;
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!allTasks.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="loading" style="color:var(--text-muted)">No hay actividades registradas. Presiona "Nueva Actividad".</td></tr>';
+      return;
+    }
+
+    let html = '';
+    allTasks.forEach(function(t, idx) {
+      let badgeClass = 'badge-baja';
+      let badgeText = t.estado || 'Baja';
+      if (badgeText === 'Alta Prioritaria' || badgeText === 'Alta') { badgeClass = 'badge-alta'; badgeText = 'Alta Prioritaria'; }
+      else if (badgeText === 'Media') { badgeClass = 'badge-media'; badgeText = 'Media'; }
+      else { badgeClass = 'badge-baja'; badgeText = 'Baja'; }
+
+      const historialFuente = t.historial || (t.comentarios ? '[Sin fecha] ' + t.comentarios : '');
+
+      // Combinar Área y Contacto en una celda
+      const areaContacto = escapeHtml(t.area) + (t.contacto ? '<br><span style="font-size:0.75rem; color:#666;">' + escapeHtml(t.contacto) + '</span>' : '');
+
+      html += '<tr onclick="openEditModal(' + t.rowIndex + ')">' +
+        '<td class="cell-num">' + (t.numeroFila || (idx+1)) + '</td>' +
+        '<td class="cell-desc">' + escapeHtml(t.descripcion) + '</td>' +
+        '<td class="cell-area">' + areaContacto + '</td>' +
+        '<td class="cell-cont">' + renderHistorialCeldaRow(t.rowIndex, historialFuente) + '</td>' +
+        '<td class="cell-date">' + (t.fechaSolicitud || '—') + '</td>' +
+        '<td class="cell-date">' + (t.fechaEstimada || '—') + '</td>' +
+        '<td style="text-align:center;"><span class="badge ' + badgeClass + '">' + badgeText + '</span></td>' +
+      '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function openAddModal() {
+    editingRowIndex = null;
+    document.getElementById('modalTitle').textContent = 'Nueva Actividad';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('modalBody').innerHTML =
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Descripción *</label><input id="f-desc" type="text" placeholder="Ej: Revisión de conciliación"></div>' +
+        '<div class="form-group"><label>Área *</label><input id="f-area" type="text" placeholder="Ej: Contabilidad"></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Contacto</label><input id="f-contacto" type="text" placeholder="Nombre / correo"></div>' +
+        '<div class="form-group"><label>Responsable (opcional)</label><input id="f-resp" type="text" placeholder="Nombre"></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Fecha Solicitud</label><input id="f-fsolicitud" type="date" value="' + today + '"></div>' +
+        '<div class="form-group"><label>Fecha Est. Término</label><input id="f-festimada" type="date" value="' + today + '"></div>' +
+      '</div>' +
+      '<div class="form-group"><label>Importancia</label>' +
+        '<select id="f-estado">' +
+          '<option value="Baja">Baja</option>' +
+          '<option value="Media">Media</option>' +
+          '<option value="Alta Prioritaria">Alta Prioritaria</option>' +
+        '</select>' +
+      '</div>' +
+      '<div class="form-group"><label>Comentario inicial (opcional)</label><textarea id="f-comentario" rows="3" placeholder="Observaciones iniciales..."></textarea></div>';
+    document.getElementById('taskModal').showModal();
+  }
+
+  function openEditModal(rowIndex) {
+    editingRowIndex = rowIndex;
+    const t = allTasks.find(function(x) { return x.rowIndex === rowIndex; });
+    if (!t) return;
+    document.getElementById('modalTitle').textContent = 'Actualizar: ' + t.descripcion;
+
+    let historyHtml;
+    if (t.historial) {
+      const entries = parseHistorial(t.historial);
+      const inner = entries.map(function(e) {
+        const fecha = e.fecha ? '<span class="hb-date">[' + escapeHtml(e.fecha) + ']</span> ' : '';
+        return '<div style="margin-bottom:6px;">' + fecha + escapeHtml(e.texto) + '</div>';
+      }).join('');
+      historyHtml = '<div class="form-group"><label>Historial de Comentarios (solo lectura)</label><div class="history-box">' + inner + '</div></div>';
+    } else {
+      historyHtml = '<div class="form-group"><label>Historial</label><div class="history-box" style="color:var(--text-muted);">Sin comentarios previos.</div></div>';
+    }
+
+    // Determinar valor seleccionado de importancia
+    let selectedEstado = t.estado || 'Baja';
+    if (selectedEstado === 'Pendiente' || selectedEstado === 'En Progreso' || selectedEstado === 'Completado') {
+      // Mapeo de estados antiguos a nuevos para compatibilidad
+      if (selectedEstado === 'Completado') selectedEstado = 'Baja';
+      else if (selectedEstado === 'En Progreso') selectedEstado = 'Media';
+      else selectedEstado = 'Alta Prioritaria';
+    }
+
+    document.getElementById('modalBody').innerHTML =
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Descripción</label><input id="f-desc" type="text" value="' + escapeHtml(t.descripcion) + '"></div>' +
+        '<div class="form-group"><label>Área</label><input id="f-area" type="text" value="' + escapeHtml(t.area) + '"></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Contacto</label><input id="f-contacto" type="text" value="' + escapeHtml(t.contacto) + '"></div>' +
+        '<div class="form-group"><label>Responsable (opcional)</label><input id="f-resp" type="text" value="' + escapeHtml(t.responsable) + '"></div>' +
+      '</div>' +
+      '<div class="form-row">' +
+        '<div class="form-group"><label>Fecha Solicitud</label><input id="f-fsolicitud" type="date" value="' + t.fechaSolicitud + '"></div>' +
+        '<div class="form-group"><label>Fecha Est. Término</label><input id="f-festimada" type="date" value="' + t.fechaEstimada + '"></div>' +
+      '</div>' +
+      '<div class="form-group"><label>Importancia</label>' +
+        '<select id="f-estado">' +
+          '<option value="Baja" ' + (selectedEstado==='Baja'?'selected':'') + '>Baja</option>' +
+          '<option value="Media" ' + (selectedEstado==='Media'?'selected':'') + '>Media</option>' +
+          '<option value="Alta Prioritaria" ' + (selectedEstado==='Alta Prioritaria'?'selected':'') + '>Alta Prioritaria</option>' +
+        '</select>' +
+      '</div>' +
+      historyHtml +
+      '<div class="form-group"><label>Nuevo Comentario / Avance (se agregará al historial)</label><textarea id="f-comentario" rows="3" placeholder="Escribe el avance de hoy..."></textarea></div>';
+    document.getElementById('taskModal').showModal();
+  }
+
+  async function saveTask() {
+    const desc = document.getElementById('f-desc').value.trim();
+    const area = document.getElementById('f-area').value.trim();
+    if (!desc || !area) {
+      showToast('Descripción y Área son obligatorios', true);
+      return;
+    }
+    const taskData = {
+      descripcion: desc, area: area, responsable: document.getElementById('f-resp').value.trim(),
+      contacto: document.getElementById('f-contacto').value.trim(),
+      fechaSolicitud: document.getElementById('f-fsolicitud').value,
+      fechaEstimada: document.getElementById('f-festimada').value,
+      estado: document.getElementById('f-estado').value,
+      newComment: document.getElementById('f-comentario').value.trim()
+    };
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      let tasks;
+      if (editingRowIndex === null) {
+        tasks = await callBackend({ action: 'addTask', task: taskData });
+        showToast('Actividad creada correctamente');
+      } else {
+        tasks = await callBackend({ action: 'updateTask', rowIndex: editingRowIndex, task: taskData });
+        showToast('Actividad actualizada');
+      }
+      allTasks = tasks || [];
+      renderTable();
+      document.getElementById('taskModal').close();
+    } catch (err) {
+      showToast('Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Guardar';
+    }
+  }
+
+  function showToast(msg, isError) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast show' + (isError ? ' error' : '');
+    setTimeout(function() { t.className = 'toast'; }, 3200);
+  }
+
+  // ==========================================
+  // FUNCIÓN PARA GENERAR POWERPOINT (COPIA DE LA TABLA)
+  // ==========================================
+  function generatePPT() {
+    if (!allTasks.length) {
+      showToast('No hay datos para generar la presentación', true);
+      return;
+    }
+
+    try {
+      let pptx = new PptxGenJS();
+      pptx.layout = 'LAYOUT_16x9'; // Formato panorámico
+
+      // --- Diapositiva de Título ---
+      let slideTitle = pptx.addSlide();
+      slideTitle.background = { color: '0A1128' };
+      slideTitle.addText('Mesa de Control: Seguimiento de avances y pendientes', {
+        x: 0.5, y: 1.8, w: '90%', h: 1.5,
+        fontSize: 34, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Segoe UI'
+      });
+      slideTitle.addText('Generado el ' + new Date().toLocaleDateString('es-ES'), {
+        x: 0.5, y: 3.6, w: '90%', h: 0.5,
+        fontSize: 16, color: '94A3B8', align: 'center', fontFace: 'Segoe UI'
+      });
+
+      // --- Configuración de la tabla ---
+      // Definimos las columnas con su ancho (en pulgadas) para 16:9 (13.33" x 7.5")
+      // Margen izquierdo 0.3", ancho total 12.73"
+      const colWidths = [0.5, 2.0, 1.8, 4.5, 1.1, 1.1, 1.2]; // Suma = 12.2" (dejamos margen)
+      const headerLabels = ['#', 'DESCRIPCIÓN', 'ÁREA / CONTACTO', 'COMENTARIO / AVANCE', 'F. SOLICITUD', 'F. EST. TÉRMINO', 'IMPORTANCIA'];
+      
+      // Colores
+      const headerBg = '1E3A5F';
+      const headerColor = 'FFFFFF';
+      const rowEvenBg = 'F4F6F9';
+      const rowOddBg = 'FFFFFF';
+      const textColor = '333333';
+      
+      // Función auxiliar para obtener color de importancia (fondo y texto)
+      function getImportanciaColors(estado) {
+        const e = (estado || '').toUpperCase();
+        if (e === 'ALTA PRIORITARIA' || e === 'ALTA') {
+          return { bg: 'FEE2E2', color: '991B1B' };
+        } else if (e === 'MEDIA') {
+          return { bg: 'FEF3C7', color: '92400E' };
+        } else {
+          return { bg: 'D1FAE5', color: '065F46' };
+        }
+      }
+
+      // Función auxiliar para obtener el texto completo de los comentarios
+      function getComentariosCompletos(t) {
+        let historial = t.historial || '';
+        if (!historial && t.comentarios) {
+          historial = '[Sin fecha] ' + t.comentarios;
+        }
+        const entries = parseHistorial(historial);
+        if (!entries.length) return 'Sin comentarios';
+        return entries.map(function(e) {
+          return (e.fecha ? '[' + e.fecha + '] ' : '') + e.texto;
+        }).join('\n');
+      }
+
+      // --- Dividir las tareas en grupos que quepan en cada diapositiva ---
+      // Estimamos dinámicamente cuántas filas caben según el alto del texto de comentarios.
+      // Para simplificar y garantizar legibilidad, usamos un máximo de filas por slide
+      // calculado por la cantidad de líneas de comentarios.
+      const maxAltoComentariosPorSlide = 4.6; // pulgadas disponibles para las filas (aprox)
+      const altoFilaBase = 0.55; // alto mínimo de una fila
+      const altoPorLineaComentario = 0.22; // alto aproximado por línea de texto
+
+      let grupos = [];
+      let grupoActual = [];
+      let altoAcumulado = 0;
+
+      allTasks.forEach(function(t) {
+        const comentarios = getComentariosCompletos(t);
+        const lineas = comentarios.split('\n').length;
+        const altoFila = Math.max(altoFilaBase, 0.35 + lineas * altoPorLineaComentario);
+        
+        if (grupoActual.length > 0 && (altoAcumulado + altoFila) > maxAltoComentariosPorSlide) {
+          grupos.push(grupoActual);
+          grupoActual = [];
+          altoAcumulado = 0;
+        }
+        grupoActual.push({ task: t, comentarios: comentarios, altoFila: altoFila });
+        altoAcumulado += altoFila;
+      });
+      if (grupoActual.length > 0) grupos.push(grupoActual);
+
+      // --- Generar una diapositiva por cada grupo ---
+      grupos.forEach(function(grupo, gIdx) {
+        let slide = pptx.addSlide();
+        slide.background = { color: 'FFFFFF' };
+
+        // Barra superior azul oscuro con el título de la tabla
+        slide.addShape(pptx.ShapeType.rect, {
+          x: 0, y: 0, w: '100%', h: 0.75,
+          fill: { color: '0A1128' }
+        });
+        slide.addText('Mesa de Control: Seguimiento de avances y pendientes', {
+          x: 0.4, y: 0.1, w: '92%', h: 0.55,
+          fontSize: 20, bold: true, color: 'FFFFFF', fontFace: 'Segoe UI',
+          valign: 'middle'
+        });
+
+        // Construir las filas de la tabla
+        let filas = [];
+
+        // Fila de encabezado
+        let headerRow = headerLabels.map(function(label) {
+          return {
+            text: label,
+            options: {
+              fill: { color: headerBg },
+              color: headerColor,
+              bold: true,
+              fontSize: 9,
+              fontFace: 'Segoe UI',
+              align: 'left',
+              valign: 'middle'
+            }
+          };
+        });
+        filas.push(headerRow);
+
+        // Filas de datos
+        grupo.forEach(function(item, rIdx) {
+          const t = item.task;
+          const bgColor = (rIdx % 2 === 0) ? rowEvenBg : rowOddBg;
+          const areaContacto = (t.area || '') + (t.contacto ? '\n' + t.contacto : '');
+          
+          // Obtener colores de importancia
+          const impColors = getImportanciaColors(t.estado);
+          let impText = t.estado || 'Baja';
+          if (impText === 'Alta') impText = 'Alta Prioritaria';
+          
+          // Fila de datos
+          let dataRow = [
+            { text: String(t.numeroFila || ''), options: { fill: { color: bgColor }, color: textColor, fontSize: 9, fontFace: 'Segoe UI', align: 'center', valign: 'top' } },
+            { text: t.descripcion || '', options: { fill: { color: bgColor }, color: textColor, fontSize: 9, fontFace: 'Segoe UI', bold: true, align: 'left', valign: 'top' } },
+            { text: areaContacto, options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'left', valign: 'top' } },
+            { text: item.comentarios, options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'left', valign: 'top' } },
+            { text: t.fechaSolicitud || '—', options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'center', valign: 'top' } },
+            { text: t.fechaEstimada || '—', options: { fill: { color: bgColor }, color: textColor, fontSize: 8, fontFace: 'Segoe UI', align: 'center', valign: 'top' } },
+            { text: impText, options: { fill: { color: impColors.bg }, color: impColors.color, fontSize: 8, fontFace: 'Segoe UI', bold: true, align: 'center', valign: 'middle' } }
+          ];
+          filas.push(dataRow);
+        });
+
+        // Calcular alturas de fila para la tabla
+        // La primera fila (encabezado) tiene alto fijo, las demás según su contenido
+        let rowHeights = [0.35]; // encabezado
+        grupo.forEach(function(item) {
+          rowHeights.push(item.altoFila);
+        });
+
+        // Agregar la tabla al slide
+        slide.addTable(filas, {
+          x: 0.3,
+          y: 1.0,
+          w: 12.73,
+          colW: colWidths,
+          rowH: rowHeights,
+          border: { type: 'solid', color: 'D1D9E6', pt: 0.5 },
+          fontFace: 'Segoe UI',
+          fontSize: 9,
+          valign: 'top',
+          margin: 4
+        });
+
+        // Numeración de página (opcional)
+        slide.addText('Página ' + (gIdx + 1) + ' de ' + grupos.length, {
+          x: 11.5, y: 7.1, w: 1.5, h: 0.3,
+          fontSize: 8, color: '999999', align: 'right', fontFace: 'Segoe UI'
+        });
+      });
+
+      // Guardar archivo
+      pptx.writeFile({ fileName: 'Mesa_de_Control_' + new Date().toISOString().split('T')[0] + '.pptx' });
+      showToast('Presentación generada correctamente');
+    } catch (err) {
+      showToast('Error al generar PPT: ' + err.message, true);
+      console.error(err);
+    }
+  }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Turnos Rotativos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', system-ui; background: #eef2f5; padding: 20px; }
+        .container { max-width: 1300px; margin: 0 auto; }
+        .card { background: white; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 10px; }
+        h1 { font-size: 1.3rem; color: #1e4663; }
+        .controls { display: flex; gap: 15px; align-items: center; background: #f8fafc; padding: 5px 15px; border-radius: 40px; }
+        .controls input, .controls select { padding: 5px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-family: inherit; }
+        .controls input { width: 70px; text-align: center; }
+        
+        /* QUITAR FLECHAS DEL INPUT NUMBER */
+        .controls input[type=number]::-webkit-inner-spin-button, 
+        .controls input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        .controls input[type=number] { -moz-appearance: textfield; }
+
+        button { background: #2c7da0; color: white; border: none; padding: 8px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: background 0.2s; }
+        button:hover { background: #23627d; }
+        
+        /* ESTILO PARA BOTONES DE FLECHA DE SEMANA */
+        .btn-flecha {
+            background: #e2e8f0; color: #1e4663; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 1rem;
+        }
+        .btn-flecha:hover { background: #cbd5e1; color: #0f2c42; }
+
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 700px; }
+        th { background: #f1f5f9; padding: 12px 6px; font-weight: 600; color: #1e4663; border-bottom: 1px solid #e2e8f0; }
+        td { padding: 8px 5px; text-align: center; border-bottom: 1px solid #f0f3f8; }
+        tbody tr:hover td { background-color: #dbeafe !important; }
+        .nombre-col { font-weight: 500; text-align: left; padding-left: 8px; padding-right: 8px; white-space: nowrap; background-color: white; }
+        .colaborador-col { font-weight: 500; text-align: left; padding-left: 8px; padding-right: 8px; white-space: nowrap; background-color: white; }
+        
+        /* ===== COLORES POR TEXTO EXACTO ===== */
+        .horario-6-14 { background-color: #d1fae5; color: #065f46; font-weight: bold; border-radius: 4px; padding: 3px 8px; display: inline-block; }
+        .horario-10-18 { background-color: #dbeafe; color: #1e40af; font-weight: bold; border-radius: 4px; padding: 3px 8px; display: inline-block; }
+        .horario-14-21 { background-color: #fef3c7; color: #92400e; font-weight: bold; border-radius: 4px; padding: 3px 8px; display: inline-block; }
+        .horario-21-30 { background-color: #f3e8ff; color: #6b21a8; font-weight: bold; border-radius: 4px; padding: 3px 8px; display: inline-block; }
+        .descanso { background-color: #1e3a5f; color: white; font-weight: bold; border-radius: 4px; padding: 3px 10px; display: inline-block; }
+        .permiso { background-color: #0ea5e9; color: white; font-weight: bold; border-radius: 4px; padding: 3px 10px; display: inline-block; }
+        
+        .footer-note { text-align: center; font-size: 0.7rem; padding: 12px; color: #5b7a99; border-top: 1px solid #e9edf2; }
+        .loading { text-align: center; padding: 20px; color: #1e4663; }
+        .error { text-align: center; padding: 20px; color: #b91c1c; }
+        
+        #weekTitle { font-size: 1rem; font-weight: 500; color: #1e4663; display: flex; align-items: center; justify-content: center; gap: 15px; }
+
+        /* ===== LOADER (ESTILO FORMULARIO) ===== */
+        .loader-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+        }
+        .loader-overlay.active { display: flex; }
+
+        .loader-content {
+            background: white;
+            padding: 36px 44px;
+            border-radius: 28px;
+            text-align: center;
+            border: 6px solid #F1C40F;
+        }
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 7px solid #D5D8DC;
+            border-top-color: #1A5F9E;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+        .loader-content p { font-size: 1.1rem; font-weight: 700; color: #0A2342; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- NUEVO LOADER -->
+<div class="loader-overlay" id="globalLoader">
+    <div class="loader-content">
+        <div class="loader-spinner"></div>
+        <p>⏳ CONSULTANDO...</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            <h1>📋 Turnos Rotativos</h1>
+            <div class="controls">
+                <label>Semana:</label>
+                <input type="number" id="weekNumber" min="1" max="53">
+                <label>Año:</label>
+                <select id="yearSelect">
+                    <option value="2025">2025</option>
+                    <option value="2026" selected>2026</option>
+                    <option value="2027">2027</option>
+                </select>
+                <button id="refreshBtn">🔍 Consultar</button>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            <h2 id="weekTitle">
+                <button class="btn-flecha" id="btnPrevWeek">◀</button>
+                <span id="titleText">Cargando semana actual...</span>
+                <button class="btn-flecha" id="btnNextWeek">▶</button>
+            </h2>
+        </div>
+        <div class="table-wrapper" id="tableContainer">
+            <div class="loading">Ingrese semana y año, luego presione "Consultar"</div>
+        </div>
+        <div class="footer-note">
+            🟩 6:00 A 14:00 · 🟦 10:00 A 18:00 · 🟧 14:00 A 21:30 · 🟪 21:30 A 6:00 · 🔵 D = Descanso · 🩵 Permisos
+        </div>
+    </div>
+</div>
+
+<script>
+    var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVPhqkmgg019DSCaudXGOlexwbwfVYBqIVLGosWT16zAwfzuGqP-c3Ez_XUCOZOeJ3/exec';
+    var DIAS = ["LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO", "DOMINGO"];
+
+    function mostrarLoader(texto) {
+        var loader = document.getElementById('globalLoader');
+        var textoEl = loader.querySelector('.loader-content p');
+        if (texto) textoEl.textContent = '⏳ ' + texto;
+        loader.classList.add('active');
+    }
+
+    function ocultarLoader() {
+        document.getElementById('globalLoader').classList.remove('active');
+    }
+
+    function escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>]/g, function(m) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m];
+        });
+    }
+
+    function obtenerClaseHorario(valor) {
+        if (!valor) return '';
+        var v = valor.toUpperCase().trim();
+        
+        if (v === 'D') return 'descanso';
+        if (v === 'V' || v === 'C' || v === 'A+') return 'permiso';
+        if (v === '6:00 A 14:00') return 'horario-6-14';
+        if (v === '10:00 A 18:00') return 'horario-10-18';
+        if (v === '14:00 A 21:30') return 'horario-14-21';
+        if (v === '21:30 A 6:00') return 'horario-21-30';
+        
+        return '';
+    }
+
+    // ============================================================
+    // CÁLCULO DE LA SEMANA ISO ACTUAL
+    // ============================================================
+    function obtenerSemanaISOActual() {
+        var d = new Date();
+        // Copiar fecha para no modificar la original
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        // Establecer al jueves más cercano para que cuente la semana completa
+        var dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return { semana: weekNo, anio: d.getUTCFullYear() };
+    }
+
+    // ============================================================
+    // CONSULTAR SEMANA
+    // ============================================================
+    function consultarSemana() {
+        var semana = parseInt(document.getElementById('weekNumber').value);
+        var año = parseInt(document.getElementById('yearSelect').value);
+        
+        if (!semana || semana < 1 || semana > 53) {
+            alert('Ingrese una semana válida (1-53)');
+            return;
+        }
+        
+        mostrarLoader('Consultando semana ' + semana + ' de ' + año + '...');
+        
+        var url = SCRIPT_URL + '?semana=' + semana + '&año=' + año;
+        
+        fetch(url)
+            .then(function(response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(function(data) {
+                ocultarLoader();
+                if (data.success) {
+                    renderizarTabla(data);
+                } else {
+                    document.getElementById('tableContainer').innerHTML = 
+                        '<div class="error">❌ ' + escapeHtml(data.error) + '</div>';
+                    document.getElementById('titleText').textContent = 'Semana ' + semana + ' · ' + año;
+                }
+            })
+            .catch(function(error) {
+                ocultarLoader();
+                document.getElementById('tableContainer').innerHTML = 
+                    '<div class="error">❌ Error de conexión: ' + escapeHtml(error.message || error) + '</div>';
+                document.getElementById('titleText').textContent = 'Semana ' + semana + ' · ' + año;
+            });
+    }
+
+    // ============================================================
+    // RENDERIZAR TABLA
+    // ============================================================
+    function renderizarTabla(data) {
+        var datos = data.datos;
+        if (!datos || datos.length === 0) {
+            document.getElementById('tableContainer').innerHTML = 
+                '<div class="error">No hay datos para esta semana</div>';
+            return;
+        }
+        
+        var primeraFecha = datos[0].fechaInicio || '';
+        var ultimaFecha = datos[0].fechaFin || '';
+        
+        document.getElementById('titleText').textContent = 
+            'Semana ' + data.semana + ' · ' + primeraFecha + ' - ' + ultimaFecha + ' · ' + data.año;
+        
+        var html = '<table><thead><tr><th>TAM</th><th>COLABORADOR</th>';
+        for (var i = 0; i < DIAS.length; i++) {
+            html += '<th>' + DIAS[i] + '</th>';
+        }
+        html += '</tr></thead><tbody>';
+        
+        for (var i = 0; i < datos.length && i < 7; i++) {
+            var info = datos[i];
+            var colab = info.colaborador || '';
+            var tam = info.dias['TAM'] || info.dias['M'] || '';
+            
+            html += '<tr>';
+            html += '<td class="nombre-col">' + escapeHtml(tam) + '</td>';
+            html += '<td class="colaborador-col">' + escapeHtml(colab) + '</td>';
+            
+            for (var d = 0; d < DIAS.length; d++) {
+                var valor = info.dias[DIAS[d]] || '';
+                var clase = obtenerClaseHorario(valor);
+                var texto = valor || 'AS';
+                
+                var celda;
+                if (clase) {
+                    celda = '<span class="' + clase + '">' + escapeHtml(texto) + '</span>';
+                } else {
+                    celda = '<span class="asiste">' + escapeHtml(texto) + '</span>';
+                }
+                html += '<td>' + celda + '</td>';
+            }
+            html += '</tr>';
+        }
+        
+        html += '</tbody></table>';
+        document.getElementById('tableContainer').innerHTML = html;
+    }
+
+    // ============================================================
+    // NAVEGACIÓN Y EVENTOS
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        var weekInput = document.getElementById('weekNumber');
+        var yearSelect = document.getElementById('yearSelect');
+        var refreshBtn = document.getElementById('refreshBtn');
+        var btnPrevWeek = document.getElementById('btnPrevWeek');
+        var btnNextWeek = document.getElementById('btnNextWeek');
+        
+        // 1. Calcular y colocar la semana actual al abrir
+        var semanaActual = obtenerSemanaISOActual();
+        
+        // Si el año de la semana actual no está en el select, lo agregamos
+        var optionExists = Array.from(yearSelect.options).some(opt => opt.value == semanaActual.anio);
+        if (!optionExists) {
+            var newOption = document.createElement('option');
+            newOption.value = semanaActual.anio;
+            newOption.textContent = semanaActual.anio;
+            yearSelect.appendChild(newOption);
+        }
+        
+        weekInput.value = semanaActual.semana;
+        yearSelect.value = semanaActual.anio;
+        
+        // 2. Consultar semana automáticamente al cargar
+        setTimeout(consultarSemana, 100);
+
+        // 3. Botón Consultar manual
+        refreshBtn.addEventListener('click', consultarSemana);
+        
+        // 4. Botones de Navegación de Flechas
+        btnPrevWeek.addEventListener('click', function() {
+            var s = parseInt(weekInput.value) - 1;
+            var y = parseInt(yearSelect.value);
+            if (s < 1) {
+                s = 52; // (o 53, pero 52 es más seguro por defecto)
+                y = y - 1;
+                var optExists = Array.from(yearSelect.options).some(opt => opt.value == y);
+                if (!optExists) {
+                    var newOpt = document.createElement('option');
+                    newOpt.value = y; newOpt.textContent = y;
+                    yearSelect.appendChild(newOpt);
+                }
+                yearSelect.value = y;
+            }
+            weekInput.value = s;
+            consultarSemana();
+        });
+
+        btnNextWeek.addEventListener('click', function() {
+            var s = parseInt(weekInput.value) + 1;
+            var y = parseInt(yearSelect.value);
+            if (s > 53) {
+                s = 1;
+                y = y + 1;
+                var optExists = Array.from(yearSelect.options).some(opt => opt.value == y);
+                if (!optExists) {
+                    var newOpt = document.createElement('option');
+                    newOpt.value = y; newOpt.textContent = y;
+                    yearSelect.appendChild(newOpt);
+                }
+                yearSelect.value = y;
+            }
+            weekInput.value = s;
+            consultarSemana();
+        });
+
+        // 5. Permitir consultar con la tecla Enter
+        weekInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') consultarSemana();
+        });
+        
+    });
+</script>
+
+</body>
+</html>

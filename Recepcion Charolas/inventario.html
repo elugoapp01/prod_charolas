@@ -547,34 +547,37 @@
     function showLoader() { document.getElementById('globalLoader').classList.add('active'); }
     function hideLoader() { document.getElementById('globalLoader').classList.remove('active'); }
 
+    // OPTIMIZADO: Ya no usa JSONP (que dejaba basura en memoria), ahora usa fetch
     async function apiGet(action) {
-        return new Promise((resolve) => {
-            const callback = 'cb_' + Date.now();
-            window[callback] = (res) => { delete window[callback]; resolve(res); };
-            const script = document.createElement('script');
-            script.src = `${API_URL}?action=${action}&callback=${callback}&_t=${Date.now()}`;
-            document.body.appendChild(script);
-            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false }); } }, 10000);
-        });
+        try {
+            const url = `${API_URL}?action=${action}&_t=${Date.now()}`;
+            const resp = await fetch(url, { redirect: 'follow', cache: 'no-store' });
+            return await resp.json();
+        } catch (e) {
+            console.error('Error apiGet:', e);
+            return { success: false };
+        }
     }
 
+    // OPTIMIZADO: Elimina el error "cbL_... is not defined" y la fuga de memoria en móviles
     async function apiGetLavado() {
-        return new Promise((resolve) => {
-            const callback = 'cbL_' + Date.now();
-            window[callback] = (res) => { delete window[callback]; resolve(res); };
-            const script = document.createElement('script');
-            script.src = `${API_URL_LAVADO}?action=getLavado&callback=${callback}&_t=${Date.now()}`;
-            document.body.appendChild(script);
-            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false }); } }, 10000);
-        });
+        try {
+            const url = `${API_URL_LAVADO}?action=getLavado&_t=${Date.now()}`;
+            const resp = await fetch(url, { redirect: 'follow', cache: 'no-store' });
+            const json = await resp.json();
+            return json;
+        } catch (e) {
+            console.error('Error fetch Lavado:', e);
+            return { success: false, data: [] };
+        }
     }
 
     async function apiGetEntradas() {
         try {
             const url = `${API_URL_ENTRADAS}?accion=getRegistros&_t=${Date.now()}`;
-            const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
+            const resp = await fetch(url, { method: 'GET', redirect: 'follow', cache: 'no-store' });
             const json = await resp.json();
-            console.log('Entradas raw:', json);
+            // console.log('Entradas raw:', json); // Comentado para no saturar consola en móvil
             return json;
         } catch (e) {
             console.error('Error fetch Entradas:', e);
@@ -659,33 +662,27 @@ function calcularSalidasSemana() {
     function parsearHora(valor) {
         if (valor === null || valor === undefined || valor === '') return { hh: 0, mm: 0 };
 
-        // Caso ISO (1899-...) que manda Sheets con +6h
         if (typeof valor === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) {
             const m = valor.match(/T(\d{2}):(\d{2})/);
             if (m) {
-                let hh = parseInt(m[1], 10) - 6; // Restamos las 6 horas de desfase
+                let hh = parseInt(m[1], 10) - 6; 
                 let mm = parseInt(m[2], 10);
-                // Si al restar da negativo, significa que el registro era después de las 18:00
-                // y se pasó al día siguiente. Lo dejamos en el mismo día para no romper el rango.
                 if (hh < 0) hh += 24; 
                 return { hh, mm };
             }
         }
 
-        // Caso Date
         if (valor instanceof Date && !isNaN(valor.getTime())) {
             let hh = valor.getUTCHours() - 6;
             if (hh < 0) hh += 24;
             return { hh, mm: valor.getUTCMinutes() };
         }
 
-        // Caso número
         if (typeof valor === 'number' && valor >= 0 && valor < 1) {
             const totalMin = Math.round(valor * 24 * 60);
             return { hh: Math.floor(totalMin / 60) % 24, mm: totalMin % 60 };
         }
 
-        // Caso string (p.m. / a.m.)
         const raw = String(valor).toLowerCase();
         const esPM = /p\.?\s*m\.?/i.test(raw);
         const esAM = /a\.?\s*m\.?/i.test(raw);
@@ -706,7 +703,6 @@ function calcularSalidasSemana() {
         if (isNaN(d.getTime())) return;
         const consumidas = Number(row['Consumidas']) || 0;
         
-        // Quitamos la condición "d <= ahora" para que sume todos los registros de la semana
         if (d >= inicioRango && d <= finRango) {
             totalTarimas += consumidas;
         }
@@ -725,7 +721,6 @@ function calcularSalidasSemana() {
         domingo.setHours(23, 59, 59, 999);
 
         let totalCharolas = 0;
-        const debug = [];
 
         (datosGlobales.entradas || []).forEach(row => {
             const fechaStr = String(row.fecha || '').replace(/['"\s]/g, '');
@@ -745,15 +740,10 @@ function calcularSalidasSemana() {
                     if (tipo === 'DOMINOS') {
                         const cant = parseFloat(r.cantidadFisica) || 0;
                         totalCharolas += cant;
-                        debug.push(`${fechaStr} ${row.turno || ''} | ${r.tienda} | +${cant}`);
                     }
                 });
             }
         });
-
-        console.log('Rango entradas:', lunes.toLocaleDateString(), '→', domingo.toLocaleDateString());
-        console.log('Detalle Entradas:', debug);
-        console.log('Total Entradas:', totalCharolas);
 
         return totalCharolas;
     }
@@ -938,11 +928,16 @@ function calcularSalidasSemana() {
     async function cargarDatos() {
         showLoader(); document.getElementById('btnRefresh').disabled = true;
         try {
-            const [resGeneral, resLavado, resEntradas] = await Promise.all([
+            // OPTIMIZADO: Promise.allSettled evita que si una falla, tumbe las demás y cuelgue el móvil
+            const resultados = await Promise.allSettled([
                 apiGet('getAllData'),
                 apiGetLavado(),
                 apiGetEntradas()
             ]);
+
+            const resGeneral = resultados[0].status === 'fulfilled' ? resultados[0].value : null;
+            const resLavado = resultados[1].status === 'fulfilled' ? resultados[1].value : null;
+            const resEntradas = resultados[2].status === 'fulfilled' ? resultados[2].value : null;
 
             if (resGeneral && resGeneral.success) {
                 datosGlobales.inventario = resGeneral.inventario || [];
@@ -1143,52 +1138,41 @@ function calcularSalidasSemana() {
     function renderizarGraficaBarras(semanas) {
         const ctx = document.getElementById('chartGap').getContext('2d');
         if (chartGapInstance) chartGapInstance.destroy();
+        
+        // OPTIMIZACIÓN CRÍTICA: Pre-calcular acumulados UNA SOLA VEZ (Evita el bucle O(n×10) que mataba el celular)
+        const acumTlahuac = {};
+        const acumAlmacen = {};
+
+        (datosGlobales.tlahuac || []).forEach(x => {
+            if(!x['Fecha']) return;
+            const key = obtenerKeySemana(x['Fecha']);
+            const cT = parseInt(x['Charolas/Tarima']) || 0;
+            const total = ((parseInt(x['Azul'])||0) + (parseInt(x['Verde'])||0) + (parseInt(x['Rojo'])||0) + (parseInt(x['Amarillo'])||0)) * cT;
+            acumTlahuac[key] = (acumTlahuac[key] || 0) + total;
+        });
+
+        (datosGlobales.almacenes || []).forEach(x => {
+            if(!x['Fecha']) return;
+            const key = obtenerKeySemana(x['Fecha']);
+            const cT = parseInt(x['Charolas/Tarima']) || 0;
+            const total = ((parseInt(x['Azul'])||0) + (parseInt(x['Verde'])||0) + (parseInt(x['Rojo'])||0) + (parseInt(x['Amarillo'])||0)) * cT;
+            acumAlmacen[key] = (acumAlmacen[key] || 0) + total;
+        });
+
         const labels = [];
         const values = [];
         semanas.forEach(sem => {
-            const lunes = obtenerLunesDeFecha(sem + ' 00:00');
-            if (!lunes) return;
-            const domingo = new Date(lunes);
-            domingo.setDate(lunes.getDate() + 6);
-            domingo.setHours(23,59,59);
-
             let totalSemana = 0;
             (datosGlobales.inventario || []).filter(x => obtenerKeySemana(x['Fecha']) === sem).forEach(r => totalSemana += parseInt(r['Total']) || 0);
             (datosGlobales.manufactura || []).filter(x => obtenerKeySemana(x['Fecha']) === sem).forEach(r => totalSemana += parseInt(r['Total']) || 0);
 
-            let tAcum = 0;
-            (datosGlobales.tlahuac || []).forEach(x => {
-                if(!x['Fecha']) return;
-                const fechaLimpia = x['Fecha'].split(' ')[0];
-                const p = fechaLimpia.split('/');
-                if(p.length === 3) {
-                    const d = new Date(p[2], p[1]-1, p[0]);
-                    if (d <= domingo) {
-                        const cT = parseInt(x['Charolas/Tarima']) || 0;
-                        tAcum += ((parseInt(x['Azul'])||0) + (parseInt(x['Verde'])||0) + (parseInt(x['Rojo'])||0) + (parseInt(x['Amarillo'])||0)) * cT;
-                    }
-                }
-            });
-            totalSemana += tAcum;
-
-            let aAcum = 0;
-            (datosGlobales.almacenes || []).forEach(x => {
-                if(!x['Fecha']) return;
-                const fechaLimpia = x['Fecha'].split(' ')[0];
-                const p = fechaLimpia.split('/');
-                if(p.length === 3) {
-                    const d = new Date(p[2], p[1]-1, p[0]);
-                    if (d <= domingo) {
-                        const cT = parseInt(x['Charolas/Tarima']) || 0;
-                        aAcum += ((parseInt(x['Azul'])||0) + (parseInt(x['Verde'])||0) + (parseInt(x['Rojo'])||0) + (parseInt(x['Amarillo'])||0)) * cT;
-                    }
-                }
-            });
-            totalSemana += aAcum;
+            // Usamos los valores pre-calculados en lugar de recorrer todo de nuevo
+            totalSemana += (acumTlahuac[sem] || 0) + (acumAlmacen[sem] || 0);
 
             labels.push(`Semana ${sem}`);
             values.push(totalSemana);
         });
+
         chartGapInstance = new Chart(ctx, {
             type: 'bar',
             data: {

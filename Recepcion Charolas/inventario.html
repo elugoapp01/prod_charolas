@@ -627,78 +627,93 @@
         return `${lunes.getDate().toString().padStart(2,'0')}/${(lunes.getMonth()+1).toString().padStart(2,'0')}/${lunes.getFullYear()}`;
     }
 
-    function calcularSalidasSemana() {
-        const ahora = new Date();
-        const diaSemana = ahora.getDay();
-        const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
-        const lunesBase = new Date(ahora.getFullYear(), ahora.getMonth(), diff, 0, 0, 0, 0);
-        let inicioRango = new Date(lunesBase);
-        inicioRango.setHours(6, 0, 0, 0);
-        if (ahora < inicioRango) inicioRango.setDate(inicioRango.getDate() - 7);
-        const finRango = new Date(inicioRango);
-        finRango.setDate(finRango.getDate() + 7);
-        finRango.setMilliseconds(-1);
 
-        let totalTarimas = 0;
+function calcularSalidasSemana() {
+    const ahora = new Date();
+    const diaSemana = ahora.getDay();
+    const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+    const lunesBase = new Date(ahora.getFullYear(), ahora.getMonth(), diff, 0, 0, 0, 0);
+    
+    let inicioRango = new Date(lunesBase);
+    inicioRango.setHours(6, 0, 0, 0);
+    if (ahora < inicioRango) inicioRango.setDate(inicioRango.getDate() - 7);
+    
+    const finRango = new Date(inicioRango);
+    finRango.setDate(finRango.getDate() + 7);
+    finRango.setMilliseconds(-1);
 
-        function parsearFecha(valor) {
-            if (!valor) return null;
-            const s = String(valor).trim().replace(/['"\s]/g, '');
-            const p = s.split('/');
-            if (p.length !== 3) return null;
-            const dia = parseInt(p[0], 10);
-            const mes = parseInt(p[1], 10) - 1;
-            const anio = parseInt(p[2], 10);
-            if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
-            return { dia, mes, anio };
-        }
+    let totalTarimas = 0;
 
-        function parsearHora(valor) {
-            if (valor === null || valor === undefined || valor === '') return { hh: 0, mm: 0 };
-            if (typeof valor === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) {
-                const m = valor.match(/T(\d{2}):(\d{2})/);
-                if (m) {
-                    let hh = parseInt(m[1], 10) - 6;
-                    let mm = parseInt(m[2], 10);
-                    if (hh < 0) hh += 24;
-                    return { hh, mm };
-                }
-            }
-            if (valor instanceof Date && !isNaN(valor.getTime())) {
-                let hh = valor.getUTCHours() - 6;
-                if (hh < 0) hh += 24;
-                return { hh, mm: valor.getUTCMinutes() };
-            }
-            if (typeof valor === 'number' && valor >= 0 && valor < 1) {
-                const totalMin = Math.round(valor * 24 * 60);
-                return { hh: Math.floor(totalMin / 60) % 24, mm: totalMin % 60 };
-            }
-            let s = String(valor).trim().toLowerCase().replace(/['"]/g, '').replace(/\.\s*/g, '').replace(/\s+/g, '');
-            let esPM = s.includes('pm');
-            let esAM = s.includes('am');
-            s = s.replace('pm', '').replace('am', '');
-            const parts = s.split(':');
-            let hh = parseInt(parts[0], 10) || 0;
-            let mm = parseInt(parts[1], 10) || 0;
-            if (esPM && hh < 12) hh += 12;
-            if (esAM && hh === 12) hh = 0;
-            return { hh, mm };
-        }
-
-        (datosGlobales.lavado || []).forEach(row => {
-            const f = parsearFecha(row['Fecha']);
-            if (!f) return;
-            const { hh, mm } = parsearHora(row['Hora']);
-            const d = new Date(f.anio, f.mes, f.dia, hh, mm, 0, 0);
-            if (isNaN(d.getTime())) return;
-            const consumidas = Number(row['Consumidas']) || 0;
-            if (d >= inicioRango && d <= finRango && d <= ahora) {
-                totalTarimas += consumidas;
-            }
-        });
-
-        return totalTarimas;
+    function parsearFecha(valor) {
+        if (!valor) return null;
+        const s = String(valor).trim().replace(/['"\s]/g, '');
+        const p = s.split('/');
+        if (p.length !== 3) return null;
+        const dia = parseInt(p[0], 10);
+        const mes = parseInt(p[1], 10) - 1;
+        const anio = parseInt(p[2], 10);
+        if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+        return { dia, mes, anio };
     }
+
+    function parsearHora(valor) {
+        if (valor === null || valor === undefined || valor === '') return { hh: 0, mm: 0 };
+
+        // Caso ISO (1899-...) que manda Sheets con +6h
+        if (typeof valor === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) {
+            const m = valor.match(/T(\d{2}):(\d{2})/);
+            if (m) {
+                let hh = parseInt(m[1], 10) - 6; // Restamos las 6 horas de desfase
+                let mm = parseInt(m[2], 10);
+                // Si al restar da negativo, significa que el registro era después de las 18:00
+                // y se pasó al día siguiente. Lo dejamos en el mismo día para no romper el rango.
+                if (hh < 0) hh += 24; 
+                return { hh, mm };
+            }
+        }
+
+        // Caso Date
+        if (valor instanceof Date && !isNaN(valor.getTime())) {
+            let hh = valor.getUTCHours() - 6;
+            if (hh < 0) hh += 24;
+            return { hh, mm: valor.getUTCMinutes() };
+        }
+
+        // Caso número
+        if (typeof valor === 'number' && valor >= 0 && valor < 1) {
+            const totalMin = Math.round(valor * 24 * 60);
+            return { hh: Math.floor(totalMin / 60) % 24, mm: totalMin % 60 };
+        }
+
+        // Caso string (p.m. / a.m.)
+        const raw = String(valor).toLowerCase();
+        const esPM = /p\.?\s*m\.?/i.test(raw);
+        const esAM = /a\.?\s*m\.?/i.test(raw);
+        const match = raw.match(/(\d{1,2})\s*:\s*(\d{1,2})/);
+        if (!match) return { hh: 0, mm: 0 };
+        let hh = parseInt(match[1], 10);
+        let mm = parseInt(match[2], 10);
+        if (esPM && hh < 12) hh += 12;
+        if (esAM && hh === 12) hh = 0;
+        return { hh, mm };
+    }
+
+    (datosGlobales.lavado || []).forEach(row => {
+        const f = parsearFecha(row['Fecha']);
+        if (!f) return;
+        const { hh, mm } = parsearHora(row['Hora']);
+        const d = new Date(f.anio, f.mes, f.dia, hh, mm, 0, 0);
+        if (isNaN(d.getTime())) return;
+        const consumidas = Number(row['Consumidas']) || 0;
+        
+        // Quitamos la condición "d <= ahora" para que sume todos los registros de la semana
+        if (d >= inicioRango && d <= finRango) {
+            totalTarimas += consumidas;
+        }
+    });
+
+    return totalTarimas;
+}
 
     function calcularEntradasSemana() {
         const ahora = new Date();

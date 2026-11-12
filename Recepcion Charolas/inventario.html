@@ -65,9 +65,9 @@
             gap: 10px;
             align-items: stretch;
             flex: 0 0 auto;
-            height: 38vh;
-            min-height: 170px;
-            max-height: 300px;
+            height: 42vh;
+            min-height: 190px;
+            max-height: 340px;
         }
         
         .card {
@@ -125,82 +125,156 @@
         .card-compact .card-header span { font-size: 0.5rem; padding: 2px 5px; }
         .card-compact .btn-detalle { padding: 2px 8px; font-size: 0.55rem; margin-top: 3px; }
 
-        /* LISTA DE COLORES */
-        .color-list-container { width: 100%; margin-top: 6px; }
-        .color-header-row {
-            display: grid;
-            grid-template-columns: 1fr 42px 1fr;
-            gap: 4px;
-            font-size: 0.55rem;
-            color: #888;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            text-align: center;
-            border-bottom: 2px solid #f0f0f0;
-            padding-bottom: 3px;
+        /* ==========================================
+           NUEVO DISEÑO DE COLORES EN CAJITAS (TLAHUAC/ALMACENES)
+           ========================================== */
+        .color-list-container { 
+            width: 100%; 
+            margin-top: 14px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 6px; 
+            flex: 1;
+            align-content: center;
         }
-        .color-header-row > div:first-child { text-align: left; padding-left: 4px; }
         
-        .color-list { width: 100%; list-style: none; }
-        .color-list li {
-            display: grid;
-            grid-template-columns: 1fr 42px 1fr;
-            align-items: center;
-            padding: 2px 0;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 0.72rem;
-            font-weight: 600;
-        }
-        .color-list li:last-child { border-bottom: none; }
-        .color-name { display: flex; align-items: center; gap: 5px; color: #444; }
-        .tarimas-badge { background: #e2e8f0; color: #475569; font-size: 0.6rem; padding: 1px 5px; border-radius: 12px; font-weight: 800; text-align: center; justify-self: center; }
-        .charolas-total { text-align: right; color: var(--azul); font-weight: 800; }
-
-        .color-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; }
-        .dot-azul { background: #3498DB; } .dot-verde { background: #2ECC71; }
-        .dot-rojo { background: #E74C3C; } .dot-amarillo { background: #F1C40F; }
-
-        /* TARJETA INVENTARIO ALMACÉN CHAROLAS */
-        .card-inv-almacen { padding: 10px 12px 8px; justify-content: flex-start; gap: 5px; }
-        .card-inv-almacen .card-header { position: relative; top: 0; left: 0; padding: 0 0 5px 0; border-bottom: 2px solid #f0f0f0; margin-bottom: 2px; }
-        .card-inv-almacen .card-header h2 { font-size: 0.65rem; line-height: 1.1; }
-
-        .inv-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            padding: 5px 10px;
-            border-radius: 8px;
-            border: 2px dashed var(--verde);
-            background: #F0FDF4;
-        }
-        .inv-row .lbl { font-size: 0.6rem; font-weight: 800; color: var(--verde); text-transform: uppercase; letter-spacing: 0.4px; }
-        .inv-row .val { display: flex; gap: 6px; align-items: baseline; }
-        .inv-row .num { font-size: 0.78rem; font-weight: 900; color: var(--azul); }
-        .inv-row .unit { font-size: 0.5rem; font-weight: 600; color: #666; }
-
-        .inv-row.entradas { border-color: var(--azul-fuerte); background: #EFF6FF; }
-        .inv-row.entradas .lbl { color: var(--azul-fuerte); }
-
-        .inv-total {
-            width: 100%;
-            margin-top: 2px;
-            padding: 8px 12px;
+        .color-box {
             border-radius: 10px;
-            background: linear-gradient(135deg, #0A2342 0%, #1A5F9E 100%);
-            color: white;
+            padding: 6px 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 1px;
-            box-shadow: 0 4px 14px rgba(10,35,66,0.25);
+            text-align: center;
+            border: 2px solid transparent;
         }
-        .inv-total .lbl { font-size: 0.55rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; }
-        .inv-total .num { font-size: clamp(1.2rem, 2.5vh, 1.6rem); font-weight: 900; line-height: 1; }
-        .inv-total .unit { font-size: 0.5rem; font-weight: 600; opacity: 0.8; }
+        
+        /* Colores específicos para cada cajita */
+        .color-box.box-azul { background: #EFF6FF; border-color: #93C5FD; color: #1E3A8A; }
+        .color-box.box-verde { background: #F0FDF4; border-color: #86EFAC; color: #166534; }
+        .color-box.box-rojo { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
+        .color-box.box-amarillo { background: #FEFCE8; border-color: #FDE047; color: #854D0E; }
+
+        .color-box .lbl { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
+        .color-box .t { font-size: 0.55rem; font-weight: 600; opacity: 0.7; margin-bottom: 2px; }
+        .color-box .c { font-size: 0.85rem; font-weight: 900; }
+
+
+        /* ==========================================
+           TARJETA INVENTARIO ALMACÉN CHAROLAS
+           ========================================== */
+        .card-inv-almacen { padding: 12px; justify-content: flex-start; gap: 8px; }
+        .card-inv-almacen .card-header { position: relative; top: 0; left: 0; padding: 0; border-bottom: none; margin-bottom: 2px; }
+        
+        .inv-top-row {
+            display: flex;
+            width: 100%;
+            gap: 8px;
+            height: 55%;
+        }
+        
+        /* Cuadro Izquierdo */
+        .inv-box-left {
+            flex: 1.2;
+            border: 2px solid #93C5FD; /* Azul claro */
+            background: #EFF6FF;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            padding: 6px 8px;
+            justify-content: center;
+        }
+        .inv-box-left .box-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .inv-box-left .box-item .lbl {
+            font-size: 0.6rem;
+            color: #1E3A8A; /* Azul oscuro */
+            font-weight: 600;
+        }
+        .inv-box-left .box-item .val {
+            font-size: 0.7rem;
+            color: #1E3A8A;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        .inv-box-left .box-sep {
+            height: 1px;
+            background: #93C5FD;
+            margin: 4px 0;
+            opacity: 0.5;
+        }
+        
+        /* Cuadro Derecho (Inventario) */
+        .inv-box-right {
+            flex: 1;
+            background: linear-gradient(135deg, #0A2342 0%, #1A5F9E 100%);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(10,35,66,0.2);
+        }
+        .inv-box-right .lbl {
+            font-size: 0.6rem;
+            color: #BFDBFE;
+            font-weight: 800;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .inv-box-right .num {
+            font-size: clamp(1.2rem, 2.8vh, 1.8rem);
+            color: #FFFFFF;
+            font-weight: 900;
+            line-height: 1;
+        }
+        .inv-box-right .unit {
+            font-size: 0.6rem;
+            color: #BFDBFE;
+            font-weight: 800;
+        }
+        
+        .inv-bottom-row {
+            display: flex;
+            width: 100%;
+            gap: 8px;
+            flex: 1;
+        }
+        
+        .inv-mini-box {
+            flex: 1;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        /* Colores individuales de los mini-boxes */
+        .inv-mini-box.retorno { background: #FFF7ED; border: 2px solid #FDBA74; }
+        .inv-mini-box.retorno .lbl, .inv-mini-box.retorno .num, .inv-mini-box.retorno .unit { color: #9A3412; }
+
+        .inv-mini-box.azul { background: #EFF6FF; border: 2px solid #93C5FD; }
+        .inv-mini-box.azul .lbl, .inv-mini-box.azul .num, .inv-mini-box.azul .unit { color: #1E3A8A; }
+
+        .inv-mini-box.verde { background: #F0FDF4; border: 2px solid #86EFAC; }
+        .inv-mini-box.verde .lbl, .inv-mini-box.verde .num, .inv-mini-box.verde .unit { color: #166534; }
+
+        .inv-mini-box:hover:not(.retorno) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .inv-mini-box .lbl { font-size: 0.6rem; font-weight: 600; margin-bottom: 2px; text-transform: capitalize; }
+        .inv-mini-box .num { font-size: 0.8rem; font-weight: 900; }
+        .inv-mini-box .unit { font-size: 0.55rem; font-weight: 800; }
 
         /* GRÁFICA: ocupa el espacio restante */
         .chart-container {
@@ -235,7 +309,7 @@
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 6px solid var(--azul-fuerte); }
-        .modal-content.small { max-width: 500px; }
+        .modal-content.small { max-width: 400px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 3px solid var(--gris-claro); padding-bottom: 10px; }
         .modal-header h2 { color: var(--azul); font-size: 1.3rem; }
         .modal-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: #A0AEC0; transition: 0.2s; }
@@ -281,15 +355,9 @@
             body { height: auto; overflow: auto; }
         }
         @media (max-height: 700px) {
-            .grid-container { height: 34vh; min-height: 150px; }
+            .grid-container { height: 38vh; min-height: 170px; }
             .kpi-number { font-size: clamp(1.2rem, 2.6vh, 1.8rem); }
             .chart-container { min-height: 90px; }
-        }
-        @media (max-height: 550px) {
-            .grid-container { height: 30vh; min-height: 130px; }
-            .header { padding: 6px 12px; }
-            .header h1 { font-size: 0.95rem; }
-            .btn { padding: 4px 9px; font-size: 0.68rem; }
         }
     </style>
 </head>
@@ -340,60 +408,108 @@
 
     <!-- COLUMNA 2: Inventario Almacén Charolas -->
     <div class="stack-col">
-        <div class="card card-inv-almacen" id="cardConsumidas" style="border-color: var(--verde); flex: 1;">
+        <div class="card card-inv-almacen" id="cardConsumidas" style="border-color: var(--azul); flex: 1;">
             <div class="card-header">
                 <h2>📦 Inventario Almacén Charolas</h2>
                 <span id="fechaConsumidas">--/--/----</span>
             </div>
-            <div class="inv-row salidas">
-                <span class="lbl">Salidas</span>
-                <div class="val">
-                    <span class="num" id="salidasTarimas">0</span>
-                    <span class="unit">tarimas</span>
-                    <span class="num" id="salidasCharolas">0</span>
+            
+            <div class="inv-top-row">
+                <!-- Cuadro Izquierdo: Salidas y Entradas -->
+                <div class="inv-box-left">
+                    <div class="box-item">
+                        <span class="lbl">Salidas de la semana</span>
+                        <span class="val"><span id="salidasTarimas">0</span> tarimas <span id="salidasCharolas">0</span> charolas</span>
+                    </div>
+                    <div class="box-sep"></div>
+                    <div class="box-item">
+                        <span class="lbl">Entradas de la semana</span>
+                        <span class="val"><span id="entradasCharolas">0</span> charolas</span>
+                    </div>
+                </div>
+                
+                <!-- Cuadro Derecho: Inventario Aproximado -->
+                <div class="inv-box-right">
+                    <span class="lbl">INVENTARIO APROXIMADO</span>
+                    <span class="num" id="inventarioCharolas">0</span>
                     <span class="unit">charolas</span>
                 </div>
             </div>
-            <div class="inv-row entradas">
-                <span class="lbl">Entradas</span>
-                <div class="val">
-                    <span class="num" id="entradasCharolas">0</span>
+            
+            <div class="inv-bottom-row">
+                <!-- Retorno (Naranja suave) -->
+                <div class="inv-mini-box retorno" style="cursor: default;">
+                    <span class="lbl">Retorno</span>
+                    <span class="num" id="invRetorno">0</span>
                     <span class="unit">charolas</span>
                 </div>
-            </div>
-            <div class="inv-total">
-                <span class="lbl">Inventario</span>
-                <span class="num" id="inventarioCharolas">0</span>
-                <span class="unit">charolas</span>
+                <!-- Azul Limpia (Azul claro, clic para editar) -->
+                <div class="inv-mini-box azul" onclick="abrirModalEdicion('azul')">
+                    <span class="lbl">Azul limpia</span>
+                    <span class="num" id="invAzulLimpia">0</span>
+                    <span class="unit">charolas</span>
+                </div>
+                <!-- Verde Limpia (Verde menta, clic para editar) -->
+                <div class="inv-mini-box verde" onclick="abrirModalEdicion('verde')">
+                    <span class="lbl">Verde limpia</span>
+                    <span class="num" id="invVerdeLimpia">0</span>
+                    <span class="unit">charolas</span>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- COLUMNA 3: Tlahuac -->
+    <!-- COLUMNA 3: Tlahuac (Rediseñada con cajitas de color) -->
     <div class="card">
         <div class="card-header"><h2>📍 Tlahuac</h2><span>General</span></div>
         <div class="color-list-container">
-            <div class="color-header-row"><div>Color</div><div>Tar.</div><div>Charolas</div></div>
-            <ul class="color-list">
-                <li><span class="color-name"><span class="color-dot dot-azul"></span> Azul</span> <span class="tarimas-badge" id="tlahuacAzulTar">0</span> <span class="charolas-total" id="tlahuacAzul">0</span></li>
-                <li><span class="color-name"><span class="color-dot dot-verde"></span> Verde</span> <span class="tarimas-badge" id="tlahuacVerdeTar">0</span> <span class="charolas-total" id="tlahuacVerde">0</span></li>
-                <li><span class="color-name"><span class="color-dot dot-rojo"></span> Rojo</span> <span class="tarimas-badge" id="tlahuacRojoTar">0</span> <span class="charolas-total" id="tlahuacRojo">0</span></li>
-                <li><span class="color-name"><span class="color-dot dot-amarillo"></span> Amarillo</span> <span class="tarimas-badge" id="tlahuacAmarilloTar">0</span> <span class="charolas-total" id="tlahuacAmarillo">0</span></li>
-            </ul>
+            <div class="color-box box-azul">
+                <span class="lbl">Azul</span>
+                <span class="t"><span id="tlahuacAzulTar">0</span> tar.</span>
+                <span class="c" id="tlahuacAzul">0</span>
+            </div>
+            <div class="color-box box-verde">
+                <span class="lbl">Verde</span>
+                <span class="t"><span id="tlahuacVerdeTar">0</span> tar.</span>
+                <span class="c" id="tlahuacVerde">0</span>
+            </div>
+            <div class="color-box box-rojo">
+                <span class="lbl">Rojo</span>
+                <span class="t"><span id="tlahuacRojoTar">0</span> tar.</span>
+                <span class="c" id="tlahuacRojo">0</span>
+            </div>
+            <div class="color-box box-amarillo">
+                <span class="lbl">Amarillo</span>
+                <span class="t"><span id="tlahuacAmarilloTar">0</span> tar.</span>
+                <span class="c" id="tlahuacAmarillo">0</span>
+            </div>
         </div>
     </div>
 
-    <!-- COLUMNA 4: Almacenes -->
+    <!-- COLUMNA 4: Almacenes (Rediseñada con cajitas de color) -->
     <div class="card">
         <div class="card-header"><h2>📦 Almacenes</h2><span>General</span></div>
         <div class="color-list-container">
-            <div class="color-header-row"><div>Color</div><div>Tar.</div><div>Charolas</div></div>
-            <ul class="color-list">
-                <li><span class="color-name"><span class="color-dot dot-azul"></span> Azul</span> <span class="tarimas-badge" id="almacenAzulTar">0</span> <span class="charolas-total" id="almacenAzul">0</span></li>
-                <li><span class="color-name"><span class="color-dot dot-verde"></span> Verde</span> <span class="tarimas-badge" id="almacenVerdeTar">0</span> <span class="charolas-total" id="almacenVerde">0</span></li>
-                <li><span class="color-name"><span class="color-dot dot-rojo"></span> Rojo</span> <span class="tarimas-badge" id="almacenRojoTar">0</span> <span class="charolas-total" id="almacenRojo">0</span></li>
-                <li><span class="color-name"><span class="color-dot dot-amarillo"></span> Amarillo</span> <span class="tarimas-badge" id="almacenAmarilloTar">0</span> <span class="charolas-total" id="almacenAmarillo">0</span></li>
-            </ul>
+            <div class="color-box box-azul">
+                <span class="lbl">Azul</span>
+                <span class="t"><span id="almacenAzulTar">0</span> tar.</span>
+                <span class="c" id="almacenAzul">0</span>
+            </div>
+            <div class="color-box box-verde">
+                <span class="lbl">Verde</span>
+                <span class="t"><span id="almacenVerdeTar">0</span> tar.</span>
+                <span class="c" id="almacenVerde">0</span>
+            </div>
+            <div class="color-box box-rojo">
+                <span class="lbl">Rojo</span>
+                <span class="t"><span id="almacenRojoTar">0</span> tar.</span>
+                <span class="c" id="almacenRojo">0</span>
+            </div>
+            <div class="color-box box-amarillo">
+                <span class="lbl">Amarillo</span>
+                <span class="t"><span id="almacenAmarilloTar">0</span> tar.</span>
+                <span class="c" id="almacenAmarillo">0</span>
+            </div>
         </div>
     </div>
 </div>
@@ -404,6 +520,24 @@
 </div>
 
 <!-- MODALES -->
+<!-- Modal para Editar Azul/Verde Limpia -->
+<div class="modal-overlay" id="modalEdicion">
+    <div class="modal-content small" style="border-color: var(--verde);">
+        <div class="modal-header">
+            <h2 id="editTitulo">Editar</h2>
+            <button class="modal-close" onclick="cerrarModal('modalEdicion')">&times;</button>
+        </div>
+        <div class="form-group">
+            <label>Cantidad de charolas</label>
+            <input type="number" id="editInputCantidad" value="0">
+        </div>
+        <div style="text-align: right; margin-top: 15px;">
+            <button class="btn" style="background: #ccc; color: #333;" onclick="cerrarModal('modalEdicion')">Cancelar</button>
+            <button class="btn btn-primary" id="btnGuardarEdit" onclick="guardarEdicion()">💾 Guardar</button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="modalDetalle">
     <div class="modal-content small" style="border-color: var(--gris);">
         <div class="modal-header">
@@ -544,6 +678,9 @@
 
     let datosGlobales = { inventario: [], tlahuac: [], almacenes: [], manufactura: [], lavado: [], entradas: [] };
 
+    let editandoTipo = '';
+    let totalInventarioAproximadoGlobal = 0;
+
     function showLoader() { document.getElementById('globalLoader').classList.add('active'); }
     function hideLoader() { document.getElementById('globalLoader').classList.remove('active'); }
 
@@ -574,10 +711,8 @@
             const url = `${API_URL_ENTRADAS}?accion=getRegistros&_t=${Date.now()}`;
             const resp = await fetch(url, { method: 'GET', redirect: 'follow' });
             const json = await resp.json();
-            console.log('Entradas raw:', json);
             return json;
         } catch (e) {
-            console.error('Error fetch Entradas:', e);
             return { success: false, data: [] };
         }
     }
@@ -627,93 +762,81 @@
         return `${lunes.getDate().toString().padStart(2,'0')}/${(lunes.getMonth()+1).toString().padStart(2,'0')}/${lunes.getFullYear()}`;
     }
 
-
-function calcularSalidasSemana() {
-    const ahora = new Date();
-    const diaSemana = ahora.getDay();
-    const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
-    const lunesBase = new Date(ahora.getFullYear(), ahora.getMonth(), diff, 0, 0, 0, 0);
-    
-    let inicioRango = new Date(lunesBase);
-    inicioRango.setHours(6, 0, 0, 0);
-    if (ahora < inicioRango) inicioRango.setDate(inicioRango.getDate() - 7);
-    
-    const finRango = new Date(inicioRango);
-    finRango.setDate(finRango.getDate() + 7);
-    finRango.setMilliseconds(-1);
-
-    let totalTarimas = 0;
-
-    function parsearFecha(valor) {
-        if (!valor) return null;
-        const s = String(valor).trim().replace(/['"\s]/g, '');
-        const p = s.split('/');
-        if (p.length !== 3) return null;
-        const dia = parseInt(p[0], 10);
-        const mes = parseInt(p[1], 10) - 1;
-        const anio = parseInt(p[2], 10);
-        if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
-        return { dia, mes, anio };
-    }
-
-    function parsearHora(valor) {
-        if (valor === null || valor === undefined || valor === '') return { hh: 0, mm: 0 };
-
-        // Caso ISO (1899-...) que manda Sheets con +6h
-        if (typeof valor === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) {
-            const m = valor.match(/T(\d{2}):(\d{2})/);
-            if (m) {
-                let hh = parseInt(m[1], 10) - 6; // Restamos las 6 horas de desfase
-                let mm = parseInt(m[2], 10);
-                // Si al restar da negativo, significa que el registro era después de las 18:00
-                // y se pasó al día siguiente. Lo dejamos en el mismo día para no romper el rango.
-                if (hh < 0) hh += 24; 
-                return { hh, mm };
-            }
-        }
-
-        // Caso Date
-        if (valor instanceof Date && !isNaN(valor.getTime())) {
-            let hh = valor.getUTCHours() - 6;
-            if (hh < 0) hh += 24;
-            return { hh, mm: valor.getUTCMinutes() };
-        }
-
-        // Caso número
-        if (typeof valor === 'number' && valor >= 0 && valor < 1) {
-            const totalMin = Math.round(valor * 24 * 60);
-            return { hh: Math.floor(totalMin / 60) % 24, mm: totalMin % 60 };
-        }
-
-        // Caso string (p.m. / a.m.)
-        const raw = String(valor).toLowerCase();
-        const esPM = /p\.?\s*m\.?/i.test(raw);
-        const esAM = /a\.?\s*m\.?/i.test(raw);
-        const match = raw.match(/(\d{1,2})\s*:\s*(\d{1,2})/);
-        if (!match) return { hh: 0, mm: 0 };
-        let hh = parseInt(match[1], 10);
-        let mm = parseInt(match[2], 10);
-        if (esPM && hh < 12) hh += 12;
-        if (esAM && hh === 12) hh = 0;
-        return { hh, mm };
-    }
-
-    (datosGlobales.lavado || []).forEach(row => {
-        const f = parsearFecha(row['Fecha']);
-        if (!f) return;
-        const { hh, mm } = parsearHora(row['Hora']);
-        const d = new Date(f.anio, f.mes, f.dia, hh, mm, 0, 0);
-        if (isNaN(d.getTime())) return;
-        const consumidas = Number(row['Consumidas']) || 0;
+    function calcularSalidasSemana() {
+        const ahora = new Date();
+        const diaSemana = ahora.getDay();
+        const diff = ahora.getDate() - diaSemana + (diaSemana === 0 ? -6 : 1);
+        const lunesBase = new Date(ahora.getFullYear(), ahora.getMonth(), diff, 0, 0, 0, 0);
         
-        // Quitamos la condición "d <= ahora" para que sume todos los registros de la semana
-        if (d >= inicioRango && d <= finRango) {
-            totalTarimas += consumidas;
-        }
-    });
+        let inicioRango = new Date(lunesBase);
+        inicioRango.setHours(6, 0, 0, 0);
+        if (ahora < inicioRango) inicioRango.setDate(inicioRango.getDate() - 7);
+        
+        const finRango = new Date(inicioRango);
+        finRango.setDate(finRango.getDate() + 7);
+        finRango.setMilliseconds(-1);
 
-    return totalTarimas;
-}
+        let totalTarimas = 0;
+
+        function parsearFecha(valor) {
+            if (!valor) return null;
+            const s = String(valor).trim().replace(/['"\s]/g, '');
+            const p = s.split('/');
+            if (p.length !== 3) return null;
+            const dia = parseInt(p[0], 10);
+            const mes = parseInt(p[1], 10) - 1;
+            const anio = parseInt(p[2], 10);
+            if (isNaN(dia) || isNaN(mes) || isNaN(anio)) return null;
+            return { dia, mes, anio };
+        }
+
+        function parsearHora(valor) {
+            if (valor === null || valor === undefined || valor === '') return { hh: 0, mm: 0 };
+            if (typeof valor === 'string' && /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(valor)) {
+                const m = valor.match(/T(\d{2}):(\d{2})/);
+                if (m) {
+                    let hh = parseInt(m[1], 10) - 6;
+                    let mm = parseInt(m[2], 10);
+                    if (hh < 0) hh += 24; 
+                    return { hh, mm };
+                }
+            }
+            if (valor instanceof Date && !isNaN(valor.getTime())) {
+                let hh = valor.getUTCHours() - 6;
+                if (hh < 0) hh += 24;
+                return { hh, mm: valor.getUTCMinutes() };
+            }
+            if (typeof valor === 'number' && valor >= 0 && valor < 1) {
+                const totalMin = Math.round(valor * 24 * 60);
+                return { hh: Math.floor(totalMin / 60) % 24, mm: totalMin % 60 };
+            }
+            const raw = String(valor).toLowerCase();
+            const esPM = /p\.?\s*m\.?/i.test(raw);
+            const esAM = /a\.?\s*m\.?/i.test(raw);
+            const match = raw.match(/(\d{1,2})\s*:\s*(\d{1,2})/);
+            if (!match) return { hh: 0, mm: 0 };
+            let hh = parseInt(match[1], 10);
+            let mm = parseInt(match[2], 10);
+            if (esPM && hh < 12) hh += 12;
+            if (esAM && hh === 12) hh = 0;
+            return { hh, mm };
+        }
+
+        (datosGlobales.lavado || []).forEach(row => {
+            const f = parsearFecha(row['Fecha']);
+            if (!f) return;
+            const { hh, mm } = parsearHora(row['Hora']);
+            const d = new Date(f.anio, f.mes, f.dia, hh, mm, 0, 0);
+            if (isNaN(d.getTime())) return;
+            const consumidas = Number(row['Consumidas']) || 0;
+            
+            if (d >= inicioRango && d <= finRango) {
+                totalTarimas += consumidas;
+            }
+        });
+
+        return totalTarimas;
+    }
 
     function calcularEntradasSemana() {
         const ahora = new Date();
@@ -725,7 +848,6 @@ function calcularSalidasSemana() {
         domingo.setHours(23, 59, 59, 999);
 
         let totalCharolas = 0;
-        const debug = [];
 
         (datosGlobales.entradas || []).forEach(row => {
             const fechaStr = String(row.fecha || '').replace(/['"\s]/g, '');
@@ -743,21 +865,72 @@ function calcularSalidasSemana() {
                 row.registros.forEach(r => {
                     const tipo = String(r.tipo || '').toUpperCase().trim();
                     if (tipo === 'DOMINOS') {
-                        const cant = parseFloat(r.cantidadFisica) || 0;
-                        totalCharolas += cant;
-                        debug.push(`${fechaStr} ${row.turno || ''} | ${r.tienda} | +${cant}`);
+                        totalCharolas += parseFloat(r.cantidadFisica) || 0;
                     }
                 });
             }
         });
 
-        console.log('Rango entradas:', lunes.toLocaleDateString(), '→', domingo.toLocaleDateString());
-        console.log('Detalle Entradas:', debug);
-        console.log('Total Entradas:', totalCharolas);
-
         return totalCharolas;
     }
 
+    // ============================================
+    // LÓGICA DE EDICIÓN MANUAL (AZUL / VERDE)
+    // ============================================
+    function cargarValoresManuales() {
+        try {
+            const saved = localStorage.getItem('inventarioCharolasManual');
+            if (saved) {
+                const d = JSON.parse(saved);
+                document.getElementById('invAzulLimpia').textContent = (d.azul || 0).toLocaleString('es-MX');
+                document.getElementById('invVerdeLimpia').textContent = (d.verde || 0).toLocaleString('es-MX');
+            }
+        } catch(e) {}
+    }
+
+    function abrirModalEdicion(tipo) {
+        editandoTipo = tipo;
+        const titulo = tipo === 'azul' ? 'Azul Limpia' : 'Verde Limpia';
+        document.getElementById('editTitulo').textContent = `Editar ${titulo}`;
+        
+        const currentStr = document.getElementById(tipo === 'azul' ? 'invAzulLimpia' : 'invVerdeLimpia').textContent.replace(/,/g, '');
+        const currentVal = parseInt(currentStr) || 0;
+        document.getElementById('editInputCantidad').value = currentVal;
+        
+        document.getElementById('modalEdicion').classList.add('active');
+    }
+
+    function guardarEdicion() {
+        const val = parseInt(document.getElementById('editInputCantidad').value) || 0;
+        
+        let azul = parseInt(document.getElementById('invAzulLimpia').textContent.replace(/,/g, '')) || 0;
+        let verde = parseInt(document.getElementById('invVerdeLimpia').textContent.replace(/,/g, '')) || 0;
+        
+        if (editandoTipo === 'azul') azul = val;
+        if (editandoTipo === 'verde') verde = val;
+        
+        localStorage.setItem('inventarioCharolasManual', JSON.stringify({ azul, verde }));
+        
+        document.getElementById('invAzulLimpia').textContent = azul.toLocaleString('es-MX');
+        document.getElementById('invVerdeLimpia').textContent = verde.toLocaleString('es-MX');
+        
+        cerrarModal('modalEdicion');
+        actualizarRetorno();
+    }
+
+    function actualizarRetorno() {
+        const azul = parseInt(document.getElementById('invAzulLimpia').textContent.replace(/,/g, '')) || 0;
+        const verde = parseInt(document.getElementById('invVerdeLimpia').textContent.replace(/,/g, '')) || 0;
+        
+        // Retorno = Total Aproximado - Azul - Verde
+        const retorno = totalInventarioAproximadoGlobal - azul - verde;
+        
+        document.getElementById('invRetorno').textContent = retorno.toLocaleString('es-MX');
+    }
+
+    // ============================================
+    // RESTO DE MODALES Y FUNCIONES GENERALES
+    // ============================================
     function abrirModal(id) {
         if (id === 'modalInventario') {
             if (document.getElementById('btnInvGeneral').classList.contains('btn-bloqueado')) {
@@ -1095,6 +1268,11 @@ function calcularSalidasSemana() {
         document.getElementById('salidasCharolas').textContent = charolasSalidas.toLocaleString('es-MX');
         document.getElementById('entradasCharolas').textContent = entradasCharolas.toLocaleString('es-MX');
         document.getElementById('inventarioCharolas').textContent = inventarioFinal.toLocaleString('es-MX');
+        
+        totalInventarioAproximadoGlobal = inventarioFinal;
+
+        cargarValoresManuales();
+        actualizarRetorno();
 
         const hoy = new Date();
         document.getElementById('fechaConsumidas').textContent =

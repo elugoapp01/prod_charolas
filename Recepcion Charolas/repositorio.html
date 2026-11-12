@@ -194,7 +194,6 @@
                 </div>
                 <button class="btn btn-download" onclick="abrirModalDescarga()" title="Descargar Excel">📥</button>
                 <div class="btn-group">
-                    <button class="btn btn-success" onclick="enviarCorteWhatsApp()">📤 ENVIAR CORTE</button>
                     <button class="btn btn-primary" id="btnRefrescar" onclick="cargarRegistros()">🔄 REFRESCAR</button>
                 </div>
             </div>
@@ -282,8 +281,6 @@
 // CONFIGURACIÓN
 // ============================================
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyQqhTP8zGEuixAZHgcGQTdoa0d8UZWxM_Z4_S2DJgAkaXJJI6lHpmwO11cxBeuZTI-/exec';
-const APPS_SCRIPT_LAVADO = 'https://script.google.com/macros/s/AKfycbwcluWJgTsfpT2QbBzom5seFVIU9XWBe7PK9SkFQPn4xK9NFshOlGjcs5qbQTzGJgyF/exec';
-const APPS_SCRIPT_INVENTARIO = 'https://script.google.com/macros/s/AKfycbzVqxsImAgYlqzu_a5P7AYQL4y-HtxpwMQSagBApdlJZ4gr0D2NYx1rUewD-JDPJ_iH/exec';
 const EMPLEADOS_EXCLUIDOS = ['ARIANA LOPEZ FERNANDEZ', 'MICHELLE VELAZQUEZ GODINEZ', 'LETICIA RODRIGUEZ REYES'];
 let todosRegistros = [];
 let registrosFiltrados = [];
@@ -391,22 +388,6 @@ function obtenerSoloFecha(fechaStr) {
     } catch(e) { return ''; }
 }
 
-function esFechaMayor(f1, f2) {
-    if (!f1 || !f2) return false;
-    const d1 = new Date(f1);
-    const d2 = new Date(f2);
-    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
-    return d1.getTime() > d2.getTime();
-}
-
-function sonMismaFecha(f1, f2) {
-    if (!f1 || !f2) return false;
-    const d1 = new Date(f1);
-    const d2 = new Date(f2);
-    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return false;
-    return d1.getTime() === d2.getTime();
-}
-
 // ============================================
 // OBTENER FECHA DEL TURNO
 // ============================================
@@ -431,21 +412,6 @@ function obtenerFechaTurnoStr() {
     const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
     const anio = fecha.getFullYear();
     return `${dia}/${mes}/${anio}`;
-}
-
-function obtenerFechaHoraCDMX() {
-    return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' }));
-}
-
-function obtenerTurnoActual() {
-    const ahora = obtenerFechaHoraCDMX();
-    const h = ahora.getHours();
-    const m = ahora.getMinutes();
-    const horaCompleta = h + (m / 60);
-
-    if (horaCompleta >= 6 && horaCompleta < 14) return 'PRIMERO';
-    if (horaCompleta >= 14 && horaCompleta < 21.5) return 'SEGUNDO';
-    return 'TERCERO';
 }
 
 // ============================================
@@ -482,7 +448,7 @@ async function cargarRegistros() {
 }
 
 // ============================================
-// CALCULAR ÚLTIMO TURNO
+// CALCULAR ÚLTIMO TURNO Y GUARDAR EN LOCALSTORAGE
 // ============================================
 function calcularUltimaFechaYTurno() {
     if (todosRegistros.length === 0) {
@@ -511,7 +477,6 @@ function calcularUltimaFechaYTurno() {
         const fechaHora = parseFechaHoraDDMMYYYY(reg.marcaTemporal);
         if (fechaHora) {
             const horaCompleta = fechaHora.getHours() + (fechaHora.getMinutes() / 60);
-            const orden = ordenTurnos[turno] || 0;
             let horaAjustada = horaCompleta;
             if (turno === 'TERCERO' && horaCompleta < 6) horaAjustada = horaCompleta + 24; 
             if (turno === 'PRIMERO' && horaCompleta < 6) horaAjustada = horaCompleta + 24;
@@ -564,7 +529,16 @@ function actualizarTarjetas(d) {
     document.getElementById('totalDominosUltimoTurno').textContent = Math.round(d.dominos);
     document.getElementById('totalStarbucksUltimoTurno').textContent = Math.round(d.starbucks);
     document.getElementById('totalTiendasUltimoTurno').textContent = d.tiendas;
-    window.datosUltimoTurno = d;
+
+    // GUARDAR EN LOCALSTORAGE PARA USARLO EN INVENTARIO.HTML
+    localStorage.setItem('datosUltimoTurno', JSON.stringify({
+        fecha: d.fecha,
+        turno: d.turno,
+        registros: d.registros,
+        tiendas: d.tiendas,
+        dominos: d.dominos,
+        starbucks: d.starbucks
+    }));
 }
 
 function renderizarTabla() {
@@ -818,350 +792,6 @@ async function descargarReporte() {
     hideLoader();
 }
 
-// ============================================
-// ENVIAR CORTE POR WHATSAPP CON FÓRMULA SIMPLIFICADA
-// ============================================
-async function enviarCorteWhatsApp() {
-    if (!window.datosUltimoTurno || window.datosUltimoTurno.registros === 0) {
-        alert('⚠️ No hay datos del último turno para enviar');
-        return;
-    }
-
-    showLoader();
-
-    // ============================================================
-    // HELPERS
-    // ============================================================
-    const _norm = (s) => String(s == null ? '' : s).trim();
-
-    const _get = (obj, ...nombres) => {
-        if (!obj) return undefined;
-        const claves = Object.keys(obj);
-        for (const n of nombres) {
-            const objetivo = String(n).toUpperCase().replace(/[\s_]/g, '');
-            for (const k of claves) {
-                if (String(k).toUpperCase().replace(/[\s_]/g, '') === objetivo) {
-                    return obj[k];
-                }
-            }
-        }
-        return undefined;
-    };
-
-    const _parseFechaHora = (valor) => {
-        if (valor instanceof Date) return isNaN(valor) ? null : valor;
-        let s = _norm(valor).replace(/^'/, '');
-        if (!s) return null;
-        if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
-            const d = new Date(s);
-            return isNaN(d) ? null : d;
-        }
-        if (/^\d{4}-\d{2}-\d{2}[ T]\d{1,2}:\d{2}/.test(s)) {
-            const d = new Date(s.replace(' ', 'T'));
-            return isNaN(d) ? null : d;
-        }
-        const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
-        if (m) {
-            const [, dd, mm, yyyy, hh = '0', mi = '0', ss = '0'] = m;
-            return new Date(+yyyy, +mm - 1, +dd, +hh, +mi, +ss);
-        }
-        const d = new Date(s);
-        return isNaN(d) ? null : d;
-    };
-
-    const _parseHora12h = (valor) => {
-        if (valor instanceof Date) {
-            return { h: valor.getHours(), m: valor.getMinutes(), s: valor.getSeconds() };
-        }
-        let s = _norm(valor).toLowerCase().replace(/\./g, '');
-        if (!s) return { h: 0, m: 0, s: 0 };
-        const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?$/i);
-        if (!m) return { h: 0, m: 0, s: 0 };
-        let h = +m[1], mi = +m[2], se = +(m[3] || 0);
-        const ap = (m[4] || '').toLowerCase();
-        if (ap === 'pm' && h < 12) h += 12;
-        if (ap === 'am' && h === 12) h = 0;
-        return { h, m: mi, s: se };
-    };
-
-    const _combinarFechaHora = (fechaVal, horaVal) => {
-        const f = _parseFechaHora(fechaVal);
-        if (!f) return null;
-        const { h, m, s } = _parseHora12h(horaVal);
-        return new Date(f.getFullYear(), f.getMonth(), f.getDate(), h, m, s);
-    };
-
-    const _lunes6am = (deFecha) => {
-        const d = new Date(deFecha.getFullYear(), deFecha.getMonth(), deFecha.getDate());
-        const dow = d.getDay();
-        const diff = (dow === 0) ? -6 : (1 - dow);
-        d.setDate(d.getDate() + diff);
-        d.setHours(6, 0, 0, 0);
-        return d;
-    };
-
-    const _finDelDia = (deFecha) => {
-        const d = new Date(deFecha.getFullYear(), deFecha.getMonth(), deFecha.getDate());
-        d.setHours(23, 59, 59, 999);
-        return d;
-    };
-
-    const _num = (n) => {
-        const v = Number(String(n == null ? '' : n).replace(/,/g, '').trim());
-        return isNaN(v) ? 0 : v;
-    };
-
-    const _fmtDDMMYYYY = (d) => {
-        const dd = String(d.getDate()).padStart(2, '0');
-        const mm = String(d.getMonth() + 1).padStart(2, '0');
-        return `${dd}/${mm}/${d.getFullYear()}`;
-    };
-
-    try {
-        const d = window.datosUltimoTurno;
-        const fechaStr = d.fecha;
-
-        if (!fechaStr || fechaStr === 'N/A') {
-            hideLoader(); alert('⚠️ No se pudo determinar la fecha del turno.'); return;
-        }
-
-        const fechaCorte = _parseFechaHora(fechaStr);
-        if (!fechaCorte) {
-            hideLoader(); alert('⚠️ La fecha del turno no es válida: ' + fechaStr); return;
-        }
-
-        const lunesSemana = _lunes6am(fechaCorte);
-        const finCorte = _finDelDia(fechaCorte);
-        const lunesStr = _fmtDDMMYYYY(lunesSemana);
-
-        // 2. Traer todos los datos
-        const [resInv, resLavado, resTlahuac, resAlmacenes] = await Promise.all([
-            fetch(APPS_SCRIPT_INVENTARIO + '?action=getInventario').then(r => r.json()),
-            fetch(APPS_SCRIPT_LAVADO + '?action=getLavado').then(r => r.json()),
-            fetch(APPS_SCRIPT_INVENTARIO + '?action=getTlahuac').then(r => r.json()),
-            fetch(APPS_SCRIPT_INVENTARIO + '?action=getAlmacenes').then(r => r.json())
-        ]);
-
-        // ============================================================
-        // 3. INVENTARIO BASE — agrupa por ID_Lote y suma todos los Total
-        // ============================================================
-        const lotesInv = {};
-
-        (resInv.data || []).forEach(item => {
-            if (!item.Fecha) return;
-            const f = _parseFechaHora(item.Fecha);
-            if (!f) return;
-
-            const idLote = _norm(_get(item, 'ID_Lote', 'ID')) || _fmtDDMMYYYY(f);
-            const total = _num(_get(item, 'Total', 'TOTAL'));
-
-            if (!lotesInv[idLote]) lotesInv[idLote] = { fecha: f, suma: 0 };
-            lotesInv[idLote].suma += total;
-        });
-
-        let inventarioBase = 0;
-        let fechaInventarioBase = null;
-        const cDia = new Date(fechaCorte.getFullYear(), fechaCorte.getMonth(), fechaCorte.getDate());
-
-        Object.values(lotesInv).forEach(lote => {
-            const fDia = new Date(lote.fecha.getFullYear(), lote.fecha.getMonth(), lote.fecha.getDate());
-            if (fDia <= cDia) {
-                if (!fechaInventarioBase || fDia > fechaInventarioBase) {
-                    fechaInventarioBase = fDia;
-                    inventarioBase = lote.suma;
-                }
-            }
-        });
-
-        if (inventarioBase === 0) {
-            hideLoader();
-            alert(`⚠️ NO SE ENCUENTRA INVENTARIO BASE.\nNo hay lotes de Inventario con fecha <= ${fechaStr}.`);
-            return;
-        }
-
-        // ============================================================
-        // 4. ENTRADAS DOMINOS
-        //    todosRegistros = array de capturas.
-        //    Cada captura tiene la fecha en marcaTemporal/fecha (col A)
-        //    y las tiendas dentro de reg.registros[] con tipo/cantidadFisica.
-        // ============================================================
-        let totalEntradasDominos = 0;
-        let filasDominos = 0;
-        let capturasEnRango = 0;
-        const muestrasDebug = [];
-
-        // Debug de estructura (solo la primera vez)
-        if (todosRegistros && todosRegistros.length) {
-            console.log('🔍 KEYS captura[0]:', Object.keys(todosRegistros[0]));
-            const sub = todosRegistros[0].registros || todosRegistros[0].items || todosRegistros[0].detalle || todosRegistros[0].tiendas || [];
-            if (sub.length) {
-                console.log('🔍 KEYS tienda[0]:', Object.keys(sub[0]));
-                console.log('🔍 tienda[0]:', JSON.stringify(sub[0], null, 2));
-            }
-        }
-
-        (todosRegistros || []).forEach(reg => {
-            // Fecha/hora de la captura (col A)
-            const f = _parseFechaHora(
-                _get(reg, 'marcaTemporal', 'MARCA TEMPORAL', 'fechaHora', 'timestamp')
-            ) || _parseFechaHora(_get(reg, 'fecha', 'FECHA'));
-            if (!f) return;
-            if (f < lunesSemana || f > finCorte) return;
-            capturasEnRango++;
-
-            // Tiendas dentro de la captura
-            const items = reg.registros || reg.items || reg.detalle || reg.tiendas || [];
-            items.forEach(t => {
-                const tipoRaw = _get(t, 'tipo', 'marca', 'MARCA', 'Marca');
-                const tipo = _norm(tipoRaw).toUpperCase();
-                if (tipo !== 'DOMINOS' && tipo !== "DOMINO'S") return;
-
-                const cant = _num(_get(t, 'cantidadFisica', 'cantidad', 'CANTIDAD', 'cant'));
-                totalEntradasDominos += cant;
-                filasDominos++;
-
-                if (muestrasDebug.length < 3) {
-                    muestrasDebug.push({ tipo: tipoRaw, fecha: f.toISOString(), cant });
-                }
-            });
-        });
-
-        console.log('🔍 DEBUG Dominos v3:', {
-            totalCapturas: (todosRegistros || []).length,
-            capturasEnRango,
-            itemsDominos: filasDominos,
-            totalEntradasDominos,
-            lunesSemana,
-            finCorte,
-            muestras: muestrasDebug
-        });
-
-        // ============================================================
-        // 5. SALIDAS (Lavado)
-        // ============================================================
-        let totalTarimasLavadas = 0;
-
-        (resLavado.data || []).forEach(item => {
-            const fh = _combinarFechaHora(
-                _get(item, 'Fecha', 'FECHA'),
-                _get(item, 'Hora', 'HORA')
-            );
-            if (!fh) return;
-            if (fh < lunesSemana || fh > finCorte) return;
-
-            let consumidas = _num(_get(item, 'Consumidas', 'CONSUMIDAS'));
-            if (!consumidas) {
-                const col = _num(_get(item, 'Colocadas', 'COLOCADAS'));
-                const que = _num(_get(item, 'Quedan', 'QUEDAN'));
-                consumidas = Math.max(0, col - que);
-            }
-            totalTarimasLavadas += consumidas;
-        });
-
-        const lavadoTurnoActual = (resLavado.data || []).find(l => {
-            const f = _parseFechaHora(_get(l, 'Fecha', 'FECHA'));
-            if (!f) return false;
-            const mismoDia = f.getFullYear() === fechaCorte.getFullYear()
-                && f.getMonth() === fechaCorte.getMonth()
-                && f.getDate() === fechaCorte.getDate();
-            const mismoTurno = _norm(_get(l, 'Turno', 'TURNO')).toUpperCase() === _norm(d.turno).toUpperCase();
-            return mismoDia && mismoTurno;
-        });
-
-        if (!lavadoTurnoActual) {
-            const continuar = confirm(`⚠️ No se encontró registro de Lavado del turno ${d.turno} de hoy.\n\n¿Deseas continuar de todos modos?`);
-            if (!continuar) { hideLoader(); return; }
-        }
-
-        // ============================================================
-        // 6. Totales Históricos (Tlahuac y Almacenes)
-        // ============================================================
-        let totalTlahuac = 0;
-        const tlahuacDetalle = { azul: 0, verde: 0, rojo: 0, amarillo: 0, tarimas: 0 };
-        (resTlahuac.data || []).forEach(item => {
-            const cT = _num(_get(item, 'Charolas/Tarima', 'CharolasTarima'));
-            const az = _num(_get(item, 'Azul'));
-            const v = _num(_get(item, 'Verde'));
-            const r = _num(_get(item, 'Rojo'));
-            const am = _num(_get(item, 'Amarillo'));
-            tlahuacDetalle.azul += az; tlahuacDetalle.verde += v;
-            tlahuacDetalle.rojo += r; tlahuacDetalle.amarillo += am;
-            tlahuacDetalle.tarimas += (az + v + r + am);
-            totalTlahuac += ((az + v + r + am) * cT);
-        });
-
-        let totalAlmacenes = 0;
-        const almacenesDetalle = { azul: 0, verde: 0, rojo: 0, amarillo: 0, tarimas: 0 };
-        (resAlmacenes.data || []).forEach(item => {
-            const cT = _num(_get(item, 'Charolas/Tarima', 'CharolasTarima'));
-            const az = _num(_get(item, 'Azul'));
-            const v = _num(_get(item, 'Verde'));
-            const r = _num(_get(item, 'Rojo'));
-            const am = _num(_get(item, 'Amarillo'));
-            almacenesDetalle.azul += az; almacenesDetalle.verde += v;
-            almacenesDetalle.rojo += r; almacenesDetalle.amarillo += am;
-            almacenesDetalle.tarimas += (az + v + r + am);
-            totalAlmacenes += ((az + v + r + am) * cT);
-        });
-
-        // ============================================================
-        // 7. FÓRMULA
-        // ============================================================
-        const charolasLavadas = totalTarimasLavadas * 120;
-        const inventarioAproximado = inventarioBase + totalEntradasDominos - charolasLavadas;
-        const totalGeneral = inventarioAproximado + totalTlahuac + totalAlmacenes;
-
-        // 8. Mensaje
-        const fechaGeneracion = new Date();
-        const fechaGenStr = `${fechaGeneracion.getDate()}/${fechaGeneracion.getMonth() + 1}/${fechaGeneracion.getFullYear()}`;
-        const formatNum = (num) => new Intl.NumberFormat('es-MX').format(num);
-        const fechaInvTxt = fechaInventarioBase ? _fmtDDMMYYYY(fechaInventarioBase) : 'N/D';
-
-        const mensaje = `📊 *CORTE DE TURNO* 📊
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📅 Fecha del turno: *${d.fecha || 'N/A'}*
-🔄 Turno: *${d.turno}*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 *RESUMEN DEL TURNO*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📝 Registros capturados: ${d.registros}
-🏪 Total tiendas: ${d.tiendas}
-🍕 Charolas DOMINO'S: ${d.dominos}
-☕ Charolas STARBUCKS: ${d.starbucks}
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 *INVENTARIO*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📈 Inventario Almacén Charolas: *${formatNum(inventarioAproximado)}*
-
-📍 *TLAHUAC (General)*
-🔵 Azul: ${tlahuacDetalle.azul} tarimas
-🟢 Verde: ${tlahuacDetalle.verde} tarimas
-🔴 Rojo: ${tlahuacDetalle.rojo} tarimas
-🟡 Amarillo: ${tlahuacDetalle.amarillo} tarimas
-📦 *Total Tarimas: ${tlahuacDetalle.tarimas}* (${formatNum(totalTlahuac)} charolas)
-
-🏭 *ALMACENES (General)*
-🔵 Azul: ${almacenesDetalle.azul} tarimas
-🟢 Verde: ${almacenesDetalle.verde} tarimas
-🔴 Rojo: ${almacenesDetalle.rojo} tarimas
-🟡 Amarillo: ${almacenesDetalle.amarillo} tarimas
-📦 *Total Tarimas: ${almacenesDetalle.tarimas}* (${formatNum(totalAlmacenes)} charolas)
-
-🏆 *TOTAL GENERAL: ${formatNum(totalGeneral)}*
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-✅ *Corte generado automáticamente*
-Sistema de Control de Charolas`;
-
-        hideLoader();
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
-
-    } catch (error) {
-        hideLoader();
-        console.error(error);
-        alert('❌ Error al calcular: ' + error.message);
-    }
-}
-
 function cerrarVentana() { window.close(); }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -1173,14 +803,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target === this) cerrarModalDescarga();
     });
 });
-
-function diagnosticarDatos() {
-    console.log('🔍 DIAGNÓSTICO');
-    console.log('Total registros:', todosRegistros.length);
-    if(todosRegistros.length > 0) {
-        console.log('Primer registro:', JSON.stringify(todosRegistros[0], null, 2));
-    }
-}
 </script>
 </body>
 </html>

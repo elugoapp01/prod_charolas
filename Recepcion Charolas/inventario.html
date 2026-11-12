@@ -31,6 +31,7 @@
         .btn-warning { background: var(--naranja); color: white; }
         .btn-morado { background: var(--morado); color: white; }
         .btn-bloqueado { background: #ccc !important; color: #666 !important; cursor: not-allowed !important; transform: none !important; }
+        
         .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: stretch; flex: 0 0 auto; height: 42vh; min-height: 190px; max-height: 340px; }
         .card { background: white; border-radius: 14px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 3px solid var(--gris); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; height: 100%; min-height: 0; overflow: hidden; }
         .card-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; position: absolute; top: 10px; left: 0; padding: 0 12px; }
@@ -48,6 +49,7 @@
         .card-compact .card-header h2 { font-size: 0.6rem; }
         .card-compact .card-header span { font-size: 0.5rem; padding: 2px 5px; }
         .card-compact .btn-detalle { padding: 2px 8px; font-size: 0.55rem; margin-top: 3px; }
+        
         .color-list-container { width: 100%; margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; align-content: center; }
         .color-box { border-radius: 10px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px solid transparent; }
         .color-box.box-azul { background: #EFF6FF; border-color: #93C5FD; color: #1E3A8A; }
@@ -57,6 +59,7 @@
         .color-box .lbl { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
         .color-box .t { font-size: 0.55rem; font-weight: 600; opacity: 0.7; margin-bottom: 2px; }
         .color-box .c { font-size: 0.85rem; font-weight: 900; }
+
         .card-inv-almacen { padding: 12px; justify-content: flex-start; gap: 8px; }
         .card-inv-almacen .card-header { position: relative; top: 0; left: 0; padding: 0; border-bottom: none; margin-bottom: 2px; }
         .inv-top-row { display: flex; width: 100%; gap: 8px; height: 55%; }
@@ -81,10 +84,12 @@
         .inv-mini-box .lbl { font-size: 0.6rem; font-weight: 600; margin-bottom: 2px; text-transform: capitalize; }
         .inv-mini-box .num { font-size: 0.8rem; font-weight: 900; }
         .inv-mini-box .unit { font-size: 0.55rem; font-weight: 800; }
+        
         .chart-container { background: white; border-radius: 14px; padding: 8px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 3px solid var(--gris); flex: 1 1 auto; min-height: 110px; display: flex; flex-direction: column; overflow: hidden; }
         .chart-container .card-header { position: relative; top: 0; left: 0; padding: 0; margin-bottom: 4px; flex-shrink: 0; }
         .chart-container .card-header h2 { font-size: 0.7rem; }
         .chart-container canvas { flex: 1 1 auto; min-height: 0; width: 100% !important; height: 100% !important; }
+        
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .modal-overlay.active { display: flex; }
         .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 6px solid var(--azul-fuerte); }
@@ -93,32 +98,53 @@
         .modal-header h2 { color: var(--azul); font-size: 1.3rem; }
         .modal-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: #A0AEC0; transition: 0.2s; }
         .modal-close:hover { color: var(--rojo); transform: rotate(90deg); }
+        
         .form-group { margin-bottom: 15px; }
         .form-group label { font-size: 0.7rem; font-weight: 800; color: var(--azul); text-transform: uppercase; display: block; margin-bottom: 4px; }
         .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 3px solid var(--gris); border-radius: 10px; font-size: 0.95rem; font-weight: 600; transition: 0.3s; text-transform: uppercase; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--azul-fuerte); box-shadow: 0 0 0 3px rgba(26,95,158,0.12); }
         .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .form-row .form-group { flex: 1; min-width: 120px; }
+        
         .table-modal { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 15px; }
         .table-modal th { background: var(--azul); color: white; padding: 8px; font-size: 0.7rem; text-transform: uppercase; position: sticky; top: 0; }
         .table-modal td { padding: 4px; border-bottom: 2px solid #f0f0f0; }
         .table-modal input, .table-modal select { width: 100%; padding: 8px; border: 2px solid var(--gris); border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-align: center; }
         .table-modal .col-total { background: #E8F8F0; font-weight: 900; color: var(--verde); text-align: center; font-size: 1rem; }
         .btn-add-row { background: var(--verde-claro); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-bottom: 15px; }
+        
         .total-display { background: var(--azul); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .total-display span { font-size: 1.8rem; font-weight: 900; }
         .total-display small { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; opacity: 0.8; }
+        
         .action-buttons-modal { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
         .btn-in { background: #E8F8F0; color: var(--verde); border: 2px solid var(--verde); }
         .btn-in:hover { background: var(--verde); color: white; }
         .btn-out { background: #FDEDEC; color: var(--rojo); border: 2px solid var(--rojo); }
         .btn-out:hover { background: var(--rojo); color: white; }
+        
         .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100000; }
         .loader-overlay.active { display: flex; }
         .loader-content { background: white; padding: 36px 44px; border-radius: 28px; text-align: center; border: 6px solid var(--amarillo); }
         .loader-spinner { width: 60px; height: 60px; border: 7px solid #D5D8DC; border-top-color: #1A5F9E; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
         .loader-content p { font-size: 1.1rem; font-weight: 700; color: #0A2342; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Quitar flechas de los inputs numéricos */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+        
+        /* OCULTAR GRÁFICA EN CELULARES/TABLETS Y EXPANDIR TARJETAS */
+        @media (max-width: 1024px) {
+            .chart-container { display: none !important; }
+            .grid-container { flex: 1 1 auto !important; height: auto !important; max-height: none !important; margin-bottom: 0 !important; }
+        }
         @media (max-width: 1200px) { .grid-container { grid-template-columns: repeat(2, 1fr); height: 50vh; } }
         @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; height: auto; } body { height: auto; overflow: auto; } }
         @media (max-height: 700px) { .grid-container { height: 38vh; min-height: 170px; } .kpi-number { font-size: clamp(1.2rem, 2.6vh, 1.8rem); } .chart-container { min-height: 90px; } }
@@ -148,6 +174,7 @@
         <button class="btn btn-morado" id="btnManufactura" onclick="abrirModal('modalManufactura')">🏭 Manufactura</button>
         <button class="btn btn-info" onclick="abrirModal('modalTlahuac')">📍 Tlahuac</button>
         <button class="btn btn-warning" onclick="abrirModal('modalAlmacenes')">📦 Almacén</button>
+        <button class="btn btn-success" onclick="enviarCorteWhatsApp()">📤 Enviar Corte</button>
         <button class="btn btn-success" id="btnRefresh" onclick="cargarDatos()">🔄</button>
     </div>
 </div>
@@ -238,6 +265,7 @@
     <canvas id="chartGap"></canvas>
 </div>
 
+<!-- MODAL EDICIÓN MANUAL (ENTRADA/SALIDA) -->
 <div class="modal-overlay" id="modalEdicion">
     <div class="modal-content small" style="border-color: var(--verde);">
         <div class="modal-header">
@@ -248,9 +276,10 @@
             <label>Cantidad de charolas</label>
             <input type="number" id="editInputCantidad" value="0">
         </div>
-        <div style="text-align: right; margin-top: 15px;">
+        <div class="action-buttons-modal">
             <button class="btn" style="background: #ccc; color: #333;" onclick="cerrarModal('modalEdicion')">Cancelar</button>
-            <button class="btn btn-primary" id="btnGuardarEdit" onclick="guardarEdicion()">💾 Guardar</button>
+            <button class="btn btn-out" onclick="guardarMovimientoLimpia(-1)">📤 Salida (-)</button>
+            <button class="btn btn-in" onclick="guardarMovimientoLimpia(1)">📥 Entrada (+)</button>
         </div>
     </div>
 </div>
@@ -274,6 +303,7 @@
     </div>
 </div>
 
+<!-- MODAL INVENTARIO -->
 <div class="modal-overlay" id="modalInventario">
     <div class="modal-content">
         <div class="modal-header">
@@ -286,7 +316,18 @@
             <small>Charolas</small>
         </div>
         <table class="table-modal" id="tablaModalInventario">
-            <thead><tr><th>Zona</th><th>Tarimas</th><th>Torres / Tarima</th><th>Charolas / Torre</th><th>Total</th><th>❌</th></tr></thead>
+            <thead>
+                <tr>
+                    <th>Zona</th>
+                    <th>Tipo</th>
+                    <th>Color</th>
+                    <th>Tarimas</th>
+                    <th>Torres</th>
+                    <th>Charolas/Torre</th>
+                    <th>Total</th>
+                    <th>❌</th>
+                </tr>
+            </thead>
             <tbody></tbody>
         </table>
         <button class="btn-add-row" onclick="agregarFilaInventario()">➕ Agregar Fila</button>
@@ -382,8 +423,8 @@
 </div>
 
 <script>
-    // ⚠️ PEGA AQUÍ LA URL DE TU APPS SCRIPT (La única que necesitas)
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwjTdV86X1-8dPDOFAFd3VB6wNTwiGe7rwOl53QIGJgHoz4QbghqUJlf7ex3mdWbplh/exec';
+    // ⚠️ URL DE APPS SCRIPT
+    const API_URL = 'https://script.google.com/macros/s/AKfycby-sbuarwVO8MTcu_XXj8qsuE-tNP9O3uz88ZncUg1u4kVtCBVLnV55ZVF_nv7UrV29/exec';
     const API_URL_LAVADO = 'https://script.google.com/macros/s/AKfycbwcluWJgTsfpT2QbBzom5seFVIU9XWBe7PK9SkFQPn4xK9NFshOlGjcs5qbQTzGJgyF/exec';
     const API_URL_ENTRADAS = 'https://script.google.com/macros/s/AKfycbzmW61PTvNdvokvpWjNI3BJicyjBSPmky_o_N1SlU8Op1PtrkLXEWDSeO7VJDq7hAs/exec';
     
@@ -395,7 +436,11 @@
     let totalDetalleUltimo = 0;
     let totalDetalleManu = 0;
 
-    let datosGlobales = { inventario: [], tlahuac: [], almacenes: [], manufactura: [], lavado: [], entradas: [] };
+    let datosGlobales = { inventario: [], tlahuac: [], almacenes: [], manufactura: [], lavado: [], entradas: [], limpias: [] };
+    
+    // Variables globales para el corte de WhatsApp
+    let tAzulTarGlobal = 0, tVerdeTarGlobal = 0, tRojoTarGlobal = 0, tAmarilloTarGlobal = 0, totalTlahuacGlobal = 0;
+    let aAzulTarGlobal = 0, aVerdeTarGlobal = 0, aRojoTarGlobal = 0, aAmarilloTarGlobal = 0, totalAlmacenesGlobal = 0;
 
     let editandoTipo = '';
     let totalInventarioAproximadoGlobal = 0;
@@ -436,14 +481,14 @@
         }
     }
 
-    async function apiGetManual() {
+    async function apiGetLimpias() {
         return new Promise((resolve) => {
-            const callback = 'cbM_' + Date.now();
+            const callback = 'cbLimp_' + Date.now();
             window[callback] = (res) => { delete window[callback]; resolve(res); };
             const script = document.createElement('script');
-            script.src = `${API_URL}?action=getInventarioManual&callback=${callback}&_t=${Date.now()}`;
+            script.src = `${API_URL}?action=getInventarioLimpias&callback=${callback}&_t=${Date.now()}`;
             document.body.appendChild(script);
-            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false, azul: 0, verde: 0 }); } }, 10000);
+            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false, data: [] }); } }, 10000);
         });
     }
 
@@ -454,22 +499,14 @@
         return { success: true };
     }
 
-    async function apiPostManual(azul, verde) {
+    async function apiPostMovimientoLimpia(tipoColor, cantidad, tipoMov) {
         return new Promise((resolve) => {
-            const callback = 'cbSave_' + Date.now();
-            window[callback] = (res) => { 
-                delete window[callback]; 
-                resolve(res); 
-            };
+            const callback = 'cbSaveLimp_' + Date.now();
+            window[callback] = (res) => { delete window[callback]; resolve(res); };
             const script = document.createElement('script');
-            script.src = `${API_URL}?action=guardarInventarioManual&azul=${azul}&verde=${verde}&callback=${callback}&_t=${Date.now()}`;
+            script.src = `${API_URL}?action=guardarMovimientoLimpia&tipo=${tipoColor}&cantidad=${cantidad}&_t=${Date.now()}`;
             document.body.appendChild(script);
-            setTimeout(() => { 
-                if (window[callback]) { 
-                    delete window[callback]; 
-                    resolve({ success: false }); 
-                } 
-            }, 10000);
+            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false }); } }, 10000);
         });
     }
 
@@ -623,18 +660,30 @@
         return totalCharolas;
     }
 
-    async function cargarValoresManuales() {
-        const res = await apiGetManual();
-        if (res && res.success) {
-            document.getElementById('invAzulLimpia').textContent = (res.azul || 0).toLocaleString('es-MX');
-            document.getElementById('invVerdeLimpia').textContent = (res.verde || 0).toLocaleString('es-MX');
-        }
+    function calcularAzulLimpia() {
+        let total = 0;
+        (datosGlobales.limpias || []).forEach(row => {
+            if (String(row['Tipo']).toUpperCase() === 'AZUL') {
+                total += Number(row['Cantidad']) || 0;
+            }
+        });
+        return total;
+    }
+
+    function calcularVerdeLimpia() {
+        let total = 0;
+        (datosGlobales.limpias || []).forEach(row => {
+            if (String(row['Tipo']).toUpperCase() === 'VERDE') {
+                total += Number(row['Cantidad']) || 0;
+            }
+        });
+        return total;
     }
 
     function abrirModalEdicion(tipo) {
         editandoTipo = tipo;
         const titulo = tipo === 'azul' ? 'Azul Limpia' : 'Verde Limpia';
-        document.getElementById('editTitulo').textContent = `Editar ${titulo}`;
+        document.getElementById('editTitulo').textContent = `Registrar Movimiento: ${titulo}`;
         
         const currentStr = document.getElementById(tipo === 'azul' ? 'invAzulLimpia' : 'invVerdeLimpia').textContent.replace(/,/g, '');
         const currentVal = parseInt(currentStr) || 0;
@@ -643,29 +692,16 @@
         document.getElementById('modalEdicion').classList.add('active');
     }
 
-    async function guardarEdicion() {
-        const val = parseInt(document.getElementById('editInputCantidad').value) || 0;
+    async function guardarMovimientoLimpia(factor) {
+        const cant = parseInt(document.getElementById('editInputCantidad').value) || 0;
+        if (cant === 0) { alert('⚠️ Ingresa una cantidad válida.'); return; }
         
-        let azul = parseInt(document.getElementById('invAzulLimpia').textContent.replace(/,/g, '')) || 0;
-        let verde = parseInt(document.getElementById('invVerdeLimpia').textContent.replace(/,/g, '')) || 0;
+        const cantidadFinal = cant * factor;
+        const tipoColor = editandoTipo === 'azul' ? 'Azul' : 'Verde';
         
-        if (editandoTipo === 'azul') azul = val;
-        if (editandoTipo === 'verde') verde = val;
-        
-        document.getElementById('invAzulLimpia').textContent = azul.toLocaleString('es-MX');
-        document.getElementById('invVerdeLimpia').textContent = verde.toLocaleString('es-MX');
         cerrarModal('modalEdicion');
-        
-        await apiPostManual(azul, verde);
-        actualizarRetorno();
-    }
-
-    function actualizarRetorno() {
-        const azul = parseInt(document.getElementById('invAzulLimpia').textContent.replace(/,/g, '')) || 0;
-        const verde = parseInt(document.getElementById('invVerdeLimpia').textContent.replace(/,/g, '')) || 0;
-        
-        const retorno = totalInventarioAproximadoGlobal - azul - verde;
-        document.getElementById('invRetorno').textContent = retorno.toLocaleString('es-MX');
+        await apiPostMovimientoLimpia(tipoColor, cantidadFinal, factor > 0 ? 'Entrada' : 'Salida');
+        cargarDatos();
     }
 
     function abrirModal(id) {
@@ -710,6 +746,22 @@
                     <option value="otro">Otro</option>
                 </select>
             </td>
+            <td>
+                <select class="inp-tipo" onchange="actualizarColorFila(this)">
+                    <option value="Retorno">Retorno</option>
+                    <option value="Limpia">Limpia</option>
+                    <option value="Destrucción">Destrucción</option>
+                </select>
+            </td>
+            <td>
+                <select class="inp-color">
+                    <option value="Multicolor">Multicolor</option>
+                    <option value="Azul">Azul</option>
+                    <option value="Verde">Verde</option>
+                    <option value="Amarilla">Amarilla</option>
+                    <option value="Roja">Roja</option>
+                </select>
+            </td>
             <td><input type="number" class="inp-tarimas" value="0" oninput="calcularFila(this)"></td>
             <td><input type="number" class="inp-torres" value="0" oninput="calcularFila(this)"></td>
             <td><input type="number" class="inp-charolas" value="0" oninput="calcularFila(this)"></td>
@@ -717,6 +769,19 @@
             <td><button style="background:var(--rojo); color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;" onclick="this.closest('tr').remove(); recalcularGranTotal();">✖</button></td>
         `;
         tbody.appendChild(tr);
+    }
+
+    function actualizarColorFila(selectTipo) {
+        const tr = selectTipo.closest('tr');
+        const selectColor = tr.querySelector('.inp-color');
+        
+        if (selectTipo.value === 'Limpia') {
+            selectColor.disabled = false;
+            selectColor.value = 'Azul';
+        } else {
+            selectColor.disabled = true;
+            selectColor.value = 'Multicolor';
+        }
     }
 
     function calcularFila(input) {
@@ -752,12 +817,14 @@
             const idLote = Date.now().toString();
             for (let tr of filas) {
                 const zona = tr.querySelector('.inp-zona').value;
+                const tipo = tr.querySelector('.inp-tipo').value;
+                const color = tr.querySelector('.inp-color').value;
                 const tarimas = tr.querySelector('.inp-tarimas').value;
                 const torres = tr.querySelector('.inp-torres').value;
                 const charolas = tr.querySelector('.inp-charolas').value;
                 const total = tr.querySelector('.total-fila').textContent;
                 if (zona) {
-                    await apiPost({ action: 'guardarInventario', idLote, zona, tarimas, torres, charolas, total });
+                    await apiPost({ action: 'guardarInventario', idLote, zona, tipo, color, tarimas, torres, charolas, total });
                     guardados++;
                 }
             }
@@ -848,10 +915,11 @@
     async function cargarDatos() {
         showLoader(); document.getElementById('btnRefresh').disabled = true;
         try {
-            const [resGeneral, resLavado, resEntradas] = await Promise.all([
+            const [resGeneral, resLavado, resEntradas, resLimpias] = await Promise.all([
                 apiGet('getAllData'),
                 apiGetLavado(),
-                apiGetEntradas()
+                apiGetEntradas(),
+                apiGetLimpias()
             ]);
 
             if (resGeneral && resGeneral.success) {
@@ -862,14 +930,15 @@
             }
             if (resLavado && resLavado.success && Array.isArray(resLavado.data)) {
                 datosGlobales.lavado = resLavado.data;
-            } else {
-                datosGlobales.lavado = [];
-            }
+            } else { datosGlobales.lavado = []; }
+            
             if (resEntradas && resEntradas.success && Array.isArray(resEntradas.data)) {
                 datosGlobales.entradas = resEntradas.data;
-            } else {
-                datosGlobales.entradas = [];
-            }
+            } else { datosGlobales.entradas = []; }
+            
+            if (resLimpias && resLimpias.success && Array.isArray(resLimpias.data)) {
+                datosGlobales.limpias = resLimpias.data;
+            } else { datosGlobales.limpias = []; }
 
             procesarDatosYFiltros();
         } catch (e) {
@@ -996,21 +1065,42 @@
         document.getElementById('almacenRojo').textContent = aRojoChar;
         document.getElementById('almacenAmarillo').textContent = aAmarilloChar;
 
+        // ============================================
+        // CALCULOS TARJETA INVENTARIO ALMACÉN
+        // ============================================
         const tarimasSalidas = calcularSalidasSemana();
         const charolasSalidas = tarimasSalidas * CHAROLAS_POR_TARIMA;
         const entradasCharolas = calcularEntradasSemana();
-        const inventarioFinal = totalInv + entradasCharolas - charolasSalidas;
 
+        let sumaRetornos = 0;
+        let sumaDestrucciones = 0;
+        invDeLaSemana.forEach(r => {
+            if (r['Tipo'] === 'Retorno') sumaRetornos += parseInt(r['Total']) || 0;
+            if (r['Tipo'] === 'Destrucción') sumaDestrucciones += parseInt(r['Total']) || 0;
+        });
+
+        const azulLimpiaTotal = calcularAzulLimpia();
+        const verdeLimpiaTotal = calcularVerdeLimpia();
+
+        const inventarioFinal = (sumaRetornos + sumaDestrucciones) + azulLimpiaTotal + verdeLimpiaTotal + entradasCharolas - charolasSalidas;
+        
         document.getElementById('salidasTarimas').textContent = tarimasSalidas.toLocaleString('es-MX');
         document.getElementById('salidasCharolas').textContent = charolasSalidas.toLocaleString('es-MX');
         document.getElementById('entradasCharolas').textContent = entradasCharolas.toLocaleString('es-MX');
         document.getElementById('inventarioCharolas').textContent = inventarioFinal.toLocaleString('es-MX');
         
-        totalInventarioAproximadoGlobal = inventarioFinal;
+        const retornoFinal = inventarioFinal - azulLimpiaTotal - verdeLimpiaTotal;
+        
+        document.getElementById('invRetorno').textContent = retornoFinal.toLocaleString('es-MX');
+        document.getElementById('invAzulLimpia').textContent = azulLimpiaTotal.toLocaleString('es-MX');
+        document.getElementById('invVerdeLimpia').textContent = verdeLimpiaTotal.toLocaleString('es-MX');
 
-        cargarValoresManuales().then(() => {
-            actualizarRetorno();
-        });
+        // Guardar datos globales para el corte de WhatsApp
+        tAzulTarGlobal = tAzulTar; tVerdeTarGlobal = tVerdeTar; tRojoTarGlobal = tRojoTar; tAmarilloTarGlobal = tAmarilloTar;
+        totalTlahuacGlobal = tAzulChar + tVerdeChar + tRojoChar + tAmarilloChar;
+        
+        aAzulTarGlobal = aAzulTar; aVerdeTarGlobal = aVerdeTar; aRojoTarGlobal = aRojoTar; aAmarilloTarGlobal = aAmarilloTar;
+        totalAlmacenesGlobal = aAzulChar + aVerdeChar + aRojoChar + aAmarilloChar;
 
         const hoy = new Date();
         document.getElementById('fechaConsumidas').textContent =
@@ -1057,6 +1147,8 @@
     }
 
     function renderizarGraficaBarras(semanas) {
+        if (window.innerWidth <= 1024) return; 
+
         const ctx = document.getElementById('chartGap').getContext('2d');
         if (chartGapInstance) chartGapInstance.destroy();
         const labels = [];
@@ -1123,6 +1215,143 @@
             plugins: [ChartDataLabels]
         });
     }
+
+    // Evitar que la rueda del mouse cambie los valores de los inputs numéricos
+    document.addEventListener('wheel', function(e) {
+        if (document.activeElement.type === 'number') {
+            document.activeElement.blur();
+        }
+    }, { passive: true });
+
+// ============================================
+// ENVIAR CORTE POR WHATSAPP DESDE INVENTARIO
+// ============================================
+function enviarCorteWhatsApp() {
+    const datosTurnoStr = localStorage.getItem('datosUltimoTurno');
+    
+    if (!datosTurnoStr) {
+        alert('⚠️ No se han cargado los datos del turno.\nPor favor, abre primero la pantalla del Repositorio y refresca para calcular el turno actual.');
+        return;
+    }
+
+    let d;
+    try {
+        d = JSON.parse(datosTurnoStr);
+    } catch(e) {
+        alert('⚠️ Error al leer los datos del turno guardados.');
+        return;
+    }
+
+    if (!d.registros || d.registros === 0) {
+        alert('⚠️ El último turno guardado no tiene registros.');
+        return;
+    }
+
+    const _num = (n) => {
+        const v = Number(String(n == null ? '' : n).replace(/,/g, '').trim());
+        return isNaN(v) ? 0 : v;
+    };
+    const formatNum = (num) => new Intl.NumberFormat('es-MX').format(num);
+
+    try {
+        // 1. DATOS DE LAS TARJETAS
+        const invAproximado = _num(document.getElementById('inventarioCharolas').textContent);
+        const invRetorno = _num(document.getElementById('invRetorno').textContent);
+        const invAzul = _num(document.getElementById('invAzulLimpia').textContent);
+        const invVerde = _num(document.getElementById('invVerdeLimpia').textContent);
+
+        const totalGeneral = invAproximado + totalTlahuacGlobal + totalAlmacenesGlobal;
+
+        // 2. CONSTRUIR BLOQUES DINÁMICOS PARA TLAHUAC Y ALMACENES
+        const multiplicador = 150; // 150 charolas por tarima para este reporte
+
+        // --- BLOQUE TLAHUAC ---
+        let txtTlahuac = '';
+        let tlahuacTieneDatos = false;
+        
+        if (tAzulTarGlobal > 0) {
+            txtTlahuac += `🔵 Azul: ${tAzulTarGlobal} tarimas (${formatNum(tAzulTarGlobal * multiplicador)} charolas)\n`;
+            tlahuacTieneDatos = true;
+        }
+        if (tVerdeTarGlobal > 0) {
+            txtTlahuac += `🟢 Verde: ${tVerdeTarGlobal} tarimas (${formatNum(tVerdeTarGlobal * multiplicador)} charolas)\n`;
+            tlahuacTieneDatos = true;
+        }
+        if (tRojoTarGlobal > 0) {
+            txtTlahuac += `🔴 Rojo: ${tRojoTarGlobal} tarimas (${formatNum(tRojoTarGlobal * multiplicador)} charolas)\n`;
+            tlahuacTieneDatos = true;
+        }
+        if (tAmarilloTarGlobal > 0) {
+            txtTlahuac += `🟡 Amarillo: ${tAmarilloTarGlobal} tarimas (${formatNum(tAmarilloTarGlobal * multiplicador)} charolas)\n`;
+            tlahuacTieneDatos = true;
+        }
+
+        let bloqueTlahuac = '';
+        if (tlahuacTieneDatos) {
+            const totalTarimasTl = tAzulTarGlobal + tVerdeTarGlobal + tRojoTarGlobal + tAmarilloTarGlobal;
+            bloqueTlahuac = `📍 *TLAHUAC (General)*\n${txtTlahuac}📦 *Total Tarimas: ${totalTarimasTl}* (${formatNum(totalTarimasTl * multiplicador)} charolas)\n\n`;
+        }
+
+        // --- BLOQUE ALMACENES ---
+        let txtAlmacenes = '';
+        let almacenesTieneDatos = false;
+        
+        if (aAzulTarGlobal > 0) {
+            txtAlmacenes += `🔵 Azul: ${aAzulTarGlobal} tarimas (${formatNum(aAzulTarGlobal * multiplicador)} charolas)\n`;
+            almacenesTieneDatos = true;
+        }
+        if (aVerdeTarGlobal > 0) {
+            txtAlmacenes += `🟢 Verde: ${aVerdeTarGlobal} tarimas (${formatNum(aVerdeTarGlobal * multiplicador)} charolas)\n`;
+            almacenesTieneDatos = true;
+        }
+        if (aRojoTarGlobal > 0) {
+            txtAlmacenes += `🔴 Rojo: ${aRojoTarGlobal} tarimas (${formatNum(aRojoTarGlobal * multiplicador)} charolas)\n`;
+            almacenesTieneDatos = true;
+        }
+        if (aAmarilloTarGlobal > 0) {
+            txtAlmacenes += `🟡 Amarillo: ${aAmarilloTarGlobal} tarimas (${formatNum(aAmarilloTarGlobal * multiplicador)} charolas)\n`;
+            almacenesTieneDatos = true;
+        }
+
+        let bloqueAlmacenes = '';
+        if (almacenesTieneDatos) {
+            const totalTarimasAl = aAzulTarGlobal + aVerdeTarGlobal + aRojoTarGlobal + aAmarilloTarGlobal;
+            bloqueAlmacenes = `🏭 *ALMACENES (General)*\n${txtAlmacenes}📦 *Total Tarimas: ${totalTarimasAl}* (${formatNum(totalTarimasAl * multiplicador)} charolas)\n\n`;
+        }
+
+        // 3. ARMAR EL MENSAJE FINAL
+        const mensaje = `📊 *CORTE DE TURNO* 📊
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📅 Fecha del turno: *${d.fecha || 'N/A'}*
+🔄 Turno: *${d.turno}*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 *RESUMEN DEL TURNO*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 Registros capturados: ${d.registros}
+🏪 Total tiendas: ${d.tiendas}
+🍕 Charolas DOMINO'S: ${formatNum(d.dominos)}
+☕ Charolas STARBUCKS: ${formatNum(d.starbucks)}
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 *INVENTARIO*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📈 Inventario aproximado en Almacén Charolas: *${formatNum(invAproximado)}*
+🟠 Retorno: *${formatNum(invRetorno)}*
+🔵 Limpia Azul: *${formatNum(invAzul)}*
+🟢 Limpia Verde: *${formatNum(invVerde)}*
+
+${bloqueTlahuac}${bloqueAlmacenes}🏆 *TOTAL GENERAL: ${formatNum(totalGeneral)}*
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ *Corte generado automáticamente*
+Sistema de Control de Charolas`;
+
+        // 4. ENVIAR A WHATSAPP
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
+
+    } catch (error) {
+        console.error(error);
+        alert('❌ Error al generar el corte: ' + error.message);
+    }
+}
 
     document.addEventListener('DOMContentLoaded', cargarDatos);
 </script>

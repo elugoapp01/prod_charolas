@@ -13,42 +13,16 @@
             --rojo: #E74C3C; --amarillo: #F1C40F; --naranja: #F39C12; --blanco: #FFFFFF;
             --gris-claro: #F0F2F5; --gris: #D5D8DC; --morado: #8E44AD;
         }
-
-        /* BODY: layout vertical flexible para que todo quepa en pantalla */
-        body {
-            background: var(--gris-claro);
-            height: 100vh;
-            height: 100dvh;
-            padding: 10px 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow: hidden;
-        }
-
-        .header {
-            background: var(--blanco);
-            border-radius: 14px;
-            padding: 8px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            border-bottom: 3px solid var(--amarillo);
-            flex-shrink: 0;
-        }
+        body { background: var(--gris-claro); height: 100vh; height: 100dvh; padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+        .header { background: var(--blanco); border-radius: 14px; padding: 8px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border-bottom: 3px solid var(--amarillo); flex-shrink: 0; }
         .header-left { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
         .header h1 { font-size: 1.05rem; color: var(--azul); }
         .header h1 span { color: var(--azul-fuerte); font-weight: 300; }
-        
         .filtro-semana { display: flex; align-items: center; gap: 6px; background: var(--gris-claro); padding: 4px 10px; border-radius: 10px; border: 2px solid var(--gris); }
         .filtro-semana label { font-size: 0.68rem; font-weight: 700; color: var(--azul); }
         .filtro-semana select { padding: 3px 5px; border-radius: 6px; border: 1px solid var(--gris); font-weight: 600; font-size: 0.75rem; outline: none; cursor: pointer; background: white; color: var(--azul-fuerte); }
-
         .action-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn { padding: 6px 11px; font-size: 0.72rem; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        .btn { padding: 6px 11px; font-size: 0.72rem; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.2s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
         .btn:hover { transform: scale(1.05); }
         .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .btn-primary { background: var(--azul); color: white; }
@@ -57,65 +31,15 @@
         .btn-warning { background: var(--naranja); color: white; }
         .btn-morado { background: var(--morado); color: white; }
         .btn-bloqueado { background: #ccc !important; color: #666 !important; cursor: not-allowed !important; transform: none !important; }
-
-        /* GRID DE TARJETAS (4 EN FILA) con altura controlada */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            align-items: stretch;
-            flex: 0 0 auto;
-            height: 42vh;
-            min-height: 190px;
-            max-height: 340px;
-        }
-        
-        .card {
-            background: white;
-            border-radius: 14px;
-            padding: 10px 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            border: 3px solid var(--gris);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            height: 100%;
-            min-height: 0;
-            overflow: hidden;
-        }
-        .card-header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            position: absolute;
-            top: 10px;
-            left: 0;
-            padding: 0 12px;
-        }
+        .grid-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: stretch; flex: 0 0 auto; height: 42vh; min-height: 190px; max-height: 340px; }
+        .card { background: white; border-radius: 14px; padding: 10px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 3px solid var(--gris); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; height: 100%; min-height: 0; overflow: hidden; }
+        .card-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; position: absolute; top: 10px; left: 0; padding: 0 12px; }
         .card-header h2 { font-size: 0.68rem; color: var(--azul); font-weight: 800; text-transform: uppercase; letter-spacing: 0.4px; }
         .card-header span { font-size: 0.55rem; background: var(--gris-claro); padding: 3px 6px; border-radius: 20px; font-weight: 700; color: var(--azul-fuerte); }
-        
         .kpi-number { font-size: clamp(1.4rem, 3vh, 2.4rem); font-weight: 900; color: var(--azul); margin-top: 8px; }
         .kpi-sub { font-size: 0.62rem; color: #888; text-align: center; font-weight: 600; margin-bottom: 6px; }
-        
-        .btn-detalle {
-            background: var(--gris-claro);
-            color: var(--azul);
-            border: 2px solid var(--gris);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.62rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: auto;
-        }
+        .btn-detalle { background: var(--gris-claro); color: var(--azul); border: 2px solid var(--gris); padding: 4px 10px; border-radius: 20px; font-size: 0.62rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: auto; }
         .btn-detalle:hover { background: var(--azul); color: white; border-color: var(--azul); }
-
-        /* COLUMNAS APILADAS */
         .stack-col { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
         .card-compact { flex: 1; min-height: 0; padding: 8px 12px; justify-content: flex-start; }
         .card-compact .kpi-number { font-size: clamp(1.1rem, 2.2vh, 1.5rem); margin-top: 14px; }
@@ -124,241 +48,80 @@
         .card-compact .card-header h2 { font-size: 0.6rem; }
         .card-compact .card-header span { font-size: 0.5rem; padding: 2px 5px; }
         .card-compact .btn-detalle { padding: 2px 8px; font-size: 0.55rem; margin-top: 3px; }
-
-        /* ==========================================
-           NUEVO DISEÑO DE COLORES EN CAJITAS (TLAHUAC/ALMACENES)
-           ========================================== */
-        .color-list-container { 
-            width: 100%; 
-            margin-top: 14px; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 6px; 
-            flex: 1;
-            align-content: center;
-        }
-        
-        .color-box {
-            border-radius: 10px;
-            padding: 6px 4px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            border: 2px solid transparent;
-        }
-        
-        /* Colores específicos para cada cajita */
+        .color-list-container { width: 100%; margin-top: 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; align-content: center; }
+        .color-box { border-radius: 10px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; border: 2px solid transparent; }
         .color-box.box-azul { background: #EFF6FF; border-color: #93C5FD; color: #1E3A8A; }
         .color-box.box-verde { background: #F0FDF4; border-color: #86EFAC; color: #166534; }
         .color-box.box-rojo { background: #FEF2F2; border-color: #FCA5A5; color: #991B1B; }
         .color-box.box-amarillo { background: #FEFCE8; border-color: #FDE047; color: #854D0E; }
-
         .color-box .lbl { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; margin-bottom: 2px; }
         .color-box .t { font-size: 0.55rem; font-weight: 600; opacity: 0.7; margin-bottom: 2px; }
         .color-box .c { font-size: 0.85rem; font-weight: 900; }
-
-
-        /* ==========================================
-           TARJETA INVENTARIO ALMACÉN CHAROLAS
-           ========================================== */
         .card-inv-almacen { padding: 12px; justify-content: flex-start; gap: 8px; }
         .card-inv-almacen .card-header { position: relative; top: 0; left: 0; padding: 0; border-bottom: none; margin-bottom: 2px; }
-        
-        .inv-top-row {
-            display: flex;
-            width: 100%;
-            gap: 8px;
-            height: 55%;
-        }
-        
-        /* Cuadro Izquierdo */
-        .inv-box-left {
-            flex: 1.2;
-            border: 2px solid #93C5FD; /* Azul claro */
-            background: #EFF6FF;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            padding: 6px 8px;
-            justify-content: center;
-        }
-        .inv-box-left .box-item {
-            display: flex;
-            flex-direction: column;
-        }
-        .inv-box-left .box-item .lbl {
-            font-size: 0.6rem;
-            color: #1E3A8A; /* Azul oscuro */
-            font-weight: 600;
-        }
-        .inv-box-left .box-item .val {
-            font-size: 0.7rem;
-            color: #1E3A8A;
-            font-weight: 900;
-            white-space: nowrap;
-        }
-        .inv-box-left .box-sep {
-            height: 1px;
-            background: #93C5FD;
-            margin: 4px 0;
-            opacity: 0.5;
-        }
-        
-        /* Cuadro Derecho (Inventario) */
-        .inv-box-right {
-            flex: 1;
-            background: linear-gradient(135deg, #0A2342 0%, #1A5F9E 100%);
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 6px;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(10,35,66,0.2);
-        }
-        .inv-box-right .lbl {
-            font-size: 0.6rem;
-            color: #BFDBFE;
-            font-weight: 800;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-        }
-        .inv-box-right .num {
-            font-size: clamp(1.2rem, 2.8vh, 1.8rem);
-            color: #FFFFFF;
-            font-weight: 900;
-            line-height: 1;
-        }
-        .inv-box-right .unit {
-            font-size: 0.6rem;
-            color: #BFDBFE;
-            font-weight: 800;
-        }
-        
-        .inv-bottom-row {
-            display: flex;
-            width: 100%;
-            gap: 8px;
-            flex: 1;
-        }
-        
-        .inv-mini-box {
-            flex: 1;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 6px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        /* Colores individuales de los mini-boxes */
+        .inv-top-row { display: flex; width: 100%; gap: 8px; height: 55%; }
+        .inv-box-left { flex: 1.2; border: 2px solid #93C5FD; background: #EFF6FF; border-radius: 12px; display: flex; flex-direction: column; padding: 6px 8px; justify-content: center; }
+        .inv-box-left .box-item { display: flex; flex-direction: column; }
+        .inv-box-left .box-item .lbl { font-size: 0.6rem; color: #1E3A8A; font-weight: 600; }
+        .inv-box-left .box-item .val { font-size: 0.7rem; color: #1E3A8A; font-weight: 900; white-space: nowrap; }
+        .inv-box-left .box-sep { height: 1px; background: #93C5FD; margin: 4px 0; opacity: 0.5; }
+        .inv-box-right { flex: 1; background: linear-gradient(135deg, #0A2342 0%, #1A5F9E 100%); border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; text-align: center; box-shadow: 0 4px 10px rgba(10,35,66,0.2); }
+        .inv-box-right .lbl { font-size: 0.6rem; color: #BFDBFE; font-weight: 800; text-transform: uppercase; margin-bottom: 2px; }
+        .inv-box-right .num { font-size: clamp(1.2rem, 2.8vh, 1.8rem); color: #FFFFFF; font-weight: 900; line-height: 1; }
+        .inv-box-right .unit { font-size: 0.6rem; color: #BFDBFE; font-weight: 800; }
+        .inv-bottom-row { display: flex; width: 100%; gap: 8px; flex: 1; }
+        .inv-mini-box { flex: 1; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; text-align: center; cursor: pointer; transition: all 0.2s; }
         .inv-mini-box.retorno { background: #FFF7ED; border: 2px solid #FDBA74; }
         .inv-mini-box.retorno .lbl, .inv-mini-box.retorno .num, .inv-mini-box.retorno .unit { color: #9A3412; }
-
         .inv-mini-box.azul { background: #EFF6FF; border: 2px solid #93C5FD; }
         .inv-mini-box.azul .lbl, .inv-mini-box.azul .num, .inv-mini-box.azul .unit { color: #1E3A8A; }
-
         .inv-mini-box.verde { background: #F0FDF4; border: 2px solid #86EFAC; }
         .inv-mini-box.verde .lbl, .inv-mini-box.verde .num, .inv-mini-box.verde .unit { color: #166534; }
-
-        .inv-mini-box:hover:not(.retorno) {
-            transform: scale(1.05);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        .inv-mini-box:hover:not(.retorno) { transform: scale(1.05); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .inv-mini-box .lbl { font-size: 0.6rem; font-weight: 600; margin-bottom: 2px; text-transform: capitalize; }
         .inv-mini-box .num { font-size: 0.8rem; font-weight: 900; }
         .inv-mini-box .unit { font-size: 0.55rem; font-weight: 800; }
-
-        /* GRÁFICA: ocupa el espacio restante */
-        .chart-container {
-            background: white;
-            border-radius: 14px;
-            padding: 8px 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            border: 3px solid var(--gris);
-            flex: 1 1 auto;
-            min-height: 110px;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .chart-container .card-header {
-            position: relative;
-            top: 0;
-            left: 0;
-            padding: 0;
-            margin-bottom: 4px;
-            flex-shrink: 0;
-        }
+        .chart-container { background: white; border-radius: 14px; padding: 8px 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 3px solid var(--gris); flex: 1 1 auto; min-height: 110px; display: flex; flex-direction: column; overflow: hidden; }
+        .chart-container .card-header { position: relative; top: 0; left: 0; padding: 0; margin-bottom: 4px; flex-shrink: 0; }
         .chart-container .card-header h2 { font-size: 0.7rem; }
-        .chart-container canvas {
-            flex: 1 1 auto;
-            min-height: 0;
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* MODALES */
-        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .chart-container canvas { flex: 1 1 auto; min-height: 0; width: 100% !important; height: 100% !important; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 9999; }
         .modal-overlay.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 6px solid var(--azul-fuerte); }
+        .modal-content { background: white; padding: 30px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.4); border: 6px solid var(--azul-fuerte); }
         .modal-content.small { max-width: 400px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 3px solid var(--gris-claro); padding-bottom: 10px; }
         .modal-header h2 { color: var(--azul); font-size: 1.3rem; }
         .modal-close { background: none; border: none; font-size: 2rem; cursor: pointer; color: #A0AEC0; transition: 0.2s; }
         .modal-close:hover { color: var(--rojo); transform: rotate(90deg); }
-
         .form-group { margin-bottom: 15px; }
         .form-group label { font-size: 0.7rem; font-weight: 800; color: var(--azul); text-transform: uppercase; display: block; margin-bottom: 4px; }
         .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 3px solid var(--gris); border-radius: 10px; font-size: 0.95rem; font-weight: 600; transition: 0.3s; text-transform: uppercase; }
         .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--azul-fuerte); box-shadow: 0 0 0 3px rgba(26,95,158,0.12); }
         .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .form-row .form-group { flex: 1; min-width: 120px; }
-
         .table-modal { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 15px; }
         .table-modal th { background: var(--azul); color: white; padding: 8px; font-size: 0.7rem; text-transform: uppercase; position: sticky; top: 0; }
         .table-modal td { padding: 4px; border-bottom: 2px solid #f0f0f0; }
         .table-modal input, .table-modal select { width: 100%; padding: 8px; border: 2px solid var(--gris); border-radius: 6px; font-size: 0.8rem; font-weight: 600; text-align: center; }
         .table-modal .col-total { background: #E8F8F0; font-weight: 900; color: var(--verde); text-align: center; font-size: 1rem; }
         .btn-add-row { background: var(--verde-claro); color: white; border: none; padding: 8px 15px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-bottom: 15px; }
-
         .total-display { background: var(--azul); color: white; padding: 15px; border-radius: 12px; text-align: center; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 10px; }
         .total-display span { font-size: 1.8rem; font-weight: 900; }
         .total-display small { font-size: 0.8rem; text-transform: uppercase; font-weight: 600; opacity: 0.8; }
-
         .action-buttons-modal { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
         .btn-in { background: #E8F8F0; color: var(--verde); border: 2px solid var(--verde); }
         .btn-in:hover { background: var(--verde); color: white; }
         .btn-out { background: #FDEDEC; color: var(--rojo); border: 2px solid var(--rojo); }
         .btn-out:hover { background: var(--rojo); color: white; }
-
-        .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); display: none; justify-content: center; align-items: center; z-index: 100000; }
+        .loader-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100000; }
         .loader-overlay.active { display: flex; }
         .loader-content { background: white; padding: 36px 44px; border-radius: 28px; text-align: center; border: 6px solid var(--amarillo); }
         .loader-spinner { width: 60px; height: 60px; border: 7px solid #D5D8DC; border-top-color: #1A5F9E; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px; }
         .loader-content p { font-size: 1.1rem; font-weight: 700; color: #0A2342; }
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* RESPONSIVE */
-        @media (max-width: 1200px) {
-            .grid-container { grid-template-columns: repeat(2, 1fr); height: 50vh; }
-        }
-        @media (max-width: 600px) {
-            .grid-container { grid-template-columns: 1fr; height: auto; }
-            body { height: auto; overflow: auto; }
-        }
-        @media (max-height: 700px) {
-            .grid-container { height: 38vh; min-height: 170px; }
-            .kpi-number { font-size: clamp(1.2rem, 2.6vh, 1.8rem); }
-            .chart-container { min-height: 90px; }
-        }
+        @media (max-width: 1200px) { .grid-container { grid-template-columns: repeat(2, 1fr); height: 50vh; } }
+        @media (max-width: 600px) { .grid-container { grid-template-columns: 1fr; height: auto; } body { height: auto; overflow: auto; } }
+        @media (max-height: 700px) { .grid-container { height: 38vh; min-height: 170px; } .kpi-number { font-size: clamp(1.2rem, 2.6vh, 1.8rem); } .chart-container { min-height: 90px; } }
     </style>
 </head>
 <body>
@@ -390,7 +153,6 @@
 </div>
 
 <div class="grid-container" id="tarjetasGrid">
-    <!-- COLUMNA 1: Almacén Charolas + Manufactura apiladas -->
     <div class="stack-col">
         <div class="card card-compact">
             <div class="card-header"><h2 id="tituloInv">Inventario Lunes --/--/----</h2></div>
@@ -406,16 +168,13 @@
         </div>
     </div>
 
-    <!-- COLUMNA 2: Inventario Almacén Charolas -->
     <div class="stack-col">
         <div class="card card-inv-almacen" id="cardConsumidas" style="border-color: var(--azul); flex: 1;">
             <div class="card-header">
                 <h2>📦 Inventario Almacén Charolas</h2>
                 <span id="fechaConsumidas">--/--/----</span>
             </div>
-            
             <div class="inv-top-row">
-                <!-- Cuadro Izquierdo: Salidas y Entradas -->
                 <div class="inv-box-left">
                     <div class="box-item">
                         <span class="lbl">Salidas de la semana</span>
@@ -427,29 +186,23 @@
                         <span class="val"><span id="entradasCharolas">0</span> charolas</span>
                     </div>
                 </div>
-                
-                <!-- Cuadro Derecho: Inventario Aproximado -->
                 <div class="inv-box-right">
                     <span class="lbl">INVENTARIO APROXIMADO</span>
                     <span class="num" id="inventarioCharolas">0</span>
                     <span class="unit">charolas</span>
                 </div>
             </div>
-            
             <div class="inv-bottom-row">
-                <!-- Retorno (Naranja suave) -->
                 <div class="inv-mini-box retorno" style="cursor: default;">
                     <span class="lbl">Retorno</span>
                     <span class="num" id="invRetorno">0</span>
                     <span class="unit">charolas</span>
                 </div>
-                <!-- Azul Limpia (Azul claro, clic para editar) -->
                 <div class="inv-mini-box azul" onclick="abrirModalEdicion('azul')">
                     <span class="lbl">Azul limpia</span>
                     <span class="num" id="invAzulLimpia">0</span>
                     <span class="unit">charolas</span>
                 </div>
-                <!-- Verde Limpia (Verde menta, clic para editar) -->
                 <div class="inv-mini-box verde" onclick="abrirModalEdicion('verde')">
                     <span class="lbl">Verde limpia</span>
                     <span class="num" id="invVerdeLimpia">0</span>
@@ -459,57 +212,23 @@
         </div>
     </div>
 
-    <!-- COLUMNA 3: Tlahuac (Rediseñada con cajitas de color) -->
     <div class="card">
         <div class="card-header"><h2>📍 Tlahuac</h2><span>General</span></div>
         <div class="color-list-container">
-            <div class="color-box box-azul">
-                <span class="lbl">Azul</span>
-                <span class="t"><span id="tlahuacAzulTar">0</span> tar.</span>
-                <span class="c" id="tlahuacAzul">0</span>
-            </div>
-            <div class="color-box box-verde">
-                <span class="lbl">Verde</span>
-                <span class="t"><span id="tlahuacVerdeTar">0</span> tar.</span>
-                <span class="c" id="tlahuacVerde">0</span>
-            </div>
-            <div class="color-box box-rojo">
-                <span class="lbl">Rojo</span>
-                <span class="t"><span id="tlahuacRojoTar">0</span> tar.</span>
-                <span class="c" id="tlahuacRojo">0</span>
-            </div>
-            <div class="color-box box-amarillo">
-                <span class="lbl">Amarillo</span>
-                <span class="t"><span id="tlahuacAmarilloTar">0</span> tar.</span>
-                <span class="c" id="tlahuacAmarillo">0</span>
-            </div>
+            <div class="color-box box-azul"><span class="lbl">Azul</span><span class="t"><span id="tlahuacAzulTar">0</span> tar.</span><span class="c" id="tlahuacAzul">0</span></div>
+            <div class="color-box box-verde"><span class="lbl">Verde</span><span class="t"><span id="tlahuacVerdeTar">0</span> tar.</span><span class="c" id="tlahuacVerde">0</span></div>
+            <div class="color-box box-rojo"><span class="lbl">Rojo</span><span class="t"><span id="tlahuacRojoTar">0</span> tar.</span><span class="c" id="tlahuacRojo">0</span></div>
+            <div class="color-box box-amarillo"><span class="lbl">Amarillo</span><span class="t"><span id="tlahuacAmarilloTar">0</span> tar.</span><span class="c" id="tlahuacAmarillo">0</span></div>
         </div>
     </div>
 
-    <!-- COLUMNA 4: Almacenes (Rediseñada con cajitas de color) -->
     <div class="card">
         <div class="card-header"><h2>📦 Almacenes</h2><span>General</span></div>
         <div class="color-list-container">
-            <div class="color-box box-azul">
-                <span class="lbl">Azul</span>
-                <span class="t"><span id="almacenAzulTar">0</span> tar.</span>
-                <span class="c" id="almacenAzul">0</span>
-            </div>
-            <div class="color-box box-verde">
-                <span class="lbl">Verde</span>
-                <span class="t"><span id="almacenVerdeTar">0</span> tar.</span>
-                <span class="c" id="almacenVerde">0</span>
-            </div>
-            <div class="color-box box-rojo">
-                <span class="lbl">Rojo</span>
-                <span class="t"><span id="almacenRojoTar">0</span> tar.</span>
-                <span class="c" id="almacenRojo">0</span>
-            </div>
-            <div class="color-box box-amarillo">
-                <span class="lbl">Amarillo</span>
-                <span class="t"><span id="almacenAmarilloTar">0</span> tar.</span>
-                <span class="c" id="almacenAmarillo">0</span>
-            </div>
+            <div class="color-box box-azul"><span class="lbl">Azul</span><span class="t"><span id="almacenAzulTar">0</span> tar.</span><span class="c" id="almacenAzul">0</span></div>
+            <div class="color-box box-verde"><span class="lbl">Verde</span><span class="t"><span id="almacenVerdeTar">0</span> tar.</span><span class="c" id="almacenVerde">0</span></div>
+            <div class="color-box box-rojo"><span class="lbl">Rojo</span><span class="t"><span id="almacenRojoTar">0</span> tar.</span><span class="c" id="almacenRojo">0</span></div>
+            <div class="color-box box-amarillo"><span class="lbl">Amarillo</span><span class="t"><span id="almacenAmarilloTar">0</span> tar.</span><span class="c" id="almacenAmarillo">0</span></div>
         </div>
     </div>
 </div>
@@ -519,8 +238,6 @@
     <canvas id="chartGap"></canvas>
 </div>
 
-<!-- MODALES -->
-<!-- Modal para Editar Azul/Verde Limpia -->
 <div class="modal-overlay" id="modalEdicion">
     <div class="modal-content small" style="border-color: var(--verde);">
         <div class="modal-header">
@@ -665,9 +382,11 @@
 </div>
 
 <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbztVUQv79T7V_97-A8v8T2DSCd8EwjbbV2oir2zmZMEJBBA8bOvlS8FBVgDwIEhDm5M/exec';
+    // ⚠️ PEGA AQUÍ LA URL DE TU APPS SCRIPT (La única que necesitas)
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwjTdV86X1-8dPDOFAFd3VB6wNTwiGe7rwOl53QIGJgHoz4QbghqUJlf7ex3mdWbplh/exec';
     const API_URL_LAVADO = 'https://script.google.com/macros/s/AKfycbwcluWJgTsfpT2QbBzom5seFVIU9XWBe7PK9SkFQPn4xK9NFshOlGjcs5qbQTzGJgyF/exec';
     const API_URL_ENTRADAS = 'https://script.google.com/macros/s/AKfycbzmW61PTvNdvokvpWjNI3BJicyjBSPmky_o_N1SlU8Op1PtrkLXEWDSeO7VJDq7hAs/exec';
+    
     const CHAROLAS_POR_TARIMA = 120;
 
     let chartGapInstance = null;
@@ -717,11 +436,41 @@
         }
     }
 
+    async function apiGetManual() {
+        return new Promise((resolve) => {
+            const callback = 'cbM_' + Date.now();
+            window[callback] = (res) => { delete window[callback]; resolve(res); };
+            const script = document.createElement('script');
+            script.src = `${API_URL}?action=getInventarioManual&callback=${callback}&_t=${Date.now()}`;
+            document.body.appendChild(script);
+            setTimeout(() => { if (window[callback]) { delete window[callback]; resolve({ success: false, azul: 0, verde: 0 }); } }, 10000);
+        });
+    }
+
     async function apiPost(data) {
         const formData = new FormData();
         for (let key in data) formData.append(key, data[key]);
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: formData });
         return { success: true };
+    }
+
+    async function apiPostManual(azul, verde) {
+        return new Promise((resolve) => {
+            const callback = 'cbSave_' + Date.now();
+            window[callback] = (res) => { 
+                delete window[callback]; 
+                resolve(res); 
+            };
+            const script = document.createElement('script');
+            script.src = `${API_URL}?action=guardarInventarioManual&azul=${azul}&verde=${verde}&callback=${callback}&_t=${Date.now()}`;
+            document.body.appendChild(script);
+            setTimeout(() => { 
+                if (window[callback]) { 
+                    delete window[callback]; 
+                    resolve({ success: false }); 
+                } 
+            }, 10000);
+        });
     }
 
     function obtenerLunesDeFecha(fechaStr) {
@@ -874,18 +623,12 @@
         return totalCharolas;
     }
 
-    // ============================================
-    // LÓGICA DE EDICIÓN MANUAL (AZUL / VERDE)
-    // ============================================
-    function cargarValoresManuales() {
-        try {
-            const saved = localStorage.getItem('inventarioCharolasManual');
-            if (saved) {
-                const d = JSON.parse(saved);
-                document.getElementById('invAzulLimpia').textContent = (d.azul || 0).toLocaleString('es-MX');
-                document.getElementById('invVerdeLimpia').textContent = (d.verde || 0).toLocaleString('es-MX');
-            }
-        } catch(e) {}
+    async function cargarValoresManuales() {
+        const res = await apiGetManual();
+        if (res && res.success) {
+            document.getElementById('invAzulLimpia').textContent = (res.azul || 0).toLocaleString('es-MX');
+            document.getElementById('invVerdeLimpia').textContent = (res.verde || 0).toLocaleString('es-MX');
+        }
     }
 
     function abrirModalEdicion(tipo) {
@@ -900,7 +643,7 @@
         document.getElementById('modalEdicion').classList.add('active');
     }
 
-    function guardarEdicion() {
+    async function guardarEdicion() {
         const val = parseInt(document.getElementById('editInputCantidad').value) || 0;
         
         let azul = parseInt(document.getElementById('invAzulLimpia').textContent.replace(/,/g, '')) || 0;
@@ -909,12 +652,11 @@
         if (editandoTipo === 'azul') azul = val;
         if (editandoTipo === 'verde') verde = val;
         
-        localStorage.setItem('inventarioCharolasManual', JSON.stringify({ azul, verde }));
-        
         document.getElementById('invAzulLimpia').textContent = azul.toLocaleString('es-MX');
         document.getElementById('invVerdeLimpia').textContent = verde.toLocaleString('es-MX');
-        
         cerrarModal('modalEdicion');
+        
+        await apiPostManual(azul, verde);
         actualizarRetorno();
     }
 
@@ -922,15 +664,10 @@
         const azul = parseInt(document.getElementById('invAzulLimpia').textContent.replace(/,/g, '')) || 0;
         const verde = parseInt(document.getElementById('invVerdeLimpia').textContent.replace(/,/g, '')) || 0;
         
-        // Retorno = Total Aproximado - Azul - Verde
         const retorno = totalInventarioAproximadoGlobal - azul - verde;
-        
         document.getElementById('invRetorno').textContent = retorno.toLocaleString('es-MX');
     }
 
-    // ============================================
-    // RESTO DE MODALES Y FUNCIONES GENERALES
-    // ============================================
     function abrirModal(id) {
         if (id === 'modalInventario') {
             if (document.getElementById('btnInvGeneral').classList.contains('btn-bloqueado')) {
@@ -1271,8 +1008,9 @@
         
         totalInventarioAproximadoGlobal = inventarioFinal;
 
-        cargarValoresManuales();
-        actualizarRetorno();
+        cargarValoresManuales().then(() => {
+            actualizarRetorno();
+        });
 
         const hoy = new Date();
         document.getElementById('fechaConsumidas').textContent =
